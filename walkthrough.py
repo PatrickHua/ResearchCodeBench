@@ -64,55 +64,19 @@ def download_repo(url: str, target_dir: str) -> bool:
 
 def create_yaml_config(repo_dir: str) -> None:
     """Create paper2code.yaml with the exact configuration from instructions."""
-    config_content = """mask_file_path: models/mar.py  # the file where your core code is
-
-context_file_paths:  # these files will be added to the context of the llm. write null if the mask file is self-contained.
-  - models/pixelloss.py  # other files that are used in the code
-  - util/visualize.py  # other contextual files that are needed for implementing the core code.
-
-test_entry_point: paper2code_test.py  # will run this entry point script to check if the code is correct. paper2code_test.py is a conventional name.
-# Use this name unless you have a good reason to change it.
-
-paper_tex: paper2code_paper.tex  # the tex file for the paper.
-# name it paper2code_paper.tex unless you have a good reason to change it."""
+    with open('templates.yaml', 'r') as f:
+        templates = yaml.safe_load(f)
     
     yaml_path = os.path.join(repo_dir, 'paper2code.yaml')
     with open(yaml_path, 'w') as f:
-        f.write(config_content)
+        f.write(templates['yaml_template'])
 
 def show_instructions() -> None:
     """Show the setup instructions panel."""
-    instructions = """
-[bold]Paper2Code Setup Instructions:[/bold]
-
-1. [cyan]Create Project Structure[/cyan]
-   • Download the repository (do not clone it)
-   • Copy the repository to the [yellow]pset[/yellow] folder
-   
-2. [cyan]Create Configuration[/cyan]
-   • Inside the repository, create [yellow]paper2code.yaml[/yellow] with fields:
-     - mask_file_path: Path to core code file
-     - context_file_paths: List of contextual files (or null)
-     - test_entry_point: paper2code_test.py
-     - paper_tex: paper2code_paper.tex
-
-3. [cyan]Setup Paper Content[/cyan]
-   • Download the paper's tex file from arXiv
-   • Create [yellow]paper2code_paper.tex[/yellow]
-   • If multiple tex files, merge them:
-     [dim]latexpand main_file.tex > merged.tex[/dim]
-
-4. [cyan]Create Test Script[/cyan]
-   • Create [yellow]paper2code_test.py[/yellow]
-   • Implement tests to verify generated code
-   • Ensure tests can run with CPU only
-
-5. [cyan]Final Steps[/cyan]
-   • Create requirements.txt or environment.yaml
-   • Remove unnecessary files (__pycache__, .git/, etc.)
-   • Verify all files are present and tests pass
-    """
-    console.print(Panel(instructions, 
+    with open('templates.yaml', 'r') as f:
+        templates = yaml.safe_load(f)
+    
+    console.print(Panel(templates['instructions'], 
                        title="[bold blue]Paper2Code Setup Guide[/bold blue]",
                        border_style="blue",
                        expand=False))
@@ -170,14 +134,12 @@ def setup_paper2code() -> None:
         console.print("\n", table)
         
         # Next steps panel
-        next_steps = """
-[bold]Next Steps:[/bold]
-
-1. Verify the paths in [cyan]paper2code.yaml[/cyan] match your repository structure
-2. Verify the content of [cyan]paper2code_paper.tex[/cyan]
-3. Create [cyan]paper2code_test.py[/cyan] for testing
-        """
-        console.print(Panel(next_steps, title="[bold green]Setup Complete!", border_style="green"))
+        with open('templates.yaml', 'r') as f:
+            templates = yaml.safe_load(f)
+        
+        console.print(Panel(templates['next_steps'], 
+                          title="[bold green]Setup Complete!", 
+                          border_style="green"))
         
     except PaperCodeError as e:
         console.print(Panel(str(e), title="[bold red]Setup Failed", border_style="red"))
