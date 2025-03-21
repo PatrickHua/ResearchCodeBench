@@ -1,8 +1,8 @@
 # Repository Setup Guide
 
-## Initial Setup
+## Contributing a New Annotated Repository
 
-### Create Virtual Environment and Install Requirements
+### Step 1: Create Virtual Environment and Install Requirements
 
 Run these commands in sequence:
 ```bash
@@ -11,14 +11,14 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-### Download GitHub Repo and ArXiv Paper
-Run:
+### Step 2: Download GitHub Repo and ArXiv Paper
+Run the following:
 ```bash
-walkthrough.py
+python3 walkthrough.py
 ```
 Follow the prompted steps, including providing the GitHub link and arXiv link for the paper. The program will download the code and paper.
 
-## Repository Configuration
+## Step 3: Repository Configuration
 
 The downloaded repository will be located in `pset/{repo_name}`. Follow these steps to configure it:
 
