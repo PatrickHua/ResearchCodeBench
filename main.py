@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument("--src_folder", type=str, default="./pset/")
     # parser.add_argument("--output_file", type=str, default="tmp.json")
     parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--llm_types", nargs="+", type=str, default=[ "gemini-1.5-flash-8b", "gpt-4o-mini"])
+    parser.add_argument("--llm_types", nargs="+", type=str, default=[ "gemini-1.5-flash-8b", "gpt-4o-mini", "o3-mini", "gpt-4o"])
     parser.add_argument("--n_completions", type=int, default=2)
     parser.add_argument("--temperature", type=float, default=0.5)
     parser.add_argument("--max_iter", type=int, default=10)
@@ -62,7 +62,8 @@ if __name__ == '__main__':
             f.write(pset.model_dump_json(indent=4))
         print(f"Done. Results saved to {output_file}")
 
-
+    print(f"Total inference cost after creating problems: {clients.total_inference_cost}")
+    
     if args.test_all or args.test_one:
         # copy the pset to the cache dir
         # cache_dir = os.path.join(args.cache_dir, os.path.basename(args.src_folder))
@@ -77,3 +78,5 @@ if __name__ == '__main__':
     
     if args.summarize_results:
         pset.summarize_results()
+
+

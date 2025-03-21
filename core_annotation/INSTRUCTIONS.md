@@ -51,6 +51,8 @@ paper_tex: paper2code_paper.tex  # the tex file for the paper.
     - You should have a variety of snippet sizes.
         - e.g. a single line, a few lines, such as a for loop, a function, etc.
         - Because different snippet sizes have different difficulty to generate.
+    - Some functions might have branches that are experimental and not of the main interest.
+        - Comment out the experimental branches as long as they are not affecting the main logic.
 
 
 8. Commit and push the changes in pset folder to the remote repository. Before you do this, check that:

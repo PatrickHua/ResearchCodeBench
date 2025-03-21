@@ -49,10 +49,11 @@ Your answer should include the following:
         temperature=temperature
     )
 
-    with open(f"tmp_completions.txt", "w") as f:
-        f.write(str(completions))
-    # breakpoint()
-    formatted_completions_lines = [Code(extract_python_code_blocks(completion, return_as_list=True)[-1]) for completion in completions]
+
+    try:
+        formatted_completions_lines = [Code(extract_python_code_blocks(completion, return_as_list=True)[-1]) for completion in completions]
+    except Exception as e:
+        breakpoint()
     
     completions = [Completion(completion=completion, formatted_completion=formatted_completion) for completion, formatted_completion in zip(completions, formatted_completions_lines)]
     return Prediction(completions=completions)

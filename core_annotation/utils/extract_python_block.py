@@ -23,7 +23,7 @@ def extract_python_code_blocks(completion: str, return_as_list: bool = False) ->
 
     if not matches:
         # If no code blocks are found, return the original string or an empty list
-        return completion if not return_as_list else []
+        return '' if not return_as_list else ['']
 
     # Clean up each matched code block by stripping leading and trailing whitespace
     cleaned_blocks = [code_block for code_block in matches]
