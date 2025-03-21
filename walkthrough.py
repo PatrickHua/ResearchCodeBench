@@ -14,9 +14,11 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
 from rich import print as rprint
-from arxiv_processor import process_arxiv_paper
+from walkthrough.arxiv_processor import process_arxiv_paper
 
 console = Console()
+
+TEMPLATE_FILEPATH = 'walkthrough/templates.yaml'
 
 class PaperCodeError(Exception):
     """Custom exception for paper2code setup errors."""
@@ -64,7 +66,7 @@ def download_repo(url: str, target_dir: str) -> bool:
 
 def create_yaml_config(repo_dir: str) -> None:
     """Create paper2code.yaml with the exact configuration from instructions."""
-    with open('templates.yaml', 'r') as f:
+    with open(TEMPLATE_FILEPATH, 'r') as f:
         templates = yaml.safe_load(f)
     
     yaml_path = os.path.join(repo_dir, 'paper2code.yaml')
@@ -73,7 +75,7 @@ def create_yaml_config(repo_dir: str) -> None:
 
 def show_instructions() -> None:
     """Show the setup instructions panel."""
-    with open('templates.yaml', 'r') as f:
+    with open(TEMPLATE_FILEPATH, 'r') as f:
         templates = yaml.safe_load(f)
     
     console.print(Panel(templates['instructions'], 
@@ -134,7 +136,7 @@ def setup_paper2code() -> None:
         console.print("\n", table)
         
         # Next steps panel
-        with open('templates.yaml', 'r') as f:
+        with open(TEMPLATE_FILEPATH, 'r') as f:
             templates = yaml.safe_load(f)
         
         console.print(Panel(templates['next_steps'], 
