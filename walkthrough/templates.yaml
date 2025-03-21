@@ -1,0 +1,60 @@
+yaml_template: |
+  mask_file_path: models/mar.py  # the file where your core code is
+
+  context_file_paths:  # these files will be added to the context of the llm. write null if the mask file is self-contained.
+    - models/pixelloss.py  # other files that are used in the code
+    - util/visualize.py  # other contextual files that are needed for implementing the core code.
+
+  test_entry_point: paper2code_test.py  # will run this entry point script to check if the code is correct. paper2code_test.py is a conventional name.
+  # Use this name unless you have a good reason to change it.
+
+  paper_tex: paper2code_paper.tex  # the tex file for the paper.
+  # name it paper2code_paper.tex unless you have a good reason to change it.
+
+next_steps: |
+  [bold]Next Steps:[/bold]
+
+  1. Update [cyan]paper2code.yaml[/cyan] with correct file paths
+  2. Create [cyan]paper2code_test.py[/cyan]
+     • Use unittest for testing
+     • Verify generated code output
+     • Ensure CPU-only compatibility
+  3. Annotate the core code with snippets
+     • Use [cyan]# <paper2code name="snippet_name">[/cyan] format
+     • Create varied snippet sizes
+     • Keep names concise and informative
+  4. Clean up repository
+     • Update all configuration files
+     • Remove unnecessary files (__pycache__, .git/, etc.)
+     • Keep only test-relevant files
+     • Verify repository size
+  5. Run final test and verify everything works
+
+instructions: |
+  [bold]Paper2Code Setup Instructions:[/bold]
+
+  1. [cyan]Create Project Structure[/cyan]
+     • Download the repository (do not clone it)
+     • Copy the repository to the [yellow]pset[/yellow] folder
+     
+  2. [cyan]Create Configuration[/cyan]
+     • Inside the repository, create [yellow]paper2code.yaml[/yellow] with fields:
+       - mask_file_path: Path to core code file
+       - context_file_paths: List of contextual files (or null)
+       - test_entry_point: paper2code_test.py
+       - paper_tex: paper2code_paper.tex
+
+  3. [cyan]Setup Paper Content[/cyan]
+     • Download the paper's tex file from arXiv
+     • Create [yellow]paper2code_paper.tex[/yellow]
+     • Process and combine all tex files
+
+  4. [cyan]Create Test Script[/cyan]
+     • Create [yellow]paper2code_test.py[/yellow]
+     • Implement tests to verify generated code
+     • Ensure tests can run with CPU only
+
+  5. [cyan]Final Steps[/cyan]
+     • Create requirements.txt or environment.yaml
+     • Remove unnecessary files (__pycache__, .git/, etc.)
+     • Verify all files are present and tests pass

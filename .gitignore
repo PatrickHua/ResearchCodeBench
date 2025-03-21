@@ -16,3 +16,6 @@ __pycache__
 
 .vscode
 */**.git/
+
+venv
+.venv
