@@ -10,6 +10,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 from rich.prompt import Prompt, Confirm
+from typing import List
 
 console = Console()
 
@@ -60,7 +61,7 @@ def flatten_tex_files(source_dir: Path, main_tex: Path) -> str:
     content = read_file(main_tex)
     return process_content(content, main_tex.parent)
 
-def verify_tex_content(content: str) -> list[str]:
+def verify_tex_content(content: str) -> List[str]:
     """Verify the tex content has expected sections."""
     sections = ['abstract', 'introduction', 'related work', 
                 'method', 'experiment', 'conclusion']

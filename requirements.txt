@@ -2,4 +2,3 @@ urllib3==1.26.15
 pyyaml>=6.0.1
 requests>=2.31.0
 rich>=13.7.0
-latexpand

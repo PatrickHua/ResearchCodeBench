@@ -4,9 +4,13 @@ yaml_template: |
   context_file_paths:  # these files will be added to the context of the llm. write null if the mask file is self-contained.
     - module/example.py  # other files that are used in the code
     - util/visualize.py  # other contextual files that are needed for implementing the core code.
+    # DO NOT include files that might leak information about the core code.
 
-  test_entry_point: paper2code_test.py  # will run this entry point script to check if the code is correct. paper2code_test.py is a conventional name.
-  # Create a test file with this name unless you have a good reason to change it.
+  test_entry_point: paper2code_test.py  # will run this entry point script to check if the code is correct.
+  # We encourage you use unittest for testing. However, any format is acceptable as long as 
+  # 1. when run python paper2code_test.py successfully means the code is correct.
+  # 2. Raises an error or break the execution if the code is incorrect.
+
 
   paper_tex: paper2code_paper.tex  # the tex file for the paper.
 

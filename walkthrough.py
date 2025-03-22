@@ -83,6 +83,18 @@ def show_instructions() -> None:
                        border_style="blue",
                        expand=False))
 
+def create_empty_requirements_txt(repo_dir: str) -> None:
+    """Create an empty requirements.txt file in the repository directory."""
+    requirements_path = os.path.join(repo_dir, 'paper2code_requirements.txt')
+    with open(requirements_path, 'w') as f:
+        f.write("TODO: Delete this line and add requirements")
+
+def create_empty_test_file(repo_dir: str) -> None:
+    """Create an empty test file in the repository directory."""
+    test_path = os.path.join(repo_dir, 'paper2code_test.py')
+    with open(test_path, 'w') as f:
+        f.write("import unittest\n\n\n# TODO: Add tests for the core function code.")
+
 def setup_paper2code() -> None:
     """Main function to set up paper2code project with interactive prompts."""
     console.print(Panel.fit(
@@ -112,7 +124,8 @@ def setup_paper2code() -> None:
             is_new_download = download_repo(repo_url, output_dir)
             if is_new_download:
                 create_yaml_config(output_dir)
-        
+                create_empty_requirements_txt(output_dir)
+                create_empty_test_file(output_dir)
         # Step 3: Process arXiv paper
         process_arxiv_paper(output_dir)
         
@@ -126,6 +139,7 @@ def setup_paper2code() -> None:
             if is_new_download:
                 table.add_row("Repository", "✅ Downloaded", output_dir)
                 table.add_row("paper2code.yaml", "✅ Created", f"{output_dir}/paper2code.yaml")
+                table.add_row("paper2code_requirements.txt", "✅ Created", f"{output_dir}/paper2code_requirements.txt")
             else:
                 table.add_row("Repository", "⚠️ Using Existing", output_dir)
         else:
