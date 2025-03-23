@@ -1,5 +1,22 @@
 # How to annotate a paper's core code.
 
+
+1. Setup the repo environment and complete the paper2code_requirements.txt with the minimumly needed packages and complete the paper2code.yaml.
+
+
+2. Mark the key parts in the core function/method with <paper2code name="example"></paper2code name="example">
+
+
+3. Complete the paper2code_test.py and make sure it runs.
+
+
+
+
+
+
+<!-- 
+
+
 1. Download the repository (do not clone it. if you do, remove .git folder).
 2. Copy the repository to the `pset` folder.
 3. inside of that repo, create a yaml file named paper2code.yaml
@@ -70,4 +87,4 @@ paper_tex: paper2code_paper.tex  # the tex file for the paper.
 
 
 
-
+ -->
