@@ -79,4 +79,5 @@ Before committing and pushing to a new branch, verify:
   - No hidden large files
   - Overall size is small
 - Tests run successfully after changes
+- Create a new branch after the name of your repository
 - Create PR and request review after pushing
