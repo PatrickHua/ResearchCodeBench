@@ -1,0 +1,1124 @@
+
+\documentclass{article} \usepackage{iclr2025_conference,times}
+
+
+\usepackage{amsmath,amsfonts,bm}
+
+\newcommand{\figleft}{{\em (Left)}}
+\newcommand{\figcenter}{{\em (Center)}}
+\newcommand{\figright}{{\em (Right)}}
+\newcommand{\figtop}{{\em (Top)}}
+\newcommand{\figbottom}{{\em (Bottom)}}
+\newcommand{\captiona}{{\em (a)}}
+\newcommand{\captionb}{{\em (b)}}
+\newcommand{\captionc}{{\em (c)}}
+\newcommand{\captiond}{{\em (d)}}
+
+\newcommand{\newterm}[1]{{\bf #1}}
+
+
+\def\figref#1{figure~\ref{#1}}
+\def\Figref#1{Figure~\ref{#1}}
+\def\twofigref#1#2{figures \ref{#1} and \ref{#2}}
+\def\quadfigref#1#2#3#4{figures \ref{#1}, \ref{#2}, \ref{#3} and \ref{#4}}
+\def\secref#1{section~\ref{#1}}
+\def\Secref#1{Section~\ref{#1}}
+\def\twosecrefs#1#2{sections \ref{#1} and \ref{#2}}
+\def\secrefs#1#2#3{sections \ref{#1}, \ref{#2} and \ref{#3}}
+\def\eqref#1{equation~\ref{#1}}
+\def\Eqref#1{Equation~\ref{#1}}
+\def\plaineqref#1{\ref{#1}}
+\def\chapref#1{chapter~\ref{#1}}
+\def\Chapref#1{Chapter~\ref{#1}}
+\def\rangechapref#1#2{chapters\ref{#1}--\ref{#2}}
+\def\algref#1{algorithm~\ref{#1}}
+\def\Algref#1{Algorithm~\ref{#1}}
+\def\twoalgref#1#2{algorithms \ref{#1} and \ref{#2}}
+\def\Twoalgref#1#2{Algorithms \ref{#1} and \ref{#2}}
+\def\partref#1{part~\ref{#1}}
+\def\Partref#1{Part~\ref{#1}}
+\def\twopartref#1#2{parts \ref{#1} and \ref{#2}}
+
+\def\ceil#1{\lceil #1 \rceil}
+\def\floor#1{\lfloor #1 \rfloor}
+\def\1{\bm{1}}
+\newcommand{\train}{\mathcal{D}}
+\newcommand{\valid}{\mathcal{D_{\mathrm{valid}}}}
+\newcommand{\test}{\mathcal{D_{\mathrm{test}}}}
+
+\def\eps{{\epsilon}}
+
+
+\def\reta{{\textnormal{$\eta$}}}
+\def\ra{{\textnormal{a}}}
+\def\rb{{\textnormal{b}}}
+\def\rc{{\textnormal{c}}}
+\def\rd{{\textnormal{d}}}
+\def\re{{\textnormal{e}}}
+\def\rf{{\textnormal{f}}}
+\def\rg{{\textnormal{g}}}
+\def\rh{{\textnormal{h}}}
+\def\ri{{\textnormal{i}}}
+\def\rj{{\textnormal{j}}}
+\def\rk{{\textnormal{k}}}
+\def\rl{{\textnormal{l}}}
+\def\rn{{\textnormal{n}}}
+\def\ro{{\textnormal{o}}}
+\def\rp{{\textnormal{p}}}
+\def\rq{{\textnormal{q}}}
+\def\rr{{\textnormal{r}}}
+\def\rs{{\textnormal{s}}}
+\def\rt{{\textnormal{t}}}
+\def\ru{{\textnormal{u}}}
+\def\rv{{\textnormal{v}}}
+\def\rw{{\textnormal{w}}}
+\def\rx{{\textnormal{x}}}
+\def\ry{{\textnormal{y}}}
+\def\rz{{\textnormal{z}}}
+
+\def\rvepsilon{{\mathbf{\epsilon}}}
+\def\rvtheta{{\mathbf{\theta}}}
+\def\rva{{\mathbf{a}}}
+\def\rvb{{\mathbf{b}}}
+\def\rvc{{\mathbf{c}}}
+\def\rvd{{\mathbf{d}}}
+\def\rve{{\mathbf{e}}}
+\def\rvf{{\mathbf{f}}}
+\def\rvg{{\mathbf{g}}}
+\def\rvh{{\mathbf{h}}}
+\def\rvu{{\mathbf{i}}}
+\def\rvj{{\mathbf{j}}}
+\def\rvk{{\mathbf{k}}}
+\def\rvl{{\mathbf{l}}}
+\def\rvm{{\mathbf{m}}}
+\def\rvn{{\mathbf{n}}}
+\def\rvo{{\mathbf{o}}}
+\def\rvp{{\mathbf{p}}}
+\def\rvq{{\mathbf{q}}}
+\def\rvr{{\mathbf{r}}}
+\def\rvs{{\mathbf{s}}}
+\def\rvt{{\mathbf{t}}}
+\def\rvu{{\mathbf{u}}}
+\def\rvv{{\mathbf{v}}}
+\def\rvw{{\mathbf{w}}}
+\def\rvx{{\mathbf{x}}}
+\def\rvy{{\mathbf{y}}}
+\def\rvz{{\mathbf{z}}}
+
+\def\erva{{\textnormal{a}}}
+\def\ervb{{\textnormal{b}}}
+\def\ervc{{\textnormal{c}}}
+\def\ervd{{\textnormal{d}}}
+\def\erve{{\textnormal{e}}}
+\def\ervf{{\textnormal{f}}}
+\def\ervg{{\textnormal{g}}}
+\def\ervh{{\textnormal{h}}}
+\def\ervi{{\textnormal{i}}}
+\def\ervj{{\textnormal{j}}}
+\def\ervk{{\textnormal{k}}}
+\def\ervl{{\textnormal{l}}}
+\def\ervm{{\textnormal{m}}}
+\def\ervn{{\textnormal{n}}}
+\def\ervo{{\textnormal{o}}}
+\def\ervp{{\textnormal{p}}}
+\def\ervq{{\textnormal{q}}}
+\def\ervr{{\textnormal{r}}}
+\def\ervs{{\textnormal{s}}}
+\def\ervt{{\textnormal{t}}}
+\def\ervu{{\textnormal{u}}}
+\def\ervv{{\textnormal{v}}}
+\def\ervw{{\textnormal{w}}}
+\def\ervx{{\textnormal{x}}}
+\def\ervy{{\textnormal{y}}}
+\def\ervz{{\textnormal{z}}}
+
+\def\rmA{{\mathbf{A}}}
+\def\rmB{{\mathbf{B}}}
+\def\rmC{{\mathbf{C}}}
+\def\rmD{{\mathbf{D}}}
+\def\rmE{{\mathbf{E}}}
+\def\rmF{{\mathbf{F}}}
+\def\rmG{{\mathbf{G}}}
+\def\rmH{{\mathbf{H}}}
+\def\rmI{{\mathbf{I}}}
+\def\rmJ{{\mathbf{J}}}
+\def\rmK{{\mathbf{K}}}
+\def\rmL{{\mathbf{L}}}
+\def\rmM{{\mathbf{M}}}
+\def\rmN{{\mathbf{N}}}
+\def\rmO{{\mathbf{O}}}
+\def\rmP{{\mathbf{P}}}
+\def\rmQ{{\mathbf{Q}}}
+\def\rmR{{\mathbf{R}}}
+\def\rmS{{\mathbf{S}}}
+\def\rmT{{\mathbf{T}}}
+\def\rmU{{\mathbf{U}}}
+\def\rmV{{\mathbf{V}}}
+\def\rmW{{\mathbf{W}}}
+\def\rmX{{\mathbf{X}}}
+\def\rmY{{\mathbf{Y}}}
+\def\rmZ{{\mathbf{Z}}}
+
+\def\ermA{{\textnormal{A}}}
+\def\ermB{{\textnormal{B}}}
+\def\ermC{{\textnormal{C}}}
+\def\ermD{{\textnormal{D}}}
+\def\ermE{{\textnormal{E}}}
+\def\ermF{{\textnormal{F}}}
+\def\ermG{{\textnormal{G}}}
+\def\ermH{{\textnormal{H}}}
+\def\ermI{{\textnormal{I}}}
+\def\ermJ{{\textnormal{J}}}
+\def\ermK{{\textnormal{K}}}
+\def\ermL{{\textnormal{L}}}
+\def\ermM{{\textnormal{M}}}
+\def\ermN{{\textnormal{N}}}
+\def\ermO{{\textnormal{O}}}
+\def\ermP{{\textnormal{P}}}
+\def\ermQ{{\textnormal{Q}}}
+\def\ermR{{\textnormal{R}}}
+\def\ermS{{\textnormal{S}}}
+\def\ermT{{\textnormal{T}}}
+\def\ermU{{\textnormal{U}}}
+\def\ermV{{\textnormal{V}}}
+\def\ermW{{\textnormal{W}}}
+\def\ermX{{\textnormal{X}}}
+\def\ermY{{\textnormal{Y}}}
+\def\ermZ{{\textnormal{Z}}}
+
+\def\vzero{{\bm{0}}}
+\def\vone{{\bm{1}}}
+\def\vmu{{\bm{\mu}}}
+\def\vtheta{{\bm{\theta}}}
+\def\va{{\bm{a}}}
+\def\vb{{\bm{b}}}
+\def\vc{{\bm{c}}}
+\def\vd{{\bm{d}}}
+\def\ve{{\bm{e}}}
+\def\vf{{\bm{f}}}
+\def\vg{{\bm{g}}}
+\def\vh{{\bm{h}}}
+\def\vi{{\bm{i}}}
+\def\vj{{\bm{j}}}
+\def\vk{{\bm{k}}}
+\def\vl{{\bm{l}}}
+\def\vm{{\bm{m}}}
+\def\vn{{\bm{n}}}
+\def\vo{{\bm{o}}}
+\def\vp{{\bm{p}}}
+\def\vq{{\bm{q}}}
+\def\vr{{\bm{r}}}
+\def\vs{{\bm{s}}}
+\def\vt{{\bm{t}}}
+\def\vu{{\bm{u}}}
+\def\vv{{\bm{v}}}
+\def\vw{{\bm{w}}}
+\def\vx{{\bm{x}}}
+\def\vy{{\bm{y}}}
+\def\vz{{\bm{z}}}
+
+\def\evalpha{{\alpha}}
+\def\evbeta{{\beta}}
+\def\evepsilon{{\epsilon}}
+\def\evlambda{{\lambda}}
+\def\evomega{{\omega}}
+\def\evmu{{\mu}}
+\def\evpsi{{\psi}}
+\def\evsigma{{\sigma}}
+\def\evtheta{{\theta}}
+\def\eva{{a}}
+\def\evb{{b}}
+\def\evc{{c}}
+\def\evd{{d}}
+\def\eve{{e}}
+\def\evf{{f}}
+\def\evg{{g}}
+\def\evh{{h}}
+\def\evi{{i}}
+\def\evj{{j}}
+\def\evk{{k}}
+\def\evl{{l}}
+\def\evm{{m}}
+\def\evn{{n}}
+\def\evo{{o}}
+\def\evp{{p}}
+\def\evq{{q}}
+\def\evr{{r}}
+\def\evs{{s}}
+\def\evt{{t}}
+\def\evu{{u}}
+\def\evv{{v}}
+\def\evw{{w}}
+\def\evx{{x}}
+\def\evy{{y}}
+\def\evz{{z}}
+
+\def\mA{{\bm{A}}}
+\def\mB{{\bm{B}}}
+\def\mC{{\bm{C}}}
+\def\mD{{\bm{D}}}
+\def\mE{{\bm{E}}}
+\def\mF{{\bm{F}}}
+\def\mG{{\bm{G}}}
+\def\mH{{\bm{H}}}
+\def\mI{{\bm{I}}}
+\def\mJ{{\bm{J}}}
+\def\mK{{\bm{K}}}
+\def\mL{{\bm{L}}}
+\def\mM{{\bm{M}}}
+\def\mN{{\bm{N}}}
+\def\mO{{\bm{O}}}
+\def\mP{{\bm{P}}}
+\def\mQ{{\bm{Q}}}
+\def\mR{{\bm{R}}}
+\def\mS{{\bm{S}}}
+\def\mT{{\bm{T}}}
+\def\mU{{\bm{U}}}
+\def\mV{{\bm{V}}}
+\def\mW{{\bm{W}}}
+\def\mX{{\bm{X}}}
+\def\mY{{\bm{Y}}}
+\def\mZ{{\bm{Z}}}
+\def\mBeta{{\bm{\beta}}}
+\def\mPhi{{\bm{\Phi}}}
+\def\mLambda{{\bm{\Lambda}}}
+\def\mSigma{{\bm{\Sigma}}}
+
+\DeclareMathAlphabet{\mathsfit}{\encodingdefault}{\sfdefault}{m}{sl}
+\SetMathAlphabet{\mathsfit}{bold}{\encodingdefault}{\sfdefault}{bx}{n}
+\newcommand{\tens}[1]{\bm{\mathsfit{#1}}}
+\def\tA{{\tens{A}}}
+\def\tB{{\tens{B}}}
+\def\tC{{\tens{C}}}
+\def\tD{{\tens{D}}}
+\def\tE{{\tens{E}}}
+\def\tF{{\tens{F}}}
+\def\tG{{\tens{G}}}
+\def\tH{{\tens{H}}}
+\def\tI{{\tens{I}}}
+\def\tJ{{\tens{J}}}
+\def\tK{{\tens{K}}}
+\def\tL{{\tens{L}}}
+\def\tM{{\tens{M}}}
+\def\tN{{\tens{N}}}
+\def\tO{{\tens{O}}}
+\def\tP{{\tens{P}}}
+\def\tQ{{\tens{Q}}}
+\def\tR{{\tens{R}}}
+\def\tS{{\tens{S}}}
+\def\tT{{\tens{T}}}
+\def\tU{{\tens{U}}}
+\def\tV{{\tens{V}}}
+\def\tW{{\tens{W}}}
+\def\tX{{\tens{X}}}
+\def\tY{{\tens{Y}}}
+\def\tZ{{\tens{Z}}}
+
+
+\def\gA{{\mathcal{A}}}
+\def\gB{{\mathcal{B}}}
+\def\gC{{\mathcal{C}}}
+\def\gD{{\mathcal{D}}}
+\def\gE{{\mathcal{E}}}
+\def\gF{{\mathcal{F}}}
+\def\gG{{\mathcal{G}}}
+\def\gH{{\mathcal{H}}}
+\def\gI{{\mathcal{I}}}
+\def\gJ{{\mathcal{J}}}
+\def\gK{{\mathcal{K}}}
+\def\gL{{\mathcal{L}}}
+\def\gM{{\mathcal{M}}}
+\def\gN{{\mathcal{N}}}
+\def\gO{{\mathcal{O}}}
+\def\gP{{\mathcal{P}}}
+\def\gQ{{\mathcal{Q}}}
+\def\gR{{\mathcal{R}}}
+\def\gS{{\mathcal{S}}}
+\def\gT{{\mathcal{T}}}
+\def\gU{{\mathcal{U}}}
+\def\gV{{\mathcal{V}}}
+\def\gW{{\mathcal{W}}}
+\def\gX{{\mathcal{X}}}
+\def\gY{{\mathcal{Y}}}
+\def\gZ{{\mathcal{Z}}}
+
+\def\sA{{\mathbb{A}}}
+\def\sB{{\mathbb{B}}}
+\def\sC{{\mathbb{C}}}
+\def\sD{{\mathbb{D}}}
+\def\sF{{\mathbb{F}}}
+\def\sG{{\mathbb{G}}}
+\def\sH{{\mathbb{H}}}
+\def\sI{{\mathbb{I}}}
+\def\sJ{{\mathbb{J}}}
+\def\sK{{\mathbb{K}}}
+\def\sL{{\mathbb{L}}}
+\def\sM{{\mathbb{M}}}
+\def\sN{{\mathbb{N}}}
+\def\sO{{\mathbb{O}}}
+\def\sP{{\mathbb{P}}}
+\def\sQ{{\mathbb{Q}}}
+\def\sR{{\mathbb{R}}}
+\def\sS{{\mathbb{S}}}
+\def\sT{{\mathbb{T}}}
+\def\sU{{\mathbb{U}}}
+\def\sV{{\mathbb{V}}}
+\def\sW{{\mathbb{W}}}
+\def\sX{{\mathbb{X}}}
+\def\sY{{\mathbb{Y}}}
+\def\sZ{{\mathbb{Z}}}
+
+\def\emLambda{{\Lambda}}
+\def\emA{{A}}
+\def\emB{{B}}
+\def\emC{{C}}
+\def\emD{{D}}
+\def\emE{{E}}
+\def\emF{{F}}
+\def\emG{{G}}
+\def\emH{{H}}
+\def\emI{{I}}
+\def\emJ{{J}}
+\def\emK{{K}}
+\def\emL{{L}}
+\def\emM{{M}}
+\def\emN{{N}}
+\def\emO{{O}}
+\def\emP{{P}}
+\def\emQ{{Q}}
+\def\emR{{R}}
+\def\emS{{S}}
+\def\emT{{T}}
+\def\emU{{U}}
+\def\emV{{V}}
+\def\emW{{W}}
+\def\emX{{X}}
+\def\emY{{Y}}
+\def\emZ{{Z}}
+\def\emSigma{{\Sigma}}
+
+\newcommand{\etens}[1]{\mathsfit{#1}}
+\def\etLambda{{\etens{\Lambda}}}
+\def\etA{{\etens{A}}}
+\def\etB{{\etens{B}}}
+\def\etC{{\etens{C}}}
+\def\etD{{\etens{D}}}
+\def\etE{{\etens{E}}}
+\def\etF{{\etens{F}}}
+\def\etG{{\etens{G}}}
+\def\etH{{\etens{H}}}
+\def\etI{{\etens{I}}}
+\def\etJ{{\etens{J}}}
+\def\etK{{\etens{K}}}
+\def\etL{{\etens{L}}}
+\def\etM{{\etens{M}}}
+\def\etN{{\etens{N}}}
+\def\etO{{\etens{O}}}
+\def\etP{{\etens{P}}}
+\def\etQ{{\etens{Q}}}
+\def\etR{{\etens{R}}}
+\def\etS{{\etens{S}}}
+\def\etT{{\etens{T}}}
+\def\etU{{\etens{U}}}
+\def\etV{{\etens{V}}}
+\def\etW{{\etens{W}}}
+\def\etX{{\etens{X}}}
+\def\etY{{\etens{Y}}}
+\def\etZ{{\etens{Z}}}
+
+\newcommand{\pdata}{p_{\rm{data}}}
+\newcommand{\ptrain}{\hat{p}_{\rm{data}}}
+\newcommand{\Ptrain}{\hat{P}_{\rm{data}}}
+\newcommand{\pmodel}{p_{\rm{model}}}
+\newcommand{\Pmodel}{P_{\rm{model}}}
+\newcommand{\ptildemodel}{\tilde{p}_{\rm{model}}}
+\newcommand{\pencode}{p_{\rm{encoder}}}
+\newcommand{\pdecode}{p_{\rm{decoder}}}
+\newcommand{\precons}{p_{\rm{reconstruct}}}
+
+\newcommand{\laplace}{\mathrm{Laplace}} 
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Ls}{\mathcal{L}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\emp}{\tilde{p}}
+\newcommand{\lr}{\alpha}
+\newcommand{\reg}{\lambda}
+\newcommand{\rect}{\mathrm{rectifier}}
+\newcommand{\softmax}{\mathrm{softmax}}
+\newcommand{\sigmoid}{\sigma}
+\newcommand{\softplus}{\zeta}
+\newcommand{\KL}{D_{\mathrm{KL}}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\standarderror}{\mathrm{SE}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\normlzero}{L^0}
+\newcommand{\normlone}{L^1}
+\newcommand{\normltwo}{L^2}
+\newcommand{\normlp}{L^p}
+\newcommand{\normmax}{L^\infty}
+
+\newcommand{\parents}{Pa} 
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\Tr}{Tr}
+\let\ab\allowbreak
+ 
+\usepackage{hyperref}
+\usepackage{url}
+
+\usepackage{floatrow}
+\usepackage{comment}
+\usepackage{bbding}
+\usepackage{tabularx}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage[acronym]{glossaries}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+
+\usepackage{textcomp}
+\usepackage{gensymb}
+\usepackage{mwe}
+\usepackage{subcaption}
+
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+\Crefname{figure}{Figure}{Figures}
+\crefname{figure}{Fig.}{Figs.}
+
+\definecolor{Midori}{RGB}{0, 155, 0}
+\definecolor{amethyst}{rgb}{0.6, 0.4, 0.9}
+
+
+
+\title{SG-I2V: Self-Guided Trajectory Control \\ in Image-to-Video Generation}
+
+\author{Koichi Namekata$^{1}$, Sherwin Bahmani$^{1,2}$, Ziyi Wu$^{1,2}$, Yash Kant$^{1,2}$,
+Igor Gilitschenski$^{1,2}$,\\ \textbf{David B. Lindell}$^{1,2}$\\
+$^{1}$University of Toronto, $^{2}$Vector Institute\\
+}
+
+\iclrfinalcopy \begin{document}
+
+\maketitle
+\begin{center}
+\centering
+\captionsetup{type=figure}
+\includegraphics[width=\textwidth]{imgs/figure1_labeled.jpg}\vspace{-2.0mm}
+\captionof{figure}{\textbf{Image-to-video generation based on self-guided trajectory control.}
+Given a set of bounding boxes with associated trajectories, we achieve object and camera motion control in image-to-video generation by leveraging the knowledge present in a pre-trained image-to-video diffusion model. Our method is self-guided, offering zero-shot trajectory control without fine-tuning or relying on external knowledge.
+}
+\label{fig:teaser}
+\end{center}
+  \maketitle
+\begin{abstract}
+Methods for image-to-video generation have achieved impressive, photo-realistic quality. 
+However, adjusting specific elements in generated videos, such as object motion or camera movement, is often a tedious process of trial and error, e.g., involving re-generating videos with different random seeds. 
+Recent techniques address this issue by fine-tuning a pre-trained model to follow conditioning signals, such as bounding boxes or point trajectories. 
+Yet, this fine-tuning procedure can be computationally expensive, and it requires datasets with annotated object motion, which can be difficult to procure. 
+In this work, we introduce SG-I2V, a framework for controllable image-to-video generation that is self-guided---offering zero-shot control by relying solely on the knowledge present in a pre-trained image-to-video diffusion model without the need for fine-tuning or external knowledge. 
+Our zero-shot method outperforms unsupervised baselines while significantly narrowing down the performance gap with supervised models in terms of visual quality and motion fidelity.
+Additional details and video results are available on our project page: \url{https://kmcode1.github.io/Projects/SG-I2V}.
+
+
+
+
+\end{abstract}
+ \section{Introduction}
+\label{sec:intro}
+
+Recent advances in video diffusion models demonstrate significant improvements in visual and motion quality ~\citep{VideoDiffusionModels,blattmann2023stable,AlignYourLatents,LVDM}. 
+These models typically take a text prompt~\citep{VideoDiffusionModels,blattmann2023stable,ImagenVideo} or image~\citep{VideoCrafter1,VideoCrafter2,AnimateDiff,DynamiCrafter} as input and generate video frames of a photorealistic, animated scene.
+Current methods can generate videos that are largely consistent with an input text description or image; however, fine-grained adjustment of specific video elements (e.g., object motion or camera movement) is conventionally a tedious process that requires re-running the model with different text prompts or random seeds~\citep{wu2023freeinit,qiu2024freetraj}.
+
+Approaches for controllable video generation aim to eliminate this process of trial-and-error through direct manipulation of generated video elements, such as object motion~\citep{wu2024draganything,yin2023dragnuwa,wang2024boximator}, pose~\citep{AnimateAnyone,MagicAnimate}, and camera movement~\citep{MotionCtrl,li2024image,CameraCtrl,MotionMaster}.
+One line of work fine-tunes pre-trained video generators to incorporate control signals such as bounding boxes or point trajectories~\citep{wu2024draganything,MotionCtrl}. 
+One of the primary challenges with these supervised methods is the expensive training cost, and thus, previous methods usually incorporate trajectory control by fine-tuning at a lower resolution than the original model~\cite{wu2024draganything, yin2023dragnuwa}.
+More recently, several methods for zero-shot, controllable text-to-video generation have been developed~\citep{ma2023trailblazer,qiu2024freetraj,jain2024peekaboo}.
+They control object trajectories by modulating the cross-attention maps between features within a bounding box and an object-related text token.
+Still, it is not always possible to associate a desired edit with the input text prompt (consider, e.g., motion of object parts). 
+Moreover, these methods cannot be directly applied to animate existing images, as they are only conditioned on text.
+
+In this work, we propose SG-I2V, a new method for controllable image-to-video generation.
+Our approach is \textit{self-guided}, in that it offers zero-shot control by relying solely on knowledge present in a pre-trained video diffusion model. 
+Concretely, given an input image, a user specifies a set of bounding boxes and associated trajectories.
+Then, our framework alters the generation process to control the motion of target scene elements.
+It is essential to manipulate the structure of the
+generated video to achieve precise control over element positions, which is mainly decided by early denoising steps~\citep{balaji2022ediff,DMProcessAnalyze}.
+In image diffusion models, it is known that feature maps extracted from the output of upsampling blocks are \textit{semantically aligned}, i.e., pixels belonging to the same object share similar feature vectors on the feature map and thus can be used to control the spatial layout of generated images~\citep{tang2023emergent, shi2024dragdiffusion, namekata2024emerdiff, tumanyan2023plug}.
+However, our analysis reveals that feature maps extracted from the upsampling blocks of video diffusion models are only weakly aligned across frames (see~\cref{fig:correspondence}).
+This misalignment poses challenges, as directly manipulating these feature maps fails to give useful guidance signals for layout control. Instead, we find that feature maps extracted from the self-attention layers can be semantically aligned by replacing the key and value tokens for each frame with those of the first frame (see bottom row of \cref{fig:correspondence}).
+After that, we can control the motion of generated videos by optimizing the latent (the input to the denoising network) with a loss that encourages similarity between the aligned features within each bounding box along the input trajectory. 
+Finally, we apply a post-processing step to enhance output quality by ensuring that our optimization does not disrupt the distribution of high-frequency noise expected by the diffusion model.
+
+
+
+
+In summary, our work makes the following contributions:
+\begin{itemize}
+    \item We conduct a first-of-its-kind analysis of semantic feature alignment in a pre-trained image-to-video diffusion model and identify important differences from image diffusion models.
+    \item Building on this analysis, we propose SG-I2V, a zero-shot, self-guided approach for controllable image-to-video generation.
+    Our method can control object motion and camera dynamics for arbitrary input images and any number of objects or regions of a scene.
+    \item We conduct extensive experiments to show superior performance over zero-shot baselines while significantly narrowing down the performance gap with supervised baselines in visual and motion quality.
+\end{itemize}
+
+
+
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/semantic_correspondence_labeled.jpg}
+\caption{\textbf{Semantic correspondences in video diffusion models.}
+We analyze feature maps in the image-to-video diffusion model SVD~\citep{blattmann2023stable} for three generated video sequences (row 1). 
+We use PCA to visualize the features at diffusion timestep 30 (out of 50) at the output of an upsampling block (row 2), a self-attention layer (row 3), and the same self-attention layer after our alignment procedure (row 4). Although output feature maps of upsampling blocks in image diffusion models are known to encode semantic information ~\citep{tang2023emergent}, we only observe weak semantic correspondences across frames in SVD. 
+Thus, we focus on the self-attention layer and modify it to produce feature maps that are semantically aligned across frames.
+}
+\label{fig:correspondence}
+\vspace{-2.0mm}
+\end{figure}
+ 
+
+ \section{Related Work}
+\label{sec:related}
+
+\paragraph{Diffusion-based image-to-video generation.}
+With the recent advances in diffusion models~\citep{DiffusionModels,DDPM}, image animation has achieved tremendous progress~\citep{wang2023videocomposer,VideoCrafter1,VideoCrafter2,AnimateDiff}.
+Early methods inflate pre-trained text-to-image models~\citep{LatentDiffusion} to add motions to an image~\citep{Tune-a-video,Text2VideoZero,Make-A-Video}.
+A notable example is AnimateDiff~\citep{AnimateDiff}, which learns low-rank adapters~\citep{LoRA}  for different motions.
+Later works seek to inject a conditioning frame into a pre-trained text-to-video model~\citep{VideoDiffusionModels,ImagenVideo,LVDM}.
+VideoCrafter1~\citep{VideoCrafter1} leverages a dual cross-attention layer to condition on features of both the image and the text prompt.
+DynamicCrafter~\citep{DynamiCrafter} further improves it by concatenating the input image with noisy latent.
+Stable Video Diffusion (SVD)~\citep{blattmann2023stable} instead works in an image-only manner, which replaces the CLIP~\citep{CLIP} text embedding of the text prompt with the CLIP image embedding of the conditioning frame.
+However, none of these models support direct trajectory control of scene elements, and rather require multiple attempts to obtain a desired result.
+In this work, we aim to enable intuitive motion control in animating a pre-existing image.
+Since SVD only takes in an image without any text prompt, we utilize it as the base model following prior work~\citep{yin2023dragnuwa,wu2024draganything}.
+
+
+
+
+
+\paragraph{Spatial control in image diffusion models.}
+One common way to incorporate spatial control into the image generation process is to fine-tune pre-trained models to incorporate conditioning on depth maps or bounding boxes~\citep{ControlNet,ye2023ip,SpaText,GLIGEN,PairDiffusion,InstanceDiffusion}.
+While these methods demonstrate high fidelity, they require excessive computing resources and labor-intensive data annotations. 
+Therefore, several tuning-free approaches have been proposed~\citep{MasaCtrl,LayoutGuidanceAttn1,LayoutGuidanceAttn2,PromptToPrompt}.
+Self-Guidance~\citep{epstein2023diffusion} Attend-and-Excite~\citep{chefer2023attend} , and TraDiffusion~\citep{wu2024tradiffusion} control the image layout by manipulating intermediate attention maps. They first estimate the generated objects' positions using the attention maps produced from text--image cross-attention layers and then optimize the latent to increase the attention values at specific positions.
+However, these approaches require associating the control target with a specific token in the text prompt and thus cannot be directly applied to image-only editing.
+Closest to ours are methods that alter image layouts without text input~\citep{pan2023drag,mou2023dragondiffusion,mou2024diffeditor,ling2023freedrag,liu2024drag,zhang2024gooddrag,cui2024stabledrag,hou2024easydrag,zhao2024fastdrag,shi2024dragdiffusion}.
+They enforce similarity between semantically correlated feature maps extracted from the upsampling blocks of a denoising U-Net~\citep{tang2023emergent,namekata2024emerdiff,hedlin2024unsupervised,zhang2023tale,luo2023dhf}.
+In contrast, we show that the cross-frame semantic correspondence of upsampling feature maps in image-to-video diffusion models~\citep{blattmann2023stable} is weak. Thus, optimization directly based on these feature maps leads to sub-optimal results.
+
+
+\paragraph{Motion control in video diffusion models.}
+Several recent works have studied camera pose control in video diffusion models~\citep{CameraCtrl,xu2024camco,kuang2024collaborative,MotionMaster,xiao2024video,hou2024training,bahmani2024vd3d,li2024image,zhang2024dragentity}.
+The representative work MotionCtrl~\citep{MotionCtrl} fine-tunes pre-trained video generators to follow camera trajectory input. 
+However, video datasets with accurate camera pose annotations are limited~\citep{RealEstate10k}, and fine-tuning video models requires high computation costs.
+Another line of work focuses on object trajectory control~\citep{wang2023videocomposer,yin2023dragnuwa,wu2024draganything,zhou2024trackgo,wang2024boximator,zhang2024tora}, among which our work is particularly related to the tuning-free variants~\citep{qiu2024freetraj,ma2023trailblazer,DirectAVideo,jain2024peekaboo,Img2VidAnim-Zero}.
+Yet, all of these methods focus on text-based generation. In contrast, our method uses an image-to-video model and thus can turn existing, real-world images into controllable videos.
+Moreover, we can control camera motion by specifying trajectories of background regions. 
+
+
+
+ \begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/overview.pdf}
+\caption{\textbf{Overview of the controllable image-to-video generation framework.}
+To control trajectories of scene elements, we optimize the latent $\bm{z}_t$ at specific denoising timesteps $t$ of a pre-trained video diffusion model.
+First, we extract semantically aligned feature maps from the denoising U-Net to estimate the video layout.
+Next, we enforce cross-frame feature similarity along the bounding box trajectory to drive the motion of each region.
+To preserve the visual quality of the generated video, a frequency-based post-processing method is applied to retain high-frequency noise of the original latent $\bm{z}_t$. The updated latent $\tilde{\bm{z}}_t$
+ is input to the next denoising step.
+}
+\label{fig:method}
+\vspace{-2.0mm}
+\end{figure}
+ 
+\section{Method}
+\label{sec:method}
+
+In this section, we describe our method for the trajectory control task in image-to-video generation (\cref{sec:3_task}).
+Our framework, SG-I2V, builds on the publicly available image-to-video diffusion model Stable Video Diffusion~(SVD)~\citep{blattmann2023stable},
+and consists of two main steps. 
+First, we extract and semantically align the feature maps from a specific layer of SVD during the early steps of the diffusion process (\cref{sec:motion_estimation}); we show that such feature maps are especially effective at influencing motion in the output video.
+Second, we optimize the noisy latent (i.e., the input to the denoising network) to enforce similarity between features within the bounding box trajectories (\cref{sec:motion_optimization}).
+However, we find that naive optimization of latent is prone to overfitting and often results in low-quality generation.
+Thus, we employ frequency-based post-processing to retain an in-distribution noisy latent (\cref{sec:fft}).
+Our entire pipeline is summarized in \cref{fig:method}.
+
+\subsection{Trajectory Control in Image-to-Video Generation} \label{sec:3_task}
+The goal of our work is to build a zero-shot framework that takes an input image $\mathbf{I} \in \mathbb{R}^{H \times W \times 3}$ (with height $H$, width $W$) and generates a video with $N$ frames, where elements in the input image move in a user-specified fashion.
+Inspired by DragAnything~\citep{wu2024draganything}, we further assume that a user provides a set of $B$ input bounding box trajectories $\{\mathcal{B}_b\}_{b=1}^B$, each parameterized by a height $h_b$ and width $w_b$, as well as center point coordinates  for each output video frame: $\mathbf{c}_{b, n}\in\mathbb{R}^2, 1\leq n \leq N$.
+For simplicity, we assume bounding boxes cannot extend outside the image, and we denote the $b$-th bounding box in the $n$-th frame as $\mathcal{B}_{b, n} = \{h_b, w_b, \mathbf{c}_{b,n}\}$. 
+
+Our aim is to constrain regions of the input image falling within a bounding box to follow the trajectory of the same bounding box in the output video.
+Thus, the motion of dynamic foreground objects can be controlled by placing bounding boxes around them and specifying the desired trajectory.
+On the other hand, camera motion can be specified by placing bounding boxes on static background regions and specifying a trajectory opposite to the desired camera movement. Further, we can also set the bounding box trajectory to the zero vector to keep the region static.
+Overall, this formulation provides intuitive and unified control over object and camera motion, which are sometimes treated separately in previous controllable image-to-video frameworks~\citep{MotionCtrl, DirectAVideo, li2024image}.
+
+
+
+ 
+\subsection{Extracting Semantic Video Layout}
+\label{sec:motion_estimation}
+\paragraph{Preliminaries: Stable Video Diffusion.}
+Video diffusion models~\citep{VideoDiffusionModels} learn a data distribution $\bm{x}_0 \sim p_\theta(\bm{x}_0)$ by gradually denoising a video corrupted by Gaussian noise. 
+The output denoised video is thus drawn from the distribution $p_\theta(\bm{x}_0) = \int p_\theta(\bm{x}_{0:T}) \ d\bm{x}_{1:T}$, where $\bm{x}_0 \in \mathbb{R}^{N \times H \times W}$ is a clean video, and $\bm{x}_{1:T}$ are intermediate noisy samples.
+For simplicity, we omit the channel dimension throughout the paper.
+To reduce computation, Stable Video Diffusion (SVD)~\citep{blattmann2023stable} performs the diffusion process in a latent space, where a variational autoencoder~\citep{VAE} maps a raw video $\bm{x}_0$ to a latent $\bm{z}_0 \in \mathbb{R}^{N \times h \times w}$. \\
+Since this work aims to animate an existing image, we utilize the image-to-video variant of SVD, which concatenates a conditioning frame with noisy latent ($\bm{z}_t$) and runs a 3D U-Net~\citep{U-net} to predict the noise.
+The 3D U-Net contains a downsampling and an upsampling path.
+Specifically, the upsampling path consists of three stages operating at different resolutions, where each stage contains three blocks with interleaved residual blocks~\citep{ResNet}, spatial, and temporal attention layers~\citep{Transformer}.
+We will call these three stages bottom, middle, and top from lower to higher resolution.
+For more details, we refer readers to the original paper of SVD~\citep{blattmann2023stable}.
+
+
+\vspace{-2.0mm}
+\paragraph{SVD feature map analysis.} 
+In image diffusion models, prior work has shown that output feature maps of upsampling blocks in the middle stage of the denoising U-Net are \textit{semantically aligned}~\citep{tang2023emergent, namekata2024emerdiff, hedlin2024unsupervised, zhang2023tale, luo2023dhf}, i.e., regions belonging to the same object tend to have similar feature vectors. Such semantically aligned feature maps are useful in estimating the layout of generated images, enabling spatial control of objects~\citep{shi2024dragdiffusion, mou2023dragondiffusion}.
+Therefore, we first examine whether SVD feature maps are also semantically correlated across \textit{both spatial and temporal dimension}. \cref{fig:correspondence} visualizes the principal components of feature maps extracted from the upsampling block and spatial attention layers.
+We observe that SVD feature maps exhibit weak semantic correspondence across frames at early denoising steps, leading to inaccurate object trajectory estimation.
+Yet, we want to operate at early steps as they decide the structure of generated videos~\citep{materzynska2023customizing}.
+This dilemma prompts us to align these features before applying optimization.
+
+\textbf{Feature alignment with modified self-attention.} 
+SVD leverages separate spatial and temporal self-attention to model the entire video.
+Since spatial self-attention is only applied per frame, it does not produce cross-frame aligned features.
+While temporal attention communicates across frames, it only attends to the same pixel position on the feature map, which may be inadequate for capturing semantic information spatially. To address this issue, inspired by \citep{Tune-a-video}, we modify the spatial self-attention on each frame to directly attend to the first frame.
+Concretely, for the $n$-th frame, the original spatial self-attention works as $\bm{F}_n = 
+\mathrm{Softmax}(\frac{\bm{Q}_{n} \cdot \bm{K}_{n}^T}{\sqrt{D}})\cdot \bm{V}_{n}$, where $\bm{F}_n$ is the outputs of self-attention, $\bm{Q}, \bm{K}, \bm{V}$ are the query, key, and value tokens, respectively, and $D$ is the dimensionality of the key and query tokens~\cite{Transformer}.
+Instead, we replace the key $\bm{K}_{n}$ and value $\bm{V}_{n}$ of each frame with $\bm{K}_{1}$ and $\bm{V}_{1}$ from the first frame, leading to a new operation $\tilde{\bm{F}}_n = 
+\mathrm{SoftMax}(\frac{\bm{Q}_{n} \cdot \mathrm{SG}(\bm{K}_{1})^T}{\sqrt{D}}) \cdot \mathrm{SG}(\bm{V}_{1})$.
+We apply a stop gradient $\mathrm{SG}(\cdot)$ on $\bm{K}_{1}$ and $\bm{V}_{1}$ to stabilize the subsequent optimization process.
+Now, all the modified feature maps $\tilde{\bm{F}}_n$ are weighted combinations of $\bm{V}_1$, exhibiting a stronger cross-frame correspondence while still maintaining the object layout of each frame, as shown in the bottom row of \cref{fig:correspondence}. Notably, this modification occurs during the loss computation only and does not affect the denoising steps.
+
+
+\subsection{Trajectory Control with Latent Optimization}
+\label{sec:motion_optimization}
+
+
+So far, we have obtained spatio-temporally aligned feature maps $\tilde{\bm{F}}_n(z_t) \in \mathbb{R}^{h \times w \times d}$ at each frame given the noisy latent $\bm{z}_t$ as input (for simplicity, we resize $\tilde{\bm{F}}_n$ to the same resolution as the noisy latent).
+Recall that our goal is to control the output video frames so that the bounding boxes $\mathcal{B}_b$ identified in the first frame move along the associated trajectories.  
+Inspired by prior drag-based control methods~\citep{shi2024dragdiffusion,pan2023drag}, we optimize the noisy latent $\bm{z}_t$ to enforce cross-frame similarity between features within bounding boxes. 
+The optimization objective is as follows:
+\begin{equation}\label{eq:feature-optimization}
+    \bm{z}_t^* = \argmin_{\bm{z}_t} \sum_{b\in[1, B], n\in[2, N]}\lVert \bm{G}_{b} \odot \left(\tilde{\bm{F}}_n(\bm{z}_t)[\mathcal{B}_{b, n}] - \mathrm{SG}(\tilde{\bm{F}}_1(\bm{z}_t)[\mathcal{B}_{b, 1}])\right) \rVert_2,
+\end{equation}
+where $\odot$ is Hadamard product, and $\tilde{\bm{F}}_n(\bm{z}_t)[\mathcal{B}_{b, n}] \in \mathbb{R}^{h_b \times w_b \times d}$ is feature maps cropped by the bounding box $\mathcal{B}_{b, n}$. 
+Following DragAnything~\citep{wu2024draganything}, we weight the feature difference using a Gaussian heatmap $\bm{G}_{b} \in \mathbb{R}^{h \times w}$. This focuses on optimizing pixels closer to the bounding box center, as pixels near the edge may be background pixels that we do not want to move. 
+\vspace{-2.5mm}
+\paragraph{Selective latent optimization.}
+We optimize \cref{eq:feature-optimization} on a subset of denoising timesteps and self-attention layers.
+Concretely, we only select early denoising timesteps as the coarse structure of output frames is determined at these timesteps~\citep{DMProcessAnalyze,materzynska2023customizing}.
+In addition, consistent with previous works in image diffusion models~\citep{shi2024dragdiffusion,mou2023dragondiffusion}, we observe that feature maps extracted from the middle stage of the denoising U-Net are more semantically correlated, and thus we use them for optimization.
+
+\vspace{-2.0mm}
+\subsection{High-Frequency Preserved Post-Processing}
+\label{sec:fft}
+
+Although the presented pipeline already enables trajectory control in video generation, we notice a quality degradation in generated videos.
+We attribute this degradation to the deviation of $\bm{z}_t^{*}$ from the sampling distribution of the diffusion process after optimization. 
+A recent work FreeInit~\citep{wu2023freeinit} observed that motions of generated videos are mostly encoded in the low-frequency component of noisy latent.
+Inspired by this, we propose to discard the high-frequency component of the optimized latent $\bm{z}_t^*$ and replace it with the high-frequency component of the original latent $\bm{z}_t$. 
+Formally, we obtain the new latent $\tilde{\bm{z}}_t$ as follows:
+\begin{equation}
+\begin{aligned}
+    \tilde{\bm{z}}_t = \textsc{IFFT}_{\mathrm{2D}}\left(\textsc{FFT}_{\mathrm{2D}}(\bm{z}_t^*) \odot \mathbf{H}_\gamma + \textsc{FFT}_{\mathrm{2D}}(\bm{z}_t) \odot (1 - \mathbf{H}_\gamma)\right),
+\end{aligned}
+\end{equation}
+where $\textsc{FFT}_{\mathrm{2D}}$ is the Fast Fourier transformation applied to each frame, and $\textsc{IFFT}_{\mathrm{2D}}$ is the corresponding inverse operation.
+We set $\mathbf{H}_\gamma$ as the frequency response of a 2D low-pass filter (we follow FreeTraj and use a Butterworth filter) with cut-off frequency $\gamma$.
+This post-processing step retains the target motion signals encoded in the low-frequency component of $\bm{z}^*_t$ while eliminating undesirable high-frequency disruptions.  \vspace{-3.0mm}
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Experimental Setup}
+\label{sec:exp_setup}
+\paragraph{Implementation details.}
+In all experiments, we leverage the image-to-video variant of Stable Video Diffusion~\citep{blattmann2023stable} to generate videos with 14 frames and $576 \times 1024$ resolution. 
+The default discrete Euler scheduler~\citep{karras2022elucidating} is applied with $T=50$ sampling steps.
+We extract feature maps from the last two self-attention layers from the middle stage in the denoising U-Net. We optimize \cref{eq:feature-optimization} at the early denoising timesteps $t \in [45, 44, ..., 30]$ for $5$ iterations per timestep.
+We use the AdamW optimizer~\citep{adamw} with a learning rate of $0.21$.
+All these design choices are carefully ablated and analyzed in \cref{sec:ablation}.
+During loss calculation, Gaussian heatmap $\bm{G}_{b}$ is constructed following \citep{wu2024draganything}, where a heatmap for a bounding box of size $(h_b, w_b)$ is created by Gaussian distribution with standard deviation $\sigma = (0.2h_b, 0.2w_b)$.
+For the low-pass filter $\mathbf{H}_\gamma$, we set the cut-off frequency $\gamma$ to $0.5$. 
+
+\paragraph{Baselines.}
+We compare with methods that enable motion control on existing images and have publicly available code.
+Specifically, we compare with supervised baselines \textit{DragNUWA}~\citep{yin2023dragnuwa} and \textit{DragAnything}~\citep{wu2024draganything}, which both add motion adapters to SVD.
+We also compare with \textit{Image Conductor}~\citep{li2024image}, which is based on AnimateDiff~\citep{AnimateDiff}.
+Since all supervised baselines are fine-tuned to generate videos at a lower resolution, we resize the generated videos from all the methods to $320 \times 576$ for a fair comparison. Since no previous methods exist for zero-shot trajectory-controlled image-to-video generation, we adopt techniques from text-to-video methods to create new baselines.
+Specifically, \textit{FreeTraj$^\dagger$} incorporates the noise initialization technique from \citep{qiu2024freetraj} by copy-pasting the initial noise on the first frame to other frames along the trajectories.
+\textit{DragDiffusion$^\dagger$} is inspired by the image editing method in~\citep{shi2024dragdiffusion}, which utilizes feature maps extracted from the outputs of upsampling blocks to guide the generation process without feature alignment. \textit{MOFT$^\dagger$} instead utilizes feature maps derived from \textit{Content Correlation Removal} proposed by \citet{MOFT} known to encode motion information.
+
+\vspace{-2.0mm}
+\paragraph{Datasets and evaluation metrics.} 
+Following prior works~\citep{wu2024draganything,zhou2024trackgo}, we evaluate our method on the validation set of the VIPSeg dataset~\citep{vipseg}.
+We test on the same control regions and target trajectories as DragAnything, where the size of our bounding boxes is the same as the diameter of the circles in their work. For quantitative metrics, we report Frechet Inception Distance (FID)~\citep{FID} and Frechet Video Distance (FVD)~\citep{FVD} to measure the visual quality, and ObjMC~\citep{wu2024draganything} to measure the motion fidelity. ObjMC computes the average distance between generated and target trajectories, where Co-Tracker~\citep{cotracker} is used to estimate the trajectory of generated videos.
+
+
+\vspace{-3mm}
+\subsection{Qualitative Results}
+
+\cref{fig:teaser} presents the versatile control ability of our method.
+We can control foreground objects to perform rigid motions, such as trains moving, and non-rigid motions, such as the movement of human hairs.
+In addition, we can control non-physical entities such as smoke and fire.
+The moved scene elements naturally adapt to the new location while preserving their original identity.
+Thanks to our general formulation of trajectories, camera motion control is also supported.
+We highly encourage the reader to view \href{https://kmcode1.github.io/Projects/SG-I2V\#obj-motion-results}{\textit{our project page}} for additional results.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/figure_baseline_labeled.jpg}
+\caption{\textbf{Failure cases in supervised baselines.}
+We observe that DragNUWA tends to distort objects rather than move them, and DragAnything is weak at part-level control as it is designed for entity-level control. 
+In contrast, our method can generate videos with natural motion for diverse object and camera trajectories.
+Please see \href{https://kmcode1.github.io/Projects/SG-I2V\#baseline-comparison}{\textit{our project page}} for additional comparisons.}
+\label{fig:results_baseline}
+\vspace{-1.5mm}
+\end{figure}
+
+
+\begin{table*}[!t]
+\vspace{-1.5mm}
+\caption{\textbf{Quantitative comparison on the VIPSeg dataset.}
+Despite being a zero-shot method, we achieve small gaps in motion fidelity (ObjMC) to supervised baselines without degrading video quality (FID, FVD).
+Furthermore, our approach outperforms zero-shot baselines across all metrics.
+}
+\label{tab:baseline}
+\begin{center}
+    \resizebox{1.0\textwidth}{!}{
+    \begin{tabular}{lcccccc}
+        \toprule
+        \textit{Method}  & FID ($\downarrow$) & FVD ($\downarrow$) & ObjMC ($\downarrow$) & Zero-shot & Resolution & Backbone \\
+        \midrule
+        Image Conductor & 48.81 & 463.21 & 21.07& & \textbf{$256 \times 384$} & AnimateDiff v3 \\
+        DragNUWA v1.5 & 30.73 & 253.57 & 10.84 & & $320 \times 576$ & SVD \\
+        DragAnything & 30.81 & 268.47 & 11.64 &  & $320 \times 576$ & SVD  \\
+        \midrule
+        SVD (No Control) &30.50 & 340.52 & 39.59 & 
+        \checkmark & \textbf{$576 \times 1024$} & SVD\\
+        FreeTraj$^\dagger$ & 46.61 &  394.14 & 36.43 & \checkmark & \textbf{$576 \times 1024$} & SVD \\
+        MOFT$^\dagger$ & 30.76 & 402.09 & 33.58 & \checkmark & \textbf{$576 \times 1024$} & SVD\\
+        DragDiffusion$^\dagger$ & 30.93 & 458.29 & 31.49 & \checkmark & \textbf{$576 \times 1024$} & SVD \\
+        \midrule
+        \textbf{SG-I2V} & 28.87 & 298.10 & 14.43 & \checkmark & \textbf{$576 \times 1024$} & SVD \\
+        \bottomrule
+    \end{tabular}}
+    \end{center}
+    \begin{flushleft}\vspace{-0.25em}
+    \footnotesize{$^\dagger$~indicates methods adapted to our image-to-video setting.}\end{flushleft}
+\vspace{-1em}
+\end{table*}
+
+\vspace{-2.0mm}
+\subsection{Quantitative Assessment}
+\label{sec:baseline}
+
+
+
+\paragraph{Comparison with supervised baselines.}
+We provide quantitative comparisons to baselines in \cref{tab:baseline}.
+Despite being trained on large-scale datasets, Image Conductor underperforms our method by a large margin, mainly because of the limited capacity of the base model AnimateDiff.
+Compared to methods that also build upon SVD, we achieve competitive performance in visual quality, with slightly worse motion fidelity.
+Yet, these methods are trained to generate low-resolution (i.e., $320 \times 576$) videos due to the high cost of fine-tuning at high resolution. At the same time, our tuning-free approach can maintain the original resolution of SVD (i.e., $576 \times 1024$).
+\cref{fig:results_baseline} illustrates comparison in failure cases of supervised baselines.
+Similar to observations in \citep{wu2024draganything}, DragNUWA tends to distort objects rather than naturally move them, while our method can generate more natural movements. 
+DragAnything is weak at part-level motion control (e.g., closing a cat's mouth) as it is only trained on datasets annotated with entity-level control, such as object segmentation masks.
+In contrast, our approach can handle different granularities of control regions.
+
+
+\vspace{-2.0mm}
+\paragraph{Comparison with adapted zero-shot baselines.}
+The noise initialization technique in FreeTraj$^\dagger$ improves motion control slightly compared to original videos but significantly degrades visual quality. This indicates that motion prior can not be easily incorporated into initial noises of SVD by a hand-crafted algorithm. 
+DragDiffusion$^\dagger$ and MOFT$^\dagger$ leverages feature maps that are not semantically corresponding across frames.
+As a result, the motion fidelity is much lower than ours.
+Overall, SG-I2V significantly outperforms zero-shot baselines across all metrics.
+This highlights that zero-shot techniques applied in text-to-video diffusion models do not necessarily transfer to image-to-video models.
+
+
+\subsection{Ablation Studies}
+\label{sec:ablation}
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_featuremap-crop.pdf}
+\caption{\textbf{Performance across U-Net feature maps used to compute loss in \cref{eq:feature-optimization}.}
+For all metrics, lower values are better.
+\textit{Temporal} and \textit{spatial} refer to the temporal and spatial self-attention layers. 
+We find that features extracted from self-attention layers generally perform better than those from upsampling blocks and temporal attention layers.
+In addition, using the feature maps of our modified self-attention layer achieves the best results, since they are semantically aligned across frames.
+Corresponding qualitative visuals are presented in \cref{fig:results_attn} and \href{https://kmcode1.github.io/Projects/SG-I2V\#ablation-unet-featuremap}{\textit{our project page.}}
+}
+\label{tab:results_attn}
+\vspace{-2mm}
+\end{figure}
+\vspace{-0.5mm}
+
+
+
+
+
+\paragraph{Feature map selection.}
+In \cref{tab:results_attn}, we analyze the effect of the choice of U-Net feature map in the optimization of \cref{eq:feature-optimization}.
+DIFT~\citep{tang2023emergent} pointed out that outputs from the U-Net upsampling block in image diffusion models have strong semantic correspondence across \textit{spatial} dimensions, which is used in image editing methods~\citep{shi2024dragdiffusion}. However, we find them to have inferior correspondence across the \textit{temporal} dimension, and optimizing them leads to inaccurate object trajectories, as indicated by the high ObjMC value.
+Next, we examine features in temporal self-attention layers.
+However, using these features also leads to inferior motion guidance, as indicated by the high ObjMC errors.
+This may be because the temporal layers in SVD always attend to the same spatial location, thus focusing less on each frame's spatial layout.
+Finally, we study each component in spatial self-attention layers.
+As discussed in \cref{sec:motion_estimation}, the lack of cross-frame correspondence in the original self-attention is problematic---in \cref{tab:results_attn}, we see that this results in worse ObjMC and FVD scores. Overall, optimizing outputs from our modified self-attention operation achieves the best motion fidelity, showing the importance of feature alignment.
+
+\begin{figure}[!t]
+\vspace{-8mm}
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_layer.pdf}
+\caption{\textbf{Performance across U-Net layers used to extract feature maps.} Lower is better for all metrics.
+\textit{Bottom}, \textit{mid}, and \textit{top} indicate the three resolution levels in the U-Net's upsampling path, each containing three self-attention layers numbered 1, 2, and 3.
+for example ``M2-3'' means applying the loss to features from both mid-resolution layers 2 and 3.
+We observe that mid-resolution feature maps perform best for trajectory guidance.
+In addition, using features from both M2 and M3 leads to the best result.
+See \href{https://kmcode1.github.io/Projects/SG-I2V\#ablation-unet-layer}{\textit{our project page}} for visualizations.}
+\label{tab:results_layer}
+\vspace{-3.0mm}
+\end{figure}
+\vspace{-2.0mm}
+\paragraph{Cut-off frequency in post-processing.}
+We study the cut-off frequency in our high-frequency-preserving post-processing step in \cref{tab:results_fft}.
+Naively keeping the optimized latent ($\gamma = 1$) degrades the visual quality drastically, as shown by the higher FID and FVD.
+Yet, discarding part of the high-frequency component has negligible impact on motion control while eliminating most artifacts.
+We thus choose $\gamma = 0.5$ as a sweet spot for effective video quality restoration.
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/figure_fft_labeled.jpg}
+\vspace{1mm}
+\caption{\textbf{Effect of high-frequency preservation in post-processing.}
+Videos without post-processing tend to demonstrate oversmoothing and have artifacts.
+In contrast, our post-processing technique retains videos with sharp details and eliminates most of the artifacts.
+See \href{https://kmcode1.github.io/Projects/SG-I2V\#ablation-post-processing}{\textit{our project page}} for more examples.
+}
+\label{fig:results_fft}
+\vspace{-8.0mm}
+\end{figure}
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_fft.pdf}
+\caption{\textbf{Study of the cut-off frequency in post-processing.}
+Lower is better for all metrics.
+The value $\gamma$ indicates the cut-off frequency. 
+Fully keeping the optimized latent ($\gamma = 1$) results in degraded video quality, as shown by high FID and FVD values.
+On the other hand, replacing too many frequency components diminishes motion control, as indicated by the increasing ObjMC.
+}
+\label{tab:results_fft}
+\vspace{-3.0mm}
+\end{figure}
+
+\vspace{-2.0mm}
+\paragraph{U-Net layer.}
+\cref{tab:results_layer} ablates from which layer to extract the feature maps.
+The upsampling path of SVD's U-Net contains three stages (bottom, mid, top), each with three spatial self-attention layers (indexed 1, 2, 3).
+We observe that blocks at the middle-resolution level capture most semantically meaningful information, which aligns with prior work in image diffusion models~\citep{shi2024dragdiffusion,tang2023emergent}.
+We also try joint optimization of several layers, which gives the best performance.
+
+
+\begin{figure}[!t]
+\vspace{-4mm}
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_lr.pdf}
+\caption{\textbf{Ablation on optimization learning rates.} Larger learning rates lead to video quality degradation (i.e., higher FID and FVD), while smaller learning rates result in lower motion fidelity (i.e., higher ObjMC). We choose the learning rate considering this tradeoff. }
+\label{tab:results_lr}
+\vspace{-2.5mm}
+\end{figure}
+
+\vspace{-2.0mm}
+\paragraph{Learning rate.}
+\cref{tab:results_lr} examines the effect of learning rate under a fixed number of optimization steps. 
+We observe a clear trade-off between visual quality and motion fidelity of generated videos.
+This is because a large learning rate quickly leads to noisy latents that are out of distribution. \begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_individual_timestep.pdf}
+\caption{\textbf{Effect of optimizing latent at individual denoising timesteps.}
+For all metrics, lower values are better.
+Here, we optimize \cref{eq:feature-optimization} on a single denoising timestep ($t=50$ corresponds to standard Gaussian noise), and we find middle timesteps (e.g. $t=30$) achieve the best motion fidelity while maintaining visual quality.
+More results on optimizing the latent at multiple timesteps can be found in \cref{tab:results_timesteps_range}.
+See \cref{fig:results_timesteps} and \href{https://kmcode1.github.io/Projects/SG-I2V\#ablation-denoising-timestep}{\textit{our project page}} for qualitative comparisons.
+}
+\label{tab:results_timesteps}
+\vspace{-2.5mm}
+\end{figure}
+\vspace{-3.0mm}
+\paragraph{Denoising timesteps.}
+\cref{tab:results_timesteps} summarizes the effects of optimizing features across different denoising timesteps ($t=50$ corresponds to standard Gaussian noise).
+Lower timesteps (e.g., $t=20,1$) significantly impair visual quality, motivating us to optimize only on earlier denoising steps.
+Conversely, timesteps for  $t>45$ degrade motion fidelity due to the lack of detailed semantic information at extremely high noise levels.
+Notably, ObjMC improves at $t \in [20, 1]$, but due to the Co-tracker tracking moving artifacts \href{https://kmcode1.github.io/Projects/SG-I2V/gallery_timestep2.html}{\textit{(e.g., see project webpage)}}.
+Based on these observations, we optimize feature maps extracted between timesteps 30--45 to balance visual quality and motion fidelity.
+
+
+ \vspace{-3.0mm}
+\section{Conclusion}
+\label{sec:conclusion}
+\vspace{-2.0mm}
+Our work introduces the first framework for zero-shot trajectory control in image-to-video generation.
+Our thorough analysis of diffusion features reveals that the knowledge acquired in the pre-trained image-to-video diffusion models can guide them to generate videos with desired motions. Quantitative and qualitative results demonstrate the effectiveness of our approach, both on synthetic and real-world images.
+We hope our findings can shed light on the inner mechanism of image-to-video diffusion models and inspire better architecture designs in the future.
+
+\vspace{-2.0mm}
+\paragraph{Limitations and future work.}
+Since our pipeline works in a zero-shot and self-guided manner, the base video diffusion model bounds the quality of generated videos, e.g., for subjects with large motion or complex physical interactions~\citep{blattmann2023stable}.
+Another area for improvement is the out-of-distribution issue when optimizing the latent code. Although we have incorporated frequency-based post-processing to mitigate it, we sometimes still observe artifacts when we set the learning rate higher.
+How to alter the denoising process while keeping in-distribution latents is an open problem itself~\citep{he2023manifold,ReNoiseInversion}.
+With the recent rapid progress in video generators~\citep{Sora,WALT}, we also expect our framework could be extended to newly released models to achieve improved generation quality. 
+
+ \section*{Acknowledgements}
+DBL acknowledges support from NSERC under the RGPIN and Alliance programs, the Canada Foundation for Innovation, and the Ontario Research Fund.
+
+\section*{Ethics Statement}
+
+Currently, our synthesized videos are not yet indistinguishable from real footage. Still, we anticipate that future iterations of large video models will achieve even greater quality, potentially producing videos that look photoreal. This prospect brings significant ethical and safety considerations, as cutting-edge generative models can be misused to ill effect. We advocate against misuse of generative models to malign or misinform, and we encourage safe and responsible use of such models~\citep{aisafety}.
+
+ 
+\bibliography{egbib}
+\bibliographystyle{iclr2025_conference}
+
+
+\newpage
+\appendix
+
+\section{Experimental Setup Details}
+\textbf{Details of FVD.} As mentioned in \cref{sec:exp_setup}, we resize generated videos to $320 \times 576$ before feeding them into the evaluation scripts to ensure a fair comparison. For FVD computation, we further resize all videos to $256 \times 256$, following DragAnything~\citep{wu2024draganything}.\\
+
+\textbf{Details of ObjMC.} Following DragAnything~\citep{wu2024draganything}, we compute ObjMC to evaluate motion fidelity. ObjMC is defined as the framewise average distance between the generated and ground truth trajectories, where the ground truth trajectories are reused from DragAnything, and the generated trajectories are estimated using Co-Tracker v2~\citep{cotracker}. Since the VIPSeg dataset contains videos with varying resolutions (e.g., $480 \times 800$, $1440 \times 2560$), we resize all videos to a uniform resolution (as specified in \cref{tab:baseline}) before feeding them into the models.
+
+Unlike DragAnything, which resizes generated videos back to their original resolutions for ObjMC computation, we resize all videos to a fixed resolution of $320 \times 576$. Additionally, we exclude ground truth trajectory points that fall outside the image space due to objects moving out of frame. We also omit short videos with fewer than 14 frames from the evaluation.
+
+\textbf{Details of zero-shot adopted methods.} Due to the unavailability of zero-shot trajectory-controlled image-to-video generation methods, we adopt techniques from text-to-image and text-to-video methods to establish new baselines in \cref{tab:baseline}.
+
+\textit{FreeTraj$^\dagger$} incorporates the noise initialization technique (called \textit{trajectory injection}) from \citep{qiu2024freetraj}. This work has shown that introducing motion bias into the initial noise—by copy-pasting the noise from the first frame to other frames along the trajectory—can influence motion in the generated videos of text-to-video diffusion models. However, we did not observe similar effects in image-to-video diffusion models. Instead, we found that this approach degraded visual quality, likely because the modified input latents fell out of distribution.
+
+\textit{DragDiffusion$^\dagger$} is inspired by the image editing technique in~\citep{shi2024dragdiffusion}, which utilizes feature maps extracted from the outputs of upsampling blocks to guide the generation process. Specifically, we optimize on the feature maps output by the second and third upsampling blocks at the middle resolution level. Although the original DragDiffusion does not include high-frequency preserved post-processing, we incorporate it in our baseline to enhance visual quality. We use the same hyperparameters as in our method.
+
+\textit{MOFT$^\dagger$} is similar to \textit{DragDiffusion$^\dagger$} but optimizes feature maps derived from \textit{Content Correlation Removal}, as proposed by \citet{MOFT}. Specifically, we optimize on the outputs of the upsampling layers subtracted by their mean features averaged across frames. These feature maps are well-suited for reference-guided motion generation because they are motion-consistent (i.e., pixels with similar motion exhibit similar feature vectors), enabling direct comparison with reference motion feature maps. However, they are less sensitive to semantic information and, therefore, ineffective for our optimization, where reference motion is unavailable.
+
+\section{Additional Qualitative Results}
+We strongly encourage readers to refer to our project website: \url{https://kmcode1.github.io/Projects/SG-I2V} for more visualizations in video format, where we have released \href{https://kmcode1.github.io/Projects/SG-I2V\#obj-motion-results}{qualitative results with various trajectories}, \href{https://kmcode1.github.io/Projects/SG-I2V/gallery_VIPSeg.html}{qualitative results on VIPSeg dataset}, qualitative comparisons with \href{https://kmcode1.github.io/Projects/SG-I2V\#baseline-comparison}{supervised} and \href{https://kmcode1.github.io/Projects/SG-I2V/gallery_zero.html}{zero-shot} baselines, and qualitative analysis for ablation study.
+
+\section{Additional Results for Ablation Study}
+In this subsection, we provide full results for our ablation analysis.
+
+\textbf{Inference time.} Our method generates $14$ frames videos at a resolution of $576 \times 1024$ with $T=50$ sampling steps. Optimization is performed from the timestep $45$ to the timestep $30$ with $5$ iterations per timestep, totaling $75$ optimization iterations. The runtime depends on the number of trajectory conditions, with an average runtime of $305$ seconds on the VIPSeg dataset with A6000 48GB. Due to the need of backpropagation, the peak GPU memory usage amounts to around $30$ GB.
+
+\textbf{PCA visualization.} \cref{fig:correspondence_full} and \cref{fig:correspondence_full_feature} present the visual results of our PCA analysis on feature maps extracted from various layers of SVD across different timesteps (corresponding to \cref{sec:motion_estimation}). 
+We can confirm that our modified self-attention consistently produces semantically aligned feature maps throughout the denoising process.
+
+\textbf{Feature map selection.} \cref{fig:results_attn} presents the visual results of ablating feature maps for optimization. 
+Performing optimization with feature maps naively extracted from original self/temporal attention or upsampling blocks fails to follow the input trajectory due to the weak semantic alignment across frames. 
+In contrast, performing optimization with our modified self-attention features successfully produces videos consistent with the input trajectory.
+This highlights the importance of extracting semantically aligned feature maps for our optimization. 
+
+\textbf{U-Net layer.} 
+Consistent with the quantitative results 
+(\cref{tab:results_layer}), \cref{fig:figure_layer} has qualitatively confirmed that optimizing with feature maps extracted from the middle layers of the upward path produces plausible videos consistent with the input trajectory.
+
+\textbf{Denoising timesteps.} 
+Continuing from the main paper, we further analyze the effect of extracting feature maps from different timesteps.
+\cref{fig:results_timesteps} qualitatively demonstrates the effect of optimizing latent at individual denoising timesteps.  
+Consistent with the quantitative results demonstrated in \cref{tab:results_timesteps}, performing optimization at later stage of denoising steps (i.e. $t=10, 20$) severely introduces artifacts in the generated videos.
+Next, we examine the effects of performing optimization for multiple timesteps by fixing the total number of iterations for optimization.
+As summarized in \cref{tab:results_timesteps_range}, we observe similar trends as optimizing individual timesteps, where performing optimization at the later stage of the denoising process significantly degrades visual quality, while performing optimization up to timestep $40$ is not enough for motion control. 
+Overall, running optimization for multiple timesteps performs better than running optimization only at a single timestep, and hence we adapt continuous timesteps for our experiments. 
+
+\textbf{Gaussian weighting.} Following DragAnything, we weigh the feature difference using a Gaussian heatmap during the loss computation in \cref{sec:motion_optimization}. This accounts for potential errors in placing bounding boxes, where the bounding box may include background pixels around the object that are not intended to be moved. As shown in our ablation on the VIPSeg dataset (\cref{tab:gaussian_ablation}), Gaussian weighting results in small but consistent improvement across all metrics.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/correspondence_full_labeled.jpg}
+\caption{\textbf{Semantic correspondences in video diffusion models across timesteps.}
+Output feature maps of upsampling blocks have limited semantic correspondences across frames.
+In contrast, our modified self-attention layers produce semantically aligned feature maps across all the timesteps.
+}
+\label{fig:correspondence_full}
+\end{figure}
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/correspondence_full_feature_labeled.jpg}
+\caption{\textbf{Semantic correspondences of different features in video diffusion models.}
+We find features from self-attention layers to be more semantically aligned than that of temporal attention layers and upsampling layers, while our modified self-attention layer produces the most aligned results due to its explicit formulation to attend to the first frame.
+}
+\label{fig:correspondence_full_feature}
+\end{figure}
+
+
+
+
+\begin{figure}[!t]
+\centering
+
+\includegraphics[width=\textwidth]{imgs/figure_fet_full_labeled.jpg}
+\caption{\textbf{Ablation on U-Net feature maps.}
+Applying loss on feature maps extracted from original self/temporal-attention layers or upsampling blocks fails to follow the trajectory due to the semantic misalignment across frames.
+In contrast, performing optimization with our modified self-attention layers can produce videos consistent with the input trajectory, indicating the importance of using semantically aligned feature maps.
+Please see \href{https://kmcode1.github.io/Projects/SG-I2V\#ablation-unet-featuremap}{\textit{our project page}} for more qualitative results.}
+\label{fig:results_attn}
+\end{figure}
+
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/figure_layer_labeled.jpg}
+\caption{\textbf{Ablation on U-Net layer to extract feature maps.} Consistent with the quantitative results in \cref{tab:results_layer}, feature maps extracted from the middle resolution level are most useful for trajectory guidance. Optimizing on other feature maps may generate unrealistic videos with low motion fidelity.}
+\label{fig:figure_layer}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/figure_time_labeled.jpg}
+\caption{\textbf{Visual comparison of different denoising timesteps.}
+Here we show the \emph{last} frame of the generated video. Optimizing latent at later denoising process leads to severe artifacts.
+}
+\label{fig:results_timesteps}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\textwidth]{imgs/ablation_range.pdf}
+\caption{\textbf{Effect of optimizing latent at multiple denoising timesteps.}
+Here we perform optimization on multiple denoising timesteps ($t=50$ corresponds to standard Gaussian noise).
+Similar to performing individual timestep~\cref{tab:results_timesteps},  performing optimization up to middle timesteps (e.g. $50-30$) achieves the best motion fidelity while maintaining visual quality.
+}
+\label{tab:results_timesteps_range}
+\end{figure}
+
+\begin{table*}[!t]
+\caption{
+\textbf{Ablation on Gaussian weighting on the VIPSeg dataset.}
+Using a Gaussian heatmap in loss computation consistently improves the results across all metrics.
+}
+\label{tab:gaussian_ablation}
+\begin{center}
+    \resizebox{0.5\textwidth}{!}{
+    \begin{tabular}{lcccc}
+        \toprule
+        \textit{Mask shape}  & FID ($\downarrow$) & FVD ($\downarrow$) & ObjMC ($\downarrow$)  \\
+        \midrule
+        Gaussian weighting &28.87 & 298.10 & 14.43 \\
+        Identity weighting & 28.88 & 300.20 & 14.72 \\
+        \bottomrule
+    \end{tabular}}
+    \end{center}
+\end{table*}
+ 
+\end{document}
