@@ -1,0 +1,466 @@
+\documentclass{article}
+
+
+
+
+
+
+
+\usepackage[final]{neurips_2023}
+
+
+
+
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{lipsum}
+
+
+\usepackage{color,xcolor}
+\usepackage{epsfig}
+\usepackage{graphicx}
+
+\usepackage{adjustbox}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{wrapfig}
+\usepackage{hhline}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage[size=small]{caption}
+
+\usepackage{changepage}
+\usepackage{extramarks}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{setspace}
+\usepackage{soul}
+\usepackage{xspace}
+
+\usepackage[pagebackref=true,breaklinks=true,colorlinks,citecolor=gray]{hyperref}
+\newcommand\nnfootnote[1]{\begin{NoHyper}
+  \renewcommand\thefootnote{}\footnote{#1}\addtocounter{footnote}{-1}\end{NoHyper}
+}
+\usepackage{url}
+
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage[ruled]{algorithm2e}
+\usepackage{enumerate}
+\usepackage{todonotes} \usepackage{enumitem}  \usepackage{makecell}
+\usepackage{pifont}
+ \newtheorem{assumption}{Assumption}
+\newtheorem{example}{Example}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\newcommand{\xpar}[1]{\noindent\textbf{#1}\ \ }
+\newcommand{\vpar}[1]{\vspace{3mm}\noindent\textbf{#1}\ \ }
+
+\newcommand{\sect}[1]{Section~\ref{#1}}
+\newcommand{\sectapp}[1]{Appendix~\ref{#1}}
+\newcommand{\ssect}[1]{\S~\ref{#1}}
+\newcommand{\eqn}[1]{Eqn.~\ref{#1}}
+\newcommand{\fig}[1]{Fig.~\ref{#1}}
+\newcommand{\tbl}[1]{Table~\ref{#1}}
+
+\newcommand{\degree}{\ensuremath{^\circ}\xspace}
+\newcommand{\ignore}[1]{}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\fcseven}{$\mbox{fc}_7$}
+\newcommand{\YES}{\textcolor{green!80!black}{\ding{51}}}
+\newcommand{\NO}{\textcolor{red}{\ding{55}}}
+
+\renewcommand*{\thefootnote}{\fnsymbol{footnote}}
+
+
+\def\naive{na\"{\i}ve\xspace}
+\def\Naive{Na\"{\i}ve\xspace}
+
+\DeclareMathAlphabet{\mathbfit}{OML}{cmm}{b}{it}
+
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{e.g\onedot} \def\Eg{E.g\onedot}
+\def\ie{i.e\onedot} \def\Ie{I.e\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{etc\onedot}
+\def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot}
+\def\dof{d.o.f\onedot}
+\def\etal{et al\onedot}
+\def\aka{a.k.a\onedot}
+\makeatother
+
+\definecolor{MyDarkBlue}{rgb}{0,0.08,1}
+\definecolor{MyAqua}{rgb}{0,0.7,0.7}
+\definecolor{MyDarkGreen}{rgb}{0.02,0.6,0.02}
+\definecolor{MyDarkRed}{rgb}{0.8,0.02,0.02}
+\definecolor{MyDarkOrange}{rgb}{0.40,0.2,0.02}
+\definecolor{MyPurple}{RGB}{111,0,255}
+\definecolor{MyGold}{rgb}{0.75,0.6,0.12}
+\definecolor{MyDarkgray}{rgb}{0.66, 0.66, 0.66}
+\newcommand{\semismall}{\fontsize{8.5pt}{10pt}\selectfont}
+
+\newcommand{\jw}[1]{\textcolor{MyDarkGreen}{[Jiajun: #1]}}
+\definecolor{MyRed}{rgb}{0.65,0.07,0.09}
+\newcommand{\ky}[1]{\textcolor{MyRed}{[Koven: #1]}}
+
+\newcommand{\defeq}{\vcentcolon=}
+
+\newenvironment{tight_itemize}{
+	\begin{itemize}[leftmargin=15pt]
+		\setlength{\topsep}{0pt}
+		\setlength{\itemsep}{0pt}
+		\setlength{\parskip}{0pt}
+		\setlength{\parsep}{0pt}
+	}{\end{itemize}}
+
+\SetKwFor{For}{for }{}{}
+
+\newcommand{\modelfull}{hybrid neural fluid fields\xspace}
+\newcommand{\model}{HyFluid\xspace}
+
+\def\bR{\mathbb{R}}
+\def\cL{\mathcal{L}}
+
+\newcommand{\mysubsection}[1]{\vspace{-4pt}\subsection{#1}\vspace{-4pt}}
+\newcommand{\myparagraph}[1]{\vspace{0.1cm}\noindent\textbf{#1}}
+\newcommand{\myitem}{\vspace{-5pt}\item}
+\newcommand{\mybf}[1]{\vspace{4pt}\noindent\textbf{#1}}
+\newcommand{\mycell}[1]{\begin{tabular}{@{}l@{}l}#1\end{tabular}}
+\newcommand{\mycellc}[1]{\begin{tabular}{@{}c@{}l}#1\end{tabular}}
+
+ 
+\title{Inferring Hybrid Neural Fluid Fields from Videos}
+
+\author{
+Hong-Xing Yu\textsuperscript{1}\thanks{Equal contributions.}
+\And
+Yang Zheng\textsuperscript{1}\footnotemark[1]
+\And
+Yuan Gao\textsuperscript{1}
+\And
+Yitong Deng\textsuperscript{1}
+\And
+Bo Zhu\textsuperscript{2}
+\And
+Jiajun Wu\textsuperscript{1}
+\AND
+\textnormal{Stanford University\textsuperscript{1}}
+\And
+\textnormal{Georgia Institute of Technology\textsuperscript{2}}
+}
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+    We study recovering fluid density and velocity from sparse multiview videos. Existing neural dynamic reconstruction methods predominantly rely on optical flows; therefore, they cannot accurately estimate the density and uncover the underlying velocity due to the inherent visual ambiguities of fluid velocity, as fluids are often shapeless and lack stable visual features. The challenge is further pronounced by the turbulent nature of fluid flows, which calls for properly designed fluid velocity representations. To address these challenges, we propose \modelfull (\model), a neural approach to jointly infer fluid density and velocity fields. Specifically, to deal with visual ambiguities of fluid velocity, we introduce a set of physics-based losses that enforce inferring a physically plausible velocity field, which is divergence-free and drives the transport of density. To deal with the turbulent nature of fluid velocity, we design a hybrid neural velocity representation that includes a base neural velocity field that captures most irrotational energy and a vortex particle-based velocity that models residual turbulent velocity. We show that our method enables recovering vortical flow details. Our approach opens up possibilities for various learning and reconstruction applications centered around 3D incompressible flow, including fluid re-simulation and editing, future prediction, and neural dynamic scene composition. Project website: \url{https://kovenyu.com/HyFluid/}.
+\end{abstract} \section{Introduction}
+
+Fluid is ubiquitous in our surroundings, from a small breeze in the morning to large-scale atmosphere flow that would affect the weather in the following week. Understanding and predicting fluid dynamics play a central role in climate forecasting~\citep{bauer2015quiet}, vehicle design~\citep{bushnell1991drag}, visual special effect~\citep{pfaff2010scalable}, etc. Yet, it remains an open problem in scientific machine learning to accurately recover fluid flows from visual observations. Flow motions can only be seen indirectly, and, unlike solids that have certain shapes and simple constrained motion patterns, fluid systems have intricate and complex dynamics that exhibit different features across spatial scales. These characteristics pose unique challenges in the representations and algorithms to recover physically correct velocity. Recently, physics-informed neural networks~\citep{raissi2019physics} have shown promise in recovering velocity fields from density fields for scientific computing. These neural methods are scalable and flexible compared to traditional grid-based methods, yet they require accurate density fields that are unavailable in uncontrolled ordinary scenes.
+
+In this work, we focus on recovering the density\footnote{``Density'' refers to the concentration of the fluid substance such as smoke soot. Not to be confused with the physical density, i.e., mass over volume.} and velocity of fluids from sparsely captured multiview videos (see \fig{fig:teaser} for illustration). We identify three key challenges. Firstly, the fluid velocity is ambiguous from visual observations. Unlike solid objects characterized by consistent shapes and stable visual features, fluids are inherently shapeless, often monochromatic, and semi-transparent. This lack of physical definition makes visual tracking an implausible task, contributing to pronounced visual ambiguity, particularly in regions of laminar flow where the fluid appearance hardly changes. This challenge is beyond the capacity of general-purpose neural dynamic reconstruction methods~\citep{li2021neural,du2021neural}, as they predominantly depend on optical flow which is ineffective in this context.
+
+Secondly, accurately depicting fluid velocity necessitates appropriate representations that respect its turbulent features. Fluid flows exhibit varying features across multiple spatial scales~\citep{frisch1996turbulence}, a phenomenon that is challenging to capture within a single neural representation due to its spectral bias~\citep{rahaman2019spectral}. At the human scale, fluid motions express not only laminar flows but also turbulence~\citep{pope2000turbulent}. This results in a complicated entanglement of rotational, shearing, and smooth motions. The turbulent flows are high-frequency in both space and time. Therefore, the representation of such flow should be able to accommodate a broad spectrum of signal frequencies while also preserving the unique structure of rotational flows.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=\linewidth]{figures/teaser.pdf}
+\caption{We aim at inferring hybrid neural fluid representations of density and velocity from sparse multi-view videos. This allows novel view video synthesis, re-simulation, and dynamic scene composition.}
+\vspace{-0.05in}
+\label{fig:teaser}
+\end{figure} Lastly, it is inherently ambiguous to reconstruct physically plausible 3D density fields from sparse observations. Recovering fluid density and appearance from limited 2D videos is ill-posed primarily due to the intricate non-linear absorption and scattering processes associated with semi-transparent fluids~\citep{max1995optical}. Consequently, the reconstruction of under-constrained continuous density fields from sparse observations is an intrinsically difficult task.
+
+To address these challenges, we propose \modelfull (\model), a neural approach to jointly infer fluid density and velocity from sparse-view videos. At the core of \model are two key technical contributions including a set of simple yet effective physics-based losses and a hybrid neural velocity representation. 
+Our physics-based losses leverage physical constraints from the Navier-Stokes equations to jointly learn physically plausible fluid density and velocity fields. The physics-based losses enforce inferring a divergence-free velocity field that drives the transport of the density field. In addition to the new losses, we propose a hybrid fluid velocity representation as it is difficult for a single neural representation to capture turbulent fluid velocity. The main idea is to decompose our fluid velocity field into a base and a residual turbulent velocity field. The base velocity field is represented by a neural field that captures most irrotational energy, and the residual velocity field is represented by vortex particles that feature highly rotational and shearing velocities. In order to address the 2D-to-3D density ambiguity, we leverage both visual imaging signals by differentiable volume rendering and the physical fluid transport constraint to regularize the density field.
+
+We demonstrate that \model can yield high-fidelity recovery of density and velocity, allowing novel view video synthesis, re-simulation, editing, future prediction, and neural dynamic scene composition (\fig{fig:teaser}). In summary, our contributions are three-folded: (1) We propose \modelfull (\model), a neural approach to infer fluid density and velocity from sparse multiview videos. (2) We show that using simple physics-based losses and a hybrid neural velocity representation allows uncovering turbulent fluid motion from sparse observations. (3) We evaluate our method on novel-view re-simulation and novel-view future prediction to benchmark joint reconstruction for real fluids, and we show that our approach delivers high-fidelity synthesis and reconstructions in comparison to state-of-the-art neural methods.
+ \section{Preliminaries}
+\myparagraph{Incompressible Navier-Stokes equations.} 
+Our motion representation and learning signals are motivated by incompressible Navier-Stokes equations.
+With a low flow speed, fluid motion is considered incompressible and can be well described by:
+\begin{align}
+    \frac{D\mathbf{u}}{Dt}=\frac{\partial\mathbf{u}}{\partial t}+\mathbf{u}\cdot\nabla\mathbf{u} &= -\frac{1}{\rho}\nabla p +\nu\nabla\cdot\nabla\mathbf{u}+\mathbf{f}, \label{eqn:ns_1}
+    \\
+    \nabla\cdot\mathbf{u}&=0. \label{eqn:ns_2}
+\end{align}
+Here, \eqn{eqn:ns_1} is known as the momentum equation, where the LHS is the material derivative for velocity, $\frac{D\mathbf{u}}{Dt}=\frac{\partial\mathbf{u}}{\partial t}+\mathbf{u}\cdot\nabla\mathbf{u}$, which represents the time rate of change of velocity $\mathbf{u}$ of a fluid parcel, and the RHS is the momentum induced by pressure gradient $-\frac{1}{\rho}\nabla p$ (where $\rho$ denotes the physical density of the fluid parcel), viscosity $\nu\nabla\cdot\nabla\mathbf{u}$, and some external force $\mathbf{f}$. We consider inviscid fluid and thus drop the viscosity term. \eqn{eqn:ns_2} is known as the mass conservation equation, meaning that the mass flowing into a controlled volume should be equal to the mass flowing out of the volume.
+
+\myparagraph{Differentiable volume rendering.} We integrate volume rendering for joint learning of visual appearance, density, and velocity from videos. Volume rendering is a suitable model for translucent materials and participating media like smoke and fog~\citep{kajiya1984ray}. In volume rendering, the radiance $L(\mathbf{o}, \mathbf{d})$ arriving at the camera location $\mathbf o$ from direction $\mathbf{d}$ (a.k.a. the radiance of a camera ray $\mathbf{r}(t)=\mathbf{o}-t\mathbf{d}$) with near and far bounds $t_n$ and $t_f$ is given by
+\begin{align}\label{eqn:vol_render}
+    L(\mathbf{o}, \mathbf{d}) = \int_{t_n}^{t_f} T(t)\sigma(\mathbf{r}(t))L_\text{e}(\mathbf{r}(t),\mathbf{d})dt,
+\end{align}
+where $T(t)=\exp(-\int_{t_n}^t \sigma(\mathbf{r}(s))ds)$ denotes the transmittance along the ray from $t_n$ to $t$, $L_\text{e}$ denotes the emitting radiance, and $\sigma$ denotes the optical density which can be considered proportional to the concentration density of fluid substance according to Beer-Lambert law. Following recent neural rendering methods~\citep{mildenhall2020nerf}, we use quadrature to discretize it~\citep{max1995optical}.
+
+\section{Hybrid Neural Fluid Fields}
+
+Our goal is to recover the fluid appearance, density, and velocity from sparse multiview RGB videos. To this end, we propose \modelfull (\model). At the core of \model are a set of simple physics-based losses and a hybrid neural velocity representation. In particular, \model aims to infer a neural density field $\sigma(x, y, z, t)$, the appearance of the fluid $L_\text{e}$, and the underlying velocity $\mathbf{u}(x, y, z, t) = \mathbf{u}_\text{base}(x, y, z, t) + \mathbf{u}_\text{vort}(x, y, z, t)$, where we decompose it into a base neural velocity field $\mathbf{u}_\text{base}$ and a residual vortex particle-driven turbulent velocity. $\mathbf{u} = [u, v, w]$ denotes the velocity along $x, y, z$ axis, respectively. In the following, we first introduce the physics-based losses, then we describe our hybrid velocity representation, and finally, we summarize our learning signals for the joint inference. We show a conceptual illustration in \fig{fig:approach}.
+
+\myparagraph{Physics-based losses.} We propose physics-based losses $\mathcal{L}_\text{physics}$ including a density loss, a projection loss, and a laminar regularization loss.
+
+\emph{Density loss.} While the neural density field can be learned through differentiable volume rendering, the underlying velocity field is hidden from the visual observations. Unlike solids that have regular shapes and invariant visual features to track, fluids are often shapeless, monochromatic, and semi-transparent. This makes it implausible to visually track it. To uncover the hidden velocity from visual observations, we resort to the density transport equation in incompressible flows, $\frac{D\sigma}{Dt} = 0$, and introduce a physics-informed supervision signal:
+\begin{align}\label{eqn:density_transport}
+    \mathcal{L}_\text{density} = \mathop{\mathbb{E}}_{x, y, z, t}\left[\frac{\partial\sigma}{\partial t} + u\cdot\frac{\partial\sigma}{\partial x} + v\cdot\frac{\partial\sigma}{\partial y} + w\cdot\frac{\partial\sigma}{\partial z}\right].
+\end{align}
+This loss says that the 3D velocity field $(u, v, w)$ at any given moment $t$ should transport the density field $\sigma$ such that it evolves to the density field at the next moment, in a similar spirit to scene flow~\citep{vedula1999three}.
+
+\emph{Projection loss.} Another important physical property of incompressible flow is mass conservation depicted in \eqn{eqn:ns_2}, that is, the velocity field should be divergence-free. A straightforward way to enforce divergence-free condition is to impose a loss on the divergence of velocity, $\frac{\partial u}{\partial x}+\frac{\partial v}{\partial y}+\frac{\partial w}{\partial z}$. However, we find that this empirically leads to a degenerated solution, where only the laminar flows (i.e., smooth, direct-current flows) can be uncovered as this is a trivial local minimum for every point. Yet, the incompressibility of fluid flows is confined through a global dynamic system, modulated by the pressure of the fluid.
+
+Therefore, we need a globally-aware, physically-plausible supervision that does not conform to trivial local minima. Motivated by the commonly used pressure projection solver in computational fluid dynamics, we propose a projection loss that constrains our learned velocity to be divergence-free:
+\begin{align}\label{eqn:projection}
+    \mathcal{L}_\text{proj} = \mathop{\mathbb{E}}_{x, y, z, t}\left[\lVert \mathbf{u}-\mathbf{u}_p \rVert^2\right],
+\end{align}
+where $\mathbf{u}_p = \texttt{project}(\mathbf{u})$ are the pressure-projected velocity field, using a pressure $\texttt{project}$ solver. A \texttt{project} solver implements a Helmholtz decomposition by solving a global linear system for pressure, and it projects the velocity field $\mathbf{u}$ to a divergence-free manifold using the gradient of the solved pressure. Also, we notice that any divergence-free velocity field $\mathbf{u}$ incurs zero projection loss as it is an identity mapping for divergence-free fields. Thus, this projection loss essentially constrains the uncovered velocity within a divergence-free subspace, and it is not subject to trivial local minima of pure direct-current flows. 
+
+\emph{Laminar regularization loss.} These density and projection losses do not warrant physically-correct velocity reconstruction for laminar flows. In laminar flows, all partial derivatives of density are zero, so any velocity, e.g., all-zero velocity, incurs zero $\mathcal{L}_\text{density}$. As for $\mathcal{L}_\text{project}$, all-zero velocity fields also incur a zero loss. Hence, we introduce a laminar regularization loss:
+\begin{align}\label{eqn:laminar}
+    \mathcal{L}_\text{laminar} = \mathop{\mathbb{E}}_{x, y, z, t}\left[ \max(0, \gamma\sigma-\lVert \mathbf{u} \rVert) \right],
+\end{align}
+which is a hinge loss that encourages high-density regions to have non-zero velocity, and $\gamma$ denotes a hyperparameter to scale the threshold according to the velocity magnitude unit. These three losses are complementary and interconnected to uncover a physically plausible fluid flow.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/approach.pdf}
+\caption{Illustration of \modelfull (\model) which aims to jointly infer fluid density and velocity from videos using visual signals via differentiable volume rendering and physics-based losses. To facilitate learning turbulent velocity, we decompose the velocity field into a base velocity and a vortex particle-driven velocity. See the main text for detailed descriptions.}
+\label{fig:approach}
+\end{figure} \myparagraph{Hybrid neural velocity representation.}
+At the human scale, fluid flows are often turbulent. They exhibit complex dynamic features including circular and shearing flows. In addition to the common challenges of reconstructing non-turbulent flows, turbulent flows are even more intricate and difficult to model and capture. They are high-frequency flows in both space and time. This demands that the velocity representation be able to accommodate a wide range of signal frequencies and the particular structure of rotational flows. However, neural representations are known to have certain spectral inductive biases toward representing low-frequency signals~\citep{rahaman2019spectral}. While this can be alleviated by position embedding~\citep{tancik2020fourier} or sinusoidal activation functions~\citep{sitzmann2020implicit}, they still lack a proper structure to capture and represent highly detailed turbulent flows.
+
+We propose a hybrid neural velocity representation to tackle this challenge. The main idea is to decompose the underlying flow field $\mathbf{u}=\mathbf{u}_\text{base}+\mathbf{u}_\text{vort}$ into a base neural velocity field $\mathbf{u}_\text{base}$ and a residual vorticity-driven velocity $\mathbf{u}_\text{vort}$. The base neural velocity field captures the large-scale flow motion, and the vorticity-driven velocity is a dedicated representation of the small-scale vortex details that are hard to characterize by the base field. For the base velocity field $\mathbf{u}_\text{base}$, we extend instance neural graphics primitive (iNGP)~\citep{muller2022instant} representation to the temporal domain. 
+
+The residual vorticity-driven flow $\mathbf{u}_\text{vort}$ is complementary to the base flow by leveraging the physical structure of turbulent fluid flows. The physical model behind the vorticity-driven flow is prescribed by the curl form of the Navier-Stokes equations (see \citet{cottet2000vortex} for more details):
+\begin{align}\label{eqn:vort_transport}
+    \frac{D\boldsymbol\omega}{Dt}=\frac{\partial\boldsymbol\omega}{\partial t}+\mathbf{u}\cdot\nabla\boldsymbol\omega &= \boldsymbol\omega\cdot\nabla\mathbf{u} + \nu\nabla\cdot\nabla\boldsymbol\omega + \nabla\times\mathbf{f},
+\end{align}
+where $\boldsymbol\omega=\nabla\times\mathbf{u}$ denotes the vorticity. We assume inviscid fluid and conservative body force, and thus only the vortex stretching term $\boldsymbol\omega\cdot\nabla\mathbf{u}$ is non-zero on the RHS. In this case, \eqn{eqn:vort_transport} becomes the vorticity transport equation, saying that vorticity is stretched and advected by the velocity flow.
+
+This physical model has been widely used in fluid simulation~\citep{cottet2000vortex}, known as vortex methods. In particular, we consider the vortex particle methods~\citep{selle2005vortex}, where we use a particle-based representation for vorticity, which is low-dimensional, is easy to temporally evolve, and well embeds the circular physical flow structures in it. 
+We represent a vortex particle $p$ at some time stamp $t$ by a triplet $\{I_p, \mathbf{x}^t_p, \boldsymbol{\omega}^t_p\}$ of its intensity $I_p$, position $\mathbf{x}^t_p$, and vorticity $\boldsymbol{\omega}^t_p$. Our vorticity-driven flow $\mathbf{u}_\text{vort}(\mathbf{x}, t)$ induced by vortex particles is represented by:
+\begin{align}\label{eqn:vort2vel}
+    \mathbf{u}_\text{vort}(\mathbf{x}, t) = \sum_p I_p(\mathbf{N}_p\times\mathbf{\Tilde{\boldsymbol\omega}}_p), \quad
+    \mathbf{N}_p = (\mathbf{x}^t_p - \mathbf{x}) / \lVert \mathbf{x}^t_p - \mathbf{x}\rVert, \quad
+    \mathbf{\Tilde{\boldsymbol\omega}}_p=K(\mathbf{x}-\mathbf{x}_p^t)\boldsymbol\omega_p^t,
+\end{align}
+where $K(\mathbf{x})=\exp(-\lVert \mathbf{x}\rVert^2/2r^2)/(r^3(2\pi)^{3/2})$ is a Gaussian distribution kernel. Intuitively, every vortex particle ``carries'' a local circular momentum, which is itself transported with the flow prescribed by \eqn{eqn:vort_transport}. Collectively, a set of vortex particles allows learning complex flow details which are hard to capture by the base velocity field.
+
+However, naively learning the vortex particles leads to poor local minima due to the complex interdependence of $\mathbf{u}$ and $\{I_p, \mathbf{x}^t_p, \boldsymbol{\omega}^t_p\}$. Thus, we make two simplifications. First, we assume that most energy is captured by the base flow and only use the base flow to transport vortex particles. This is achieved by first learning the base flow and then freezing the base flow to learn the residual flow. Second, we introduce a seeding strategy to disentangle learnable parameters from the particle transport: we seed overly many vortex particles on high-curl spatio-temporal locations and pre-compute the trajectory $\{\mathbf{x}^t_p\}$ and $\{\boldsymbol{\omega}^t_p\}$ for all $t$ and $p$ by the learned base flow. Therefore, the learnable parameters are reduced to $\{I_p\}$. The redundant vortex particles are automatically suppressed by learning to have zero intensities. We leave more details of the seeding strategy in the Appendix.
+
+\myparagraph{Joint inference of fluid fields.}
+It is a highly ill-posed problem to recover density and appearance from sparse visual observations, as the imaging process for semi-transparent fluids involves complex non-linear absorption and scattering. The visual appearance of fluids depends not only on density but also lighting and fluid substance properties. Therefore, recovering turbulent, under-constrained continuous density fields from limited observations is inherently challenging. 
+
+To address this challenge, we leverage both visual imaging signals and physical fluid transport constraints by jointly learning density, appearance, and velocity. The visual signal supervision through differentiable volume rendering is given by:
+\begin{align}\label{eqn:rendering_loss}
+    \mathcal{L}_\text{render} = \mathop{\mathbb{E}}_{\mathbf{o}, \mathbf{d}, t}\left[\lVert L_\text{render}(\mathbf{o}, \mathbf{d})- L_\text{observe}(\mathbf{o}, \mathbf{d})\rVert^2\right],
+\end{align}
+where $L_\text{render}$ is our volume rendered values by \eqn{eqn:vol_render} and $L_\text{observe}$ is sampled from video frames.
+Notice that we sample rays continuously in the viewing frustums instead of sampling through only pixel centers as NeRF-like methods do~\citep{mildenhall2020nerf}, as we aim to learn continuous fields and we rely on good partial derivatives from the fields. The physical transport constraint is provided by \eqn{eqn:density_transport}, i.e., we supervise the partial derivatives of the density field. We compute all derivatives by auto-differentiation~\citep{paszke2017automatic}. Our loss function is given by:
+\begin{align}\label{eqn:final_loss}
+    \mathcal{L} = \beta_\text{render}\mathcal{L}_\text{render} + \beta_\text{density}\mathcal{L}_\text{density} + \beta_\text{proj}\mathcal{L}_\text{proj} + \beta_\text{laminar}\mathcal{L}_\text{laminar},
+\end{align}
+where all the $\beta$s are loss weights.
+
+Another inherent ambiguity is between emitting radiance and density. As in \eqn{eqn:vol_render}, the emitting radiance is multiplied by density, which means that an unconstrained spatially-varying emitting radiance field admits all sorts of trivial solutions for density. Empirically, we find little differences between using learned spatially-varying color and using a constant color. Thus, we set emitting radiance to be constant to remove this ambiguity.
+ \section{Related Work}
+\myparagraph{Fluid reconstruction.}
+Fluid flow reconstruction from visible light measurement has been widely studied in science and engineering. Well-established methods used in controlled lab environments include active sensing techniques such as laser scanners~\citep{hawkins2005acquisition}, light path~\citep{ji2013reconstructing}, and structural light~\citep{gu2012compressive}, as well as passive marker-based methods such as particle imaging velocimetry (PIV)~\citep{adrian2011particle,elsinga2006tomographic} which injects passive particles into the fluid flows. These methods allow accurate flow measurement, yet they require specialized setup for markers, lighting, and capturing devices.
+
+Recent methods also seek to reconstruct fluid flows from casual visible light measurements without a specialized setup. Earlier works use tomography and linear imaging formation to reconstruct density grids from visual observations~\citep{gregson2014capture,okabe2015fluid} and then estimate velocity using physical priors~\citep{gregson2014capture,eckert2018coupled}. This line of work has been extended to joint optimization for both velocity and density~\citep{eckert2019scalarflow} to improve reconstruction quality. Since this is a highly unconstrained problem, synthesized view supervision is proposed to regularize the reconstruction~\citep{zang2020tomofluid}. \citet{franz2021global} introduce a density-based rendering formation with a global differentiable simulation framework. They use manually calibrate lighting directions and fluid source location to allow consistent differentiable simulation optimization. However, these methods ignore the visual appearance, suffering from the inherent visual ambiguity of fluid density and appearance.
+
+\myparagraph{Neural dynamic scene representations.} Using neural networks as implicit visual scene representations have been made effective and popular. Earlier works use neural representations for geometry~\citep{park2019deepsdf,mescheder2019occupancy} and visual appearance~\citep{sitzmann2019scene}. As a seminal work, neural radiance fields (NeRFs)~\citep{mildenhall2020nerf} incorporate volume rendering to learn implicit geometry and appearance from images. Follow-ups of NeRFs extend applications from novel view synthesis to dynamic scene reconstruction~\citep{li2021neural,pumarola2021d}, relighting~\citep{zhang2021physg,yu2023learning}, scene segmentation~\citep{yu2022unsupervised,sajjadi2022object}, robot manipulation~\citep{le2023differentiable,tian2023multi}, system identification~\citep{li2023pac}, etc. 
+
+Generic dynamic NeRFs incorporate deformation fields~\citep{park2021hypernerf,pumarola2021d,park2021nerfies} or scene flow fields~\citep{li2021neural,du2021neural,xian2021space,li2022neural} to represent motion. These motion representations essentially rely on stable visual features such as color gradients and edges, and thus they are not suitable for uncovering fluid flows which generally do not exhibit stable visual features. Notably, \citep{chu2022physics} is the most relevant work to ours. \citet{chu2022physics} propose the physics-informed neural fields (PINF) that incorporate physics-informed losses~\citep{raissi2019physics} to reconstruct fluid flows from sparse-view videos with learned priors from synthetic data. However, PINF does not consider the inherent physical structures of real fluid flows and thus only reconstructs laminar flows. Our \model allows uncovering turbulent real flows by novel physics-based losses and the hybrid neural velocity representation.
+
+\myparagraph{Learning fluid dynamics.}
+Learning fluid dynamics holds the promise to accelerate simulation and aid fluid reconstruction. Earlier work on learning fluid dynamics to accelerate simulation includes using convolutional networks to evolve fluid states~\citep{tompson2017accelerating,ummenhofer2019lagrangian,prantl2022guaranteed} or learning latent simulation~\citep{wiewel2019latent,kim2019deep}, supervised by 3D fluid simulation data.
+While these methods learn from 3D fluid data, a few recent work such as \citet{guan2022neurofluid} and \citet{liu2023inferring} learn simulators from multi-view videos. 
+However, both of them assume to have groundtruth reconstructed initial fluid states, restricting the applications to synthetic data. Thus, it still remains open how existing methods may help fluid reconstruction. An exception is \citet{deng2023learning} that use low-dimensional vortex particles to represent fluid velocity fields and thus allow reconstructing fluid velocity from a single video, yet their formulation is restricted to 2D domain due to complex vortex stretching in 3D vortex dynamics. \section{Experiments}
+
+\myparagraph{Datasets.} We use both real captures and synthetic simulation for evaluation. For real captures, we use the ScalarFlow dataset~\citep{eckert2019scalarflow} which consists of videos of buoyancy-driven rising smoke plumes. We use the first five scenes from the real captures. For each scene, there are five video recordings. The five cameras are fixed-position throughout capture and distributed evenly across a $120^{\circ}$ arc centered at the rising smoke. Each video has $150$ frames with $1062\times 600$ resolution. These videos have been post-processed to remove backgrounds. We follow~\citet{chu2022physics} to use $120$ frames for each video. For each scene, we use four videos for training, and one held-out video for testing (i.e., as the groundtruth for the novel view). 
+
+Synthetic simulation allows evaluating 3D velocity and density against the groundtruth. We use ScalarFlow synthetic dataset generation code~\citep{eckert2019scalarflow}. We generate five examples with different inflow source with higher viscosity and another five examples with lower viscosity. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/nvs.pdf}
+\vspace{-0.05in}
+\caption{Visualization of novel view synthesis results on a real capture. Note that ours more faithfully recovers the density distribution of the fluid without floaters or missing regions.}
+\label{fig:nvs}
+\end{figure} \begin{figure}[t]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/resim.pdf}
+\vspace{-0.05in}
+\caption{Visualization of re-simulation results on a real capture. Ours synthesizes reasonable re-simulation.}
+\vspace{-0.1in}
+\label{fig:resim}
+\end{figure} 
+\myparagraph{Evaluation metrics.} For real fluid flows we do not have volumetric 3D groundtruth, so we use novel view video rendering to evaluate the reconstruction quality. In particular, we use the following three tasks: novel view video synthesis, novel view re-simulation, and novel view future prediction. Re-simulation and future prediction require high-fidelity velocity reconstruction and thus provide a means to evaluate velocity reconstruction. We use peak signal-noise ratio (PSNR), structural similarity index measure (SSIM), and the perceptual metric LPIPS~\citep{zhang2018unreasonable}.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.99\linewidth]{figures/future_pred.pdf}
+\caption{Visualization of future prediction results on a real capture. Notice how our plume expands while PINF~\citep{chu2022physics} only moves the plume up.}
+\label{fig:future_pred}
+\end{figure} 
+\begin{table}[t]
+\centering
+\semismall
+\setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lccccccccc}
+    \toprule
+    \multirow{2}{*}{\bf Models} & \multicolumn{3}{c}{\bf Novel view synthesis} & \multicolumn{3}{c}{\bf Re-simulation} & \multicolumn{3}{c}{\bf Future prediction} \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+     & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$& PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+    \midrule
+    NeRFlow~\citep{du2021neural} & 18.01 & 0.7880 & 0.1958 &  17.20 & 0.8174 & 0.1658  & - & - & -- \\
+    GlobTran~\citep{franz2021global} & 25.97 & 0.9312 & \textbf{0.0783} & 24.55 & 0.8988 & \textbf{0.1017} & - & - & - \\
+    NeuroFluid~\citep{guan2022neurofluid} & 22.41	& 0.8452 & 0.1560 &-&-&-&-&-&- \\
+    PINF~\citep{chu2022physics}  & 29.55 & 0.9244 &0.0881  & 24.97  & 0.9109 & 0.1278  & 24.19 & 0.8366 & 0.2155 \\
+    \model (ours) &  \textbf{31.14} & \textbf{0.9330}	& 0.0966 &  \textbf{28.37}& \textbf{0.9158} &  0.1171 & \textbf{26.12} & \textbf{0.8448} &  \textbf{0.1968}\\
+    \bottomrule
+    \end{tabular}
+\vspace{5pt}
+\caption{Comparison on renderings for three tasks on real captures.}
+\vspace{-0.25cm}
+\label{tbl:main}
+\end{table} 
+For synthetic data, we can evaluate the reconstruction results against the simulation groundtruth. Since the simulation groundtruth are up to a scale, we use scale-invariant RMSE to measure the performance. We only compute metrics where groundtruth density is greater than $0.1$ to rule out empty space (which is otherwise dominant) for clearer quantitative comparison. In particular, we consider volumetric density error (by querying density networks at the simulation grid points) to evaluate density prediction, and warp error (i.e., using velocity to advect density and comparing to GT density) to evaluate both density and velocity prediction. 
+
+\myparagraph{Baselines.} We consider three recent flow reconstruction methods: NeRFlow~\citep{du2021neural}, a neural dynamic reconstruction method for fluid reconstruction;
+GlobTran~\citep{franz2021global}, a grid-based fluid reconstruction method;
+and PINF~\citep{chu2022physics}, the latest neural fluid reconstruction method.
+We also compare to NeuroFluid~\citep{guan2022neurofluid}, a recent fluid dynamics learning approach. Since NeuroFluid requires having 3D density and velocity at the first frame, we use PINF reconstructed fields for it.
+We leave training details and compute resources in Appendix.
+
+
+\subsection{Novel view video synthesis} In this task, we aim to evaluate the inferred density fields by synthesizing novel view videos. We use all $120$ frames from the held-out test view for all scenes and report the average numbers. As shown in \tbl{tbl:main}, our method is comparable to the state-of-the-art method PINF~\citep{chu2022physics}. Notice that ours is better in PSNR which is an objective metric that measures the optical similarity of the synthesized image and the groundtruth. GlobTrans~\citep{franz2021global} uses adversarial loss together with a specific rendering formulation, which may contribute to better perceptual LPIPS performances. Yet, this compromises objective fidelity as reflected by lower PSNR. Qualitative results in \fig{fig:nvs} showcase the capability of our method to accurately reconstruct density fields, which paves the way for the inference of high-fidelity physically-plausible velocity fields.
+
+
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \centering
+    \vspace{-0.7cm}
+    \includegraphics[width=0.95\linewidth]{figures/velocity_slice.pdf}
+  \caption{Velocity slice on a real capture.}
+  \label{fig:vel_slice}
+\end{wrapfigure} 
+\subsection{Re-simulation} The re-simulation task accesses the ability of the models to infer the velocity fields accurately. Specifically, we use the reconstructed density from the first frame and advect the density across time to the last frame using the learned velocity. We use the standard MacCormack method~\citep{selle2008unconditionally} for advection. As for fluid source, we use the reconstructed density field in the bottom of the scenes. Results in \tbl{tbl:main} and \fig{fig:resim} show that our method generates reasonable results, whereas PINF~\citep{chu2022physics} and NeRFlow~\citep{du2021neural} completely fail. We further visualize the velocity field by slicing it in \fig{fig:vel_slice}, which demonstrates that our method effectively captures the velocity details that are missed by the baseline methods, which tend to default to trivial solutions where all the velocity is upward-directed.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.99\linewidth]{figures/real_video.pdf}
+\caption{Visualization of velocity field inferred by \model from a real 3-view capture.}
+\label{fig:real_video}
+\vspace{-0.15cm}
+\end{figure} \begin{figure}[t]
+    \centering
+    \begin{minipage}[c]{0.48\linewidth}
+        \scriptsize
+        \setlength{\tabcolsep}{3pt}
+        \begin{tabular}{lccccc}
+        \toprule
+        \textbf{Low vis.} & Den. err.$\downarrow$ & Warp err.$\downarrow$ & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+        \midrule
+        PINF &5.01&4.84&23.43&0.8555&0.2153\\
+        Ours &\textbf{2.94} & \textbf{3.37} & \textbf{27.28} & \textbf{0.8616} & \textbf{0.1285}\\
+        \midrule
+        \textbf{High vis.} & Den. err.$\downarrow$ & Warp err.$\downarrow$ & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ \\
+        \midrule
+        PINF &4.91&4.93&27.26&\textbf{0.8728}&0.1537 \\
+        Ours & \textbf{2.85} & \textbf{3.21} & \textbf{28.57} & 0.8670 & \textbf{0.1233} \\
+        \bottomrule
+        \end{tabular}
+        \captionof{table}{Evaluation on synthetic data of different levels of viscosity.}
+        \label{tbl:syn}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.48\linewidth}
+        \raisebox{-0.5\height}{\includegraphics[width=\linewidth]{figures/synthetic.pdf}}
+        \vspace{-0.4cm}
+        \captionof{figure}{Novel view re-simulation on synthetic data.}
+        \label{fig:syn}
+    \end{minipage}
+    \vspace{-0.3cm}
+\end{figure}
+ 
+
+\subsection{Future prediction} In the future prediction task, we extrapolate the fluid motion into the future based on the inferred velocity fields at a single frame. In particular, we follow the standard grid-based fluid simulation~\citep{fedkiw2001visual} to evolve the velocity fields by self-advecting them using the MacCormack method, followed by a projection step to ensure the divergence-free constraint. \tbl{tbl:main} shows that our method predicts future frames that are quantitatively better than PINF. \fig{fig:future_pred} illustrates that compared to PINF, the future fluid state predicted by our method maintains its original structure and continues to follow a natural upward trajectory, and also produces natural details. These results underline the robustness of our method in inferring complex fluid velocity. 
+
+\subsection{Inference on in-the-wild real capture}
+While ScalarFlow dataset provides real captures of plumes from a controlled environment, we are also interested in inferring fluid fields from uncontrolled in-the-wild videos. We use three cameras to capture sparse multi-view videos of a lit incense, and we show a visualization of the inferred density (top row) and velocity (bottom row) in \fig{fig:real_video}. While the fluid in this example is much thinner than plumes, \model allows plausible inference of fluid fields.
+
+
+
+\begin{figure}[t]
+\begin{minipage}[c]{0.56\linewidth}
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/edit.pdf}
+  \vspace{-0.1cm}
+    \caption{Visualization of our turbulence editing by intensifying the learned vortex particles on a real capture.}
+    \label{fig:editing}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{0.4\linewidth}
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/ablation.pdf}
+  \vspace{-0.25cm}
+  \caption{Ablation study by re-simulation.}\label{fig:ablation}
+\end{minipage}
+\vspace{-0.1cm}
+\end{figure}
+ 
+\subsection{Evaluation on synthetic data}
+We include synthetic examples for evaluating 3D density and velocity fields against the groundtruth. We compare to PINF which has shown state-of-the-art results in 3D fluid fields reconstruction. We show 3D fields evaluation results together with novel view re-simulation results in \tbl{tbl:syn} and \fig{fig:syn}. We observe that ours outperforms PINF on both 3D fields and 2D rendering, especially in preserving the vortical structures and intricate shape details. This is validated by larger performance margins in low-viscosity examples, since there is more turbulence that is hard to capture by PINF. 
+
+
+\subsection{Additional applications} The inherent properties of neural representation in our method allow for its applicability in a variety of additional contexts, such as editing and scene composition. As seen in \fig{fig:teaser}, the results obtained from our method can be effortlessly integrated into dynamic NeRF scenes~\citep{kplanes_2023} or imported into professional-grade graphics software. 
+
+Our hybrid neural velocity representation naturally supports turbulence editing in re-simulation. In particular, we multiply our vortex particle intensity by a factor of $4$ and showcase a visualization of edited re-simulation in \fig{fig:editing}. This shows that the high-quality velocity estimation from our hybrid neural velocity representation allows easily synthesizing vortical flow details.
+
+
+\subsection{Ablation study}
+We show qualitative results in \fig{fig:ablation} to evaluate the proposed physics-based losses, the vortex particle-driven velocity representation, and the joint training supervision. Starting from ``Naive'' where we only use the rendering loss for recovering density and the density loss for recovering velocity, we gradually add back laminar loss (``$+\mathcal{L}_\text{laminar}$)''), projection loss (``$+\mathcal{L}_\text{project}$''), and vortex particle-driven residual velocity (``Full''). From \fig{fig:ablation} we observe that our physical losses allow better velocity recovery. In particular, the projection loss enables recovering physically correct velocity that reconstructs the plume shape in re-simulation. Vortex particle-driven velocity allows capturing more details and thus more consistent re-simulation. 
+
+ \section{Conclusion}
+In this work, we study recovering fluid density and velocity from sparse multi-view videos. We propose \modelfull (\model) which features physics-based losses to address inherent visual ambiguities and a hybrid neural velocity representation for capturing the complex turbulent fluid flow. We show that our simple designs can already lead to physically plausible estimation of fluid fields that supports applications such as re-simulation, editing, and dynamic scene composition.
+
+\textbf{Limitations.} Our method assumes inviscid fluid and only considers gas but not liquid. Liquid features free surface that may require further physical modeling and constraints. 
+\paragraph{Acknowledgments.} This work was in part supported by the Toyota Research Institute (TRI), NSF RI \#2211258, ONR MURI N00014-22-1-2740, the Stanford Institute for Human-Centered AI (HAI), and Google. B. Zhu acknowledges NSF IIS \#2313075, IIS \#2106733, and CAREER \#2144806. 
+
+{
+\small
+
+\bibliographystyle{iclr22}
+\bibliography{reference}
+}
+
+\newpage
+\appendix 
+\section{Appendix: Implementation details}
+\myparagraph{Model architecture.}
+For both the density field $\sigma(x,y,z,t)$ and the base velocity field $\mathbf{u}_\text{base}(x,y,z,t)$ we use a 4D extension of iNGP~\citep{muller2022instant}. Specifically, we add a temporal dimension to the original static iNGP. For the spatial dimensions, we use a base resolution $16$ and the finest resolution $256$. For the temporal dimension we set the finest resolution to $128$ which is comparable to the number of video frames ($120$ frames), as higher resolutions create hash encoding features that are never directly supervised and can lead to unstable gradients.
+
+\myparagraph{Training and hyperparameters.} 
+Our training can be divided into three stages. In the first stage, we pre-train our density network $\sigma(x,y,z,t)$ and the constant learnable appearance (radiance) $L_e$ using the rendering loss only, which forms an initial estimate of both quantities. In the second stage, we jointly train the density $\sigma(x,y,z,t)$, appearance $L_e$, and the base velocity $\mathbf{u}_\text{base}(x,y,z,t)$ using the full loss. Finally, we jointly train the density $\sigma(x,y,z,t)$, appearance $L_e$, and the vortex particles $\{I_p\}$. We use an Adam optimizer with a learning rate $0.01$. In the first stage, we train the density and radiance for $200,000$ iterations. In the second stage, we jointly train the model for $50,000$ iterations. In the third stage, we do training for $5,000$ iterations. We empirically set the loss weights to $\beta_\text{render}=10,000$, $\beta_\text{density}=0.001$, $\beta_\text{proj}=1$, $\beta_\text{laminar}=10$. For the laminar loss, we set the coefficient $\gamma=0.2$.
+
+\myparagraph{Projection loss.}
+For the projection routine, we use a multi-grid preconditioned conjugate gradient (MGPCG) solver~\citep{ashby1996parallel}. We implement it using Taichi~\citep{hu2019taichi} language. We use three levels of multi-grid, with the spatial resolution $128^3$. Note that we use the same resolution for our re-simulation and future prediction experiments for all compared methods.
+
+\myparagraph{Seeding strategy.}
+In our experiments, we seed $50$ vortex particles for each scene. To place initial vortex particles, we take the insight from vortex confinement methods~\citep{fedkiw2001visual}. We densely sample continuous spatio-temporal locations and compute curl values from the trained base velocity network, and then we place vortex particles at locations with the highest curl values.
+
+\myparagraph{Compute usage.}
+We train our model on a single A100 GPU for around $9$ hours in total. The first stage takes half an hour, the second stage takes around $8$ hours (this is significantly slower than the first stage as it requires computing derivatives for the density loss), and the third stage takes half an hour.
+ 
+
+
+\end{document}
