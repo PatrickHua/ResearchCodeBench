@@ -57,3 +57,26 @@ Your folder is located in `./pset/your-repo-name/`. Follow these steps to comple
 ```prompt
 TBD
 ```
+
+
+
+# Creating a Pull Request
+
+Before committing and pushing to a new branch, verify:
+
+- [ ] Files are up to date:
+  - `requirements.txt`
+  - `paper2code_paper.tex`
+  - `paper2code_test.py`
+  - `paper2code.yaml`
+- [ ] Removed unnecessary files:
+  - `__pycache__`
+  - `.git/`
+  - `.vscode/`
+  - Other non-essential files
+- [ ] Repository is minimal:
+  - Only test-relevant files remain
+  - No hidden large files
+  - Overall size is small
+- [ ] Tests run successfully after changes
+- [ ] Create PR and request review after pushing
