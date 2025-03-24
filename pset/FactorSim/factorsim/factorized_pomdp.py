@@ -15,7 +15,7 @@ from prompts import *
 from openai import OpenAI
 
 
-# <paper2code name="core_classes">
+# <paper2code name="function_class">
 # the class for state transitional functions and rendering functions
 class Function:
     def __init__(
@@ -41,14 +41,12 @@ class Function:
     def implementation(self, new_implementation):
         self._implementation = self.fix(new_implementation)
 
-    # <paper2code name="function_implementation">
     def fix(self, new_implementation):
         new_implementation = new_implementation.replace("""\\n""", "\n")
         if new_implementation.startswith('"""'):
             # extract the implementation from the triple quotes
             new_implementation = new_implementation.split('"""')[1]
         return new_implementation
-    # </paper2code name="function_implementation">
 
     def __str__(self):
         # extract all the lines after the first line of the implementation
@@ -78,9 +76,9 @@ class Function:
             )
         else:
             return False
-# </paper2code name="core_classes">
+# </paper2code name="function_class">
 
-# <paper2code name="state_management">
+# <paper2code name="state_variable_class">
 class StateVariable:
     def __init__(self, name, value, variable_type, description, dont_clean=False):
         self.name = name
@@ -118,9 +116,8 @@ class StateVariable:
             f"# {self.description}\n"
             f"self.{self.name} = {self.variable_type}({self.value})\n"
         )
-# </paper2code name="state_management">
+# </paper2code name="state_variable_class">
 
-# <paper2code name="game_representation">
 class GameRep:
     def __init__(
         self,
@@ -145,8 +142,8 @@ class GameRep:
         self.renders = []
 
         self.model = model
-        if "gpt" in model:
-            self.client = OpenAI()
+        #if "gpt" in model:
+        #    self.client = OpenAI()
 
         # <paper2code name="game_state_initialization">
         # default variables
@@ -185,9 +182,8 @@ class GameRep:
         # os.makedirs(log_dir, exist_ok=True)
         self.query_idx = 0
         self.num_api_calls = 0
-# </paper2code name="game_representation">
 
-# <paper2code name="core_game_logic">
+# <paper2code name="core_generation_logic">
     def process_user_query(self, query):
         self.queries.append({"query": query})
         yield "################################################################"
@@ -292,9 +288,8 @@ class GameRep:
         with open(save_path, "w") as f:
             f.write(all_code)
         self.query_idx += 1
-# </paper2code name="core_game_logic">
+# </paper2code name="core_generation_logic">
 
-# <paper2code name="code_generation">
     def export_code(self):
         all_code = PREPEND_CODE
         # add StateManager
@@ -333,7 +328,6 @@ class GameRep:
             render_code=render_code,
         )
         return all_code
-# </paper2code name="code_generation">
 
     def pass_sanity_check(self):
         for function in self.renders:
@@ -406,8 +400,6 @@ class GameRep:
             responses = json.loads(output)
             return responses
 
-
-
     def get_state_manager_code(self, relevant_states=None):
         code = "class StateManager:\n"
         code += "    def __init__(self):\n"
@@ -438,6 +430,7 @@ class GameRep:
             code += "\n"
         return code
 
+# <paper2code name="decompose_query">
     def decompose_query(self, query, contextual_states):
         def not_disjoint(list1, list2):
             return len(set(list1).intersection(list2)) > 0
@@ -484,6 +477,7 @@ class GameRep:
             )
 
         return decomposition
+# </paper2code name="decompose_query">
 
     def add_new_function(self, existing_functions, new_functions):
         for new_function in new_functions:
@@ -524,6 +518,7 @@ class GameRep:
                 used_states[state_name] = True
         self.states = [state for state in self.states if used_states[state.name]]
 
+    # <paper2code name="state_change">
     def state_change(self, query):
         query = state_change_prompt.format(
             state_manager_code=self.get_state_manager_code(), query=query
@@ -593,7 +588,9 @@ class GameRep:
             ret_new_states[state["variable_name"]] = _new_state
 
         return list(ret_new_states.values())
+    # </paper2code name="state_change">
 
+    # <paper2code name="input_logic_add">
     def input_logic_add(
         self, function_name, function_description, relevant_states=None
     ):
@@ -640,7 +637,9 @@ class GameRep:
         # if all functions pass basic sanity check
         if all([function.sanity_check() for function in new_functions]):
             return new_functions
+    # </paper2code name="input_logic_add">
 
+    # <paper2code name="logic_add">
     def logic_add(self, function_name, function_description, relevant_states=None):
         existing_implementation = ""
         for function in self.logics:
@@ -686,7 +685,9 @@ class GameRep:
             return new_functions
         else:
             raise Exception("logic_add failed")
+    # </paper2code name="logic_add">
 
+    # <paper2code name="ui_add">
     def ui_add(self, function_name, function_description, relevant_states=None):
         query = ui_add_prompt.format(
             function_name=function_name,
@@ -719,3 +720,4 @@ class GameRep:
             return new_functions
         else:
             raise Exception("ui_add failed")
+    # </paper2code name="ui_add">

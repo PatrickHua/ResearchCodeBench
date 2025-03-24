@@ -1,3 +1,0 @@
-pygame
-ray[rllib]
-pillow
