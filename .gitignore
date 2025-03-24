@@ -20,3 +20,5 @@ __pycache__
 **/*.json
 **/*.jsonl
 **/**/*.json
+walkthrough.py
+walkthrough/

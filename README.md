@@ -1,76 +1,82 @@
-# Repository Setup Guide
+# How to Annotate a Paper's Core Code
 
-## Contributing a New Annotated Repository
+Your folder is located in `./pset/your-repo-name/`. Follow these steps to complete the annotation:
 
-### Step 1: Create Virtual Environment and Install Requirements
+1. **Setup the Environment**
+   - Set up your environment and fill out the `paper2code.yaml` file.
 
-Run these commands in sequence:
-```bash
-pip3 install -r requirements.txt
-```
+2. **Annotate the Core Code**
+   - Use `<paper2code name="example"></paper2code name="example">` tags to hierarchically mark key parts of the core function/method.
+   - Refer to [`pset/DyT/dynamic_tanh.py`](./pset/DyT/dynamic_tanh.py) for an example.
 
-### Step 2: Download GitHub Repo and ArXiv Paper
-Run the following:
-```bash
-python3 walkthrough.py
-```
-Follow the prompted steps, including providing the GitHub link and arXiv link for the paper. The program will download the code and paper.
+3. **Complete the Test Script**
+   - Ensure `paper2code_test.py` is complete and runs successfully.
+   - Complete the `paper2code_requirements.txt` with the minimally needed packages to run `python paper2code_test.py`.
+   - Remove files or folders that are not required to run the test.
 
-## Step 3: Repository Configuration
 
-The downloaded repository will be located in `pset/{repo_name}`. Follow these steps to configure it:
-
-> **Note**: Check `pset/DyT` and `pset/fractalgen` for examples of properly configured repositories.
-
-### 1. Requirements Setup
-Create a `requirements.txt` file or `environment.yaml` if it doesn't exist to ensure the codebase can be easily run.
-
-### 2. Core Code Identification
-Identify the file containing your core code (this will be what the AI is tested on). Update `paper2code.yaml` to include this file path as `mask_file_path`.
-
-### 3. Context Files
-Identify files that provide important context for how the codebase and core code works. Update `paper2code.yaml` to include these file paths as `context_file_paths`.
-
-### 4. Test File Creation
-Create a new blank file for testing the core code functions. Update `paper2code.yaml` to include this test file path as `test_entry_point`.
-
-### 5. Test File Development
-- Create tests to verify the generated core code
-- Use `unittest` (recommended)
-- Verify outputs match expectations
-- AI-generated tests are acceptable if correct and comprehensive
-- Tests should run with CPU only (notify if GPU is required)
-
-### 6. Core Code Annotation
-- Reference `pset/DyT/dynamic_tanh.py` for annotation examples
-- Use annotation format:
+# Notes on Marking the Core Function
+  - Use annotation format:
   ```python
-  # <paper2code name="snippet_name">
-  code_here
-  # </paper2code name="snippet_name">
+  def sum(numbers: List[Int]) -> Int:
+    # <paper2code name="sum a list">
+    s = 0
+    # <paper2code name="for loop">
+    for num in numbers:
+      # <paper2code name="add next number">
+      s += num
+      # <paper2code name="add next number">
+    # <paper2code name="for loop">
+    return s
+    # <paper2code name="sum a list">
   ```
-- Guidelines:
-  - Comments must be at the **same indentation level** as the code
-  - Names should be unique and descriptive
-  - Include various snippet sizes (single line, loops, functions, etc.)
+  - Multiple lines can be wrapped in a single <paper2code name="snippet_name">...</paper2code name="snippet_name"> tag with a unique name. The name should be concise but informative (as a hint for the llm).
+  - You should have a variety of snippet sizes.
+      - e.g. a single line, a few lines, such as a for loop, a function, etc.
+      - Because different snippet sizes have different difficulty to generate.
+  - Some functions might have branches that are experimental and not of the main interest.
+      - Comment out the experimental branches as long as they are not affecting the main logic.
+  - **Ensure that the snippets are reproducible solely from the information in the paper.**
 
-## Creating a Pull Request
+## Why are we marking the core function?
+>The benchmarking process involves masking key parts of the core function individually, allowing a language model to complete them. The test cases will determine if the generated code functions behave equivalently to the original.
+## Why marking hierarchically?
+> We are marking the core functions hierarchically to create varying levels of difficulty for LLMs. This allows us to better differentiate their capabilities.
+
+# Notes on writing test cases
+
+  - While we recommend using `unittest` for testing, any format is acceptable as long as it meets these criteria:
+    1. Running `python paper2code_test.py` should verify that the generated core code is correct.
+    2. The test should raise an error or stop execution if the code is incorrect.
+  
+  **Important Considerations:**
+  - Ensure the test can be executed using only a CPU. If you face difficulties running the test on a CPU, please let us know.
+  - A simple testing method is to compare the output against a reference implementation or expected outputs stored in the repository.
+  - AI-generated tests are permissible, provided they are accurate and offer comprehensive coverage. We provide an example prompt for you to generate test cases with an AI as a starting point.
+
+```prompt
+TBD
+```
+
+
+
+# Creating a Pull Request
 
 Before committing and pushing to a new branch, verify:
 
-- [ ] Files are up to date:
+- Files are up to date:
   - `requirements.txt`
   - `paper2code_paper.tex`
   - `paper2code_test.py`
   - `paper2code.yaml`
-- [ ] Removed unnecessary files:
+- Removed unnecessary files:
   - `__pycache__`
   - `.git/`
   - `.vscode/`
   - Other non-essential files
-- [ ] Repository is minimal:
+- Repository is minimal:
   - Only test-relevant files remain
   - No hidden large files
   - Overall size is small
-- [ ] Tests run successfully after changes
-- [ ] Create PR and request review after pushing
+- Tests run successfully after changes
+- Create PR and request review after pushing
