@@ -1,0 +1,795 @@
+\documentclass{article}
+
+
+\PassOptionsToPackage{numbers}{natbib}
+
+
+\usepackage[final]{neurips_2024}
+
+
+
+
+
+
+
+
+
+
+\usepackage[utf8]{inputenc} \usepackage[T1]{fontenc}    \usepackage{hyperref}       \usepackage{url}            \usepackage{booktabs}       \usepackage{amsfonts}       \usepackage{nicefrac}       \usepackage{microtype}      \usepackage{xcolor}         
+
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{multirow}
+
+\usepackage{caption}
+\usepackage{subcaption}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+\usepackage{hyperref}
+
+\usepackage{xcolor}
+
+
+\pdfminorversion=7
+\pdfcompresslevel=0
+\pdfobjcompresslevel=0
+
+\usepackage{tcolorbox}
+\usepackage[ruled]{algorithm2e} \usepackage{xcolor} \usepackage{tikz}
+\usetikzlibrary{fit,calc}
+\newcommand*{\tikzmk}[1]{\tikz[remember picture,overlay,] \node (#1) {};\ignorespaces}
+\newcommand{\boxit}[1]{\tikz[remember picture,overlay]{\node[yshift=3pt,fill=#1,opacity=.25,fit={(A)($(B)+(.95\linewidth,.8\baselineskip)$)}] {};}\ignorespaces}
+\colorlet{mypink}{red!40}
+\colorlet{myblue}{cyan!60}
+\colorlet{mygreen}{green!50} 
+
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\usepackage{listings}
+\lstset
+{ basicstyle=\ttfamily\scriptsize,
+   stepnumber=1,
+   showstringspaces=false,
+   tabsize=1,
+   breaklines=true,
+   breakatwhitespace=false,
+   backgroundcolor=\color{backcolour},
+}
+\usepackage{wrapfig}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{amsthm}
+\newcommand{\Dist}[1]{\mathbf{\Delta}(#1)}
+\newcommand{\As}{A}
+\newcommand{\Os}{O}
+\newcommand{\Ss}[1]{{S}{#1}}
+\newcommand{\Tf}[1]{{\mathcal{T}}{#1}}
+\newcommand{\Of}[1]{{\mathcal{I}}{#1}}
+\newcommand{\Rf}[1]{{\mathcal{R}}{#1}}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{environ}
+\usepackage[capitalize,noabbrev]{cleveref}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark} 
+\newcommand{\sun}[1]{\textcolor{blue}{\bf\small [Sun: #1]}}
+\newcommand{\john}[1]{\textcolor{purple}{\bf\small [JT: #1]}}
+\newcommand{\zook}[1]{\textcolor{magenta}{\bf\small [Z: #1]}}
+\newcommand{\nick}[1]{\textcolor{red}{\bf\small [NH: #1]}}
+\newcommand{\jw}[1]{\textcolor{green}{\bf\small [JW: #1]}}
+\newcommand{\method}{\textsc{FactorSim}\xspace}
+
+\title{\method: Generative Simulation\\ via Factorized Representation}
+
+
+
+
+
+\author{Fan-Yun Sun\\Stanford University \And 
+S. I. Harini\\Stanford University \And 
+Angela Yi\\Stanford University \And Yihan Zhou\\Stanford University \AND
+Alex Zook\\Nvidia  \And Jonathan Tremblay\\Nvidia \And 
+Logan Cross\\Stanford University \AND
+Jiajun Wu\\Stanford University \And 
+Nick Haber\\Stanford University 
+}
+
+\begin{document}
+
+
+
+\maketitle
+
+
+\begin{abstract}
+
+
+
+
+
+
+
+
+Generating simulations to train intelligent agents in game-playing and robotics from natural language input, 
+from user input or task documentation, remains an open-ended challenge. 
+Existing approaches focus on parts of this
+challenge, such as generating reward functions or task hyperparameters.
+Unlike previous work, we introduce \method that generates full simulations in code from language input that can be used to train agents. 
+Exploiting the structural modularity specific to coded simulations, we propose to use a \textbf{factored} partially observable Markov decision process representation that allows us to reduce context dependence during each step of the generation.
+For evaluation, we introduce a \textit{generative simulation} benchmark that assesses the generated simulation code's accuracy and effectiveness in facilitating zero-shot transfers in reinforcement learning settings.
+We show that \method outperforms existing methods in generating simulations regarding prompt alignment (\textit{i.e.}, accuracy), zero-shot transfer abilities, and human evaluation. We also demonstrate its effectiveness in generating robotic tasks.
+\stepcounter{footnote}
+\footnotetext{Work done while Harini S I was an intern at Stanford.}
+\stepcounter{footnote}
+\footnotetext{Correspondence to sunfanyun@cs.stanford.edu}
+\stepcounter{footnote}
+\footnotetext{Project website: \href{https://cs.stanford.edu/~sunfanyun/factorsim/}{https://cs.stanford.edu/~sunfanyun/factorsim/}}
+
+\end{abstract}
+
+\section{Introduction}
+
+
+
+
+
+
+Simulations hold significant potential for training agents to perform real-world tasks where data collection is costly, dangerous, or infringes on individual privacy. 
+A major bottleneck in harnessing the potential of simulations at scale for agent training is the cost of designing and developing them, especially when we need a distribution of simulations that meet detailed design specifications to train more generalized policies. 
+In this paper, we aim to generate coded simulations given text specifications. Code provides a natural interface for users to inspect, modify, and debug the simulation. It also allows us to craft diverse environments for Reinforcement Learning (RL) purposes.
+
+
+
+
+
+
+Generating full simulations in code to train agents from a text prompt is an under-explored challenge. 
+Previous works focus on parts of this challenge, 
+including reward function design~\cite{ma2023eureka}, hyperparameter tuning~\cite{mandlekar2023mimicgen}, and task configuration while relying on an existing simulator~\cite{wang2023gensim}.
+These methods use large language models (LLMs) to generate the components of simulations specified as code.
+However, when faced with large and detailed contexts, LLMs often generate simulations that ignore or fail to adhere to parts of the input prompt~\cite{liu2024lost}. This issue is not solely due to the limitations of existing LLMs but also suggests that some form of decomposition is always critical as we scale up the number of components in simulations. We ask the question: can we exploit the inherent structure (e.g., having a game loop that handles agent actions, updates internal game states accordingly, and displays the game states to the users through a rendering process) of coded simulations to generate them better?
+
+
+
+
+
+
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/figure1.pdf}
+    \caption{
+    Overview of \method{}. \method takes language documentation as input, uses Chain-of-Thought to derive a series of steps to be implemented, adopts a Factored POMDP representation to facilitate efficient context selection during each generation step, trains agents on the generated simulations, and tests the resulting policy on previously unseen RL environments.
+}
+    \label{fig:overview}
+\end{figure}
+
+We propose \method, a framework that takes an arbitrary language specification as input and outputs a full simulation that can be used to train RL agents. The key idea of \method is to decompose the input prompt into a series of steps and then use a factored Partially Observable Markov Decision Process (POMDP) representation to reduce the context needed for each generation step. To realize \method, we use the \textit{model-view-controller} software design pattern to structure the generation process. 
+Consider generating a coded simulation of WaterWorld; see Figure~\ref{fig:overview}. The game consists of an agent (blue circle) traveling in a 2d world, capturing food (green circle) while avoiding enemies (red circle). 
+Our method first decomposes the game description into multiple steps to be implemented. For example, a step instruction could be ``Introduce red dot enemies that can be controlled with arrow keys. Give the player a -1 reward when the agent collides with an enemy''. 
+We first select the context needed for this functionality to be implemented, \textit{e.g.}, positions of existing agents. 
+Subsequently, \method generates (at most) three functions: one to handle player input (i.e., \textit{handle\_key\_press}, the controller component), one to implement the collision logic (i.e., \textit{collision\_logic}, the model component), and one to update the rendering function (i.e., \textit{render\_red\_dot}, the view component). 
+Limiting the context during each step of the simulation generation process allows \method to focus on the task at hand while avoiding hallucinating non-existent functions or modifying code not meant to be changed.
+
+
+
+To evaluate the task of full simulation generation, we propose a new \textit{Generative Simulation}\footnote{We adopt this term from \cite{xian2023towards} to refer to automated simulation generation to train agents within.} benchmark with accompanying success metrics.
+One set of success metrics is the pass rate in automated system tests. Commonly used in game development, these system tests programmatically assess whether the behavior of the generated simulation adheres to the specifications given in the input prompt. 
+The second success metric assesses the value of the generated simulations for transfer learning in an RL setting. 
+This evaluates how well agents trained on a set of generated simulations can generalize to held-out environments that satisfy the design specifications provided in prompts.
+Generalization to unseen environments is crucial for many applications, including transferring robotics policies learned in simulation to the real world.
+This benchmark consists of 8 RL environments with varying levels of difficulty. In addition to evaluating our method on the benchmark we introduced, we further assess \method's ability to generate robotic tasks on the dataset published by GenSim~\cite{wang2023gensim}. We demonstrate the value of our method, \method, on both the benchmark task suite and GenSim's dataset, showing performance superior to baseline alternatives.
+
+
+
+
+
+
+
+
+
+In summary, our contributions are three-fold. First, we propose \method, a framework for generating coded simulation with a factor graph of a POMDP as a principled way to reduce context dependence. Second, we introduce a new generative simulation benchmark by adapting an existing RL benchmark~\cite{tasfi2016PLE}, and demonstrate \method's superior results against baselines in terms of code correctness (i.e., prompt alignment), ability to facilitate zero-shot generalization and human evaluation of the simulations.
+Third, we demonstrate that \method can be applied to generating simulation tasks for robotics, outperforming existing approaches.
+
+ 
+\section{Related Work}
+
+We aim to generate simulations for training agents to generalize to previously unseen environments.
+Recent work has investigated this in the context of learned neural world models and LLM-generated code for simulations.
+
+World models simulate the dynamics of a given environment and use this as a proxy environment for agent training, rather than interacting with a ground truth simulator~\cite{ha2018worldmodel}.
+Several approaches have demonstrated the value of learning world models as part of general algorithms that can learn to play a variety of games (AlphaZero~\cite{silver2018alphazero}, Muesli~\cite{hessel2021muesli}, and DreamerV3~\cite{hafner2023dreamverv3}).
+Other efforts use a large set of offline data to learn a world model that is subsequently used for agent training, including for autonomous vehicle driving (GAIA-1~\cite{hu2023gaia1}), robotic manipulation (UniSim~\cite{yang2024unisim}), and 2D platformer games (Genie~\cite{bruce2024genie}).
+We generate world models as code as they are more interpretable, modular, and easily modified or extended by humans---key advantages we believe are important for their use in authoring large-scale or complex simulations.
+
+LLMs have generated many parts of simulations for game playing and robotics.
+In (RL) games, LLMs have been used to generate game levels~\cite{todd2023level, sudhakaran2023mariogpt}, to choose parameters for an existing simulator~\cite{zala2024EnvGen}, and to assist humans in creating full games~\cite{anjum2024inksplotch}.
+In robotics, LLMs have been used to generate reward functions, task specifications, and specific components like scene configurations within robotics tasks. 
+Many works such as RoboGen~\cite{wang2023robogen}, Holodeck~\cite{yang2023holodeck}, and Gen2Sim~\cite{katara2023gen2sim} build on top of existing simulators and use a series of prompts to generate interactable 3D environments to train agents. 
+GenSim~\cite{wang2023gensim} starts from a human task library and iteratively generates and tests new tasks to generate robotic manipulation tasks.
+Other efforts have focused on generating reward functions for tasks~\cite{ma2023eureka,kwon2023llmreward,ma2024dreureka}. 
+Eureka~\cite{ma2023eureka} uses feedback from agent training to refine reward function specification. 
+Our approach is able to generate both the simulator dynamics and reward functions and can be applied to both robotics and games.
+
+
+
+As noted above, LLMs can struggle to handle complex tasks: this has prompted research into different ways to structure LLM reasoning.
+Chain-of-Thought (CoT) prompting demonstrated LLM performance can be substantially boosted by prompting the LLM to break a single task into multiple steps with either few-shot examples~\cite{wei2022chain} or zero-shot~\cite{kojima2022zeroshotcot}.
+Subsequent work has developed a variety of techniques to improve LLM reasoning through multi-step reasoning prompts: checking for consistency among multiple reasoning paths~\cite{wang2023selfconsistency}, interleaving reasoning and tool use (ReACT~\cite{yao2022react}), using tree data structures to guide the LLM reasoning process (Tree-of-Thought~\cite{yao2024tree}), or formulating reasoning as a tree search process~\cite{hao2023rap,zhou2023lats}.
+Approaches for general code generation include decomposing the task into functions to subsequently generate (Parsel~\cite{zelikman2023parsel}), generating code to reach a series of intermediate execution states (ExeDec~\cite{shi2023exedec}), and using a multi-agent framework to generate, test, and refine code (AgentCoder~\cite{huang2023agentcoder}).
+Other efforts optimize the prompts for given tasks, using evolutionary search (EvoPrompt~\cite{guo2024connecting}) or defining generalized declarative programming frameworks with modular optimization algorithms~\cite{khattab2024dspy}.
+Our approach generates code by leveraging a factorized representation specific to simulations to reduce the input context needed for different reasoning steps; it can be used in conjunction with approaches for general code generation, such as generating tests as a form of self verification.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+\section{\method{}: Generating Simulations via Factorized Representation}
+
+
+
+
+A simulation is a structured system of modules connected by events and responses. Our framework, \method, generates code using LLMs by exploiting this structure to construct a simulation progressively. Our key insight is that, by generating a simulation step-by-step while \textbf{only selecting the relevant context information needed for each step}, we can effectively reduce the reasoning capacity needed for each step, leading to simulations that adhere more closely to the input requirements.
+
+
+In this section, we describe our method for generating Turing-computable simulations.
+First, we describe simulations that can be modeled as a Partially Observable Markov Decision Process (POMDP).
+Second, we use Chain-of-Thought (CoT) to decompose an input prompt describing the desired full simulation into a series of prompts describing different components to be implemented.
+Third, we introduce a factorized POMDP representation that exploits the inherent modularity of coded simulations.
+Refer to Algorithm 1 and Figure~\label{fig:method_illustrative_overview} for an overview of \method{} alongside an illustrative example.
+
+
+
+\begin{algorithm}
+\small
+\label{alg:factor}
+\caption{\method{}}
+\DontPrintSemicolon \KwIn{$Q_{\text{text}}$, a natural language description of the simulation, and an LLM}
+\KwOut{a turing-computable simulation represented as a POMDP $\mathcal{M}^\prime = \langle S, A, O, T, \Omega, R \rangle$}
+\;
+Initialize a Factored POMDP $\mathcal{M}_1 \gets \langle S_1, A, \emptyset, T_1, \emptyset, R_1 \rangle$ where \; 
+- $S_1 := \{ s_{\text{score}} \}$\;
+- $A$ is the set of all keyboard inputs\;
+- $T_1$ is an identity function, i.e., $T_1(s' \mid s, a) = \mathbf{1}[s' = s]$\;
+- $R_1(s, a, s') := s'_{\text{score}} - s_{\text{score}}$\;\;
+// Chain of Thought \;
+
+Derive a step-by-step plan $(q_1,\ldots,q_k) \sim p(q_1,\ldots,q_k \mid Q_{\text{text}})$ \hfill Eq.~\eqref{eq:chain_of_thought}{\parfillskip0pt\par}\;
+\For(){\text{each step, or module} $q_{k}$}{
+\textbf{State space update \& context selection} $ p(S_{k+1}, S\left[Z_{k}\right] | S_k, q_k)$ \hfill  Eq.~\eqref{eq:update_state_space},\eqref{eq:identify_scope}{\parfillskip0pt\par}\;
+    \tikzmk{A} 
+    // Controller component update\;
+    \textbf{Action-dependent state transition model update}: $p(T^{(a)}_{k+1} | S\left[Z_{k}\right], A, q_k)$\;
+    \tikzmk{B}
+    \boxit{mypink}
+    \tikzmk{A} 
+    // Model component update\;
+    \textbf{Action-independent state transition model update}: $p(T^{(s)}_{k+1} | T[Z_{k}], S\left[Z_{k}\right], q_k)$ \;
+\tikzmk{B} \boxit{mygreen}
+   \tikzmk{A} 
+    // View component update\;
+   \textbf{Observation model update}: $p(\Omega_{k+1} | S\left[Z_{k}\right], q_k)$  \hfill Eq.~\eqref{eq:rendering}{\parfillskip0pt\par}\; 
+   \tikzmk{B}
+   \boxit{myblue}
+    $\mathcal{M}_{k+1} = \langle S_{k+1}, A, O_{k+1}, T_{k+1}, \Omega_{k+1}, R_1 \rangle$ where $O_{k+1}$ is the new observation space defined by $S_{k+1}$ and $\Omega_{k+1}$, and $T_{k+1}(s^\prime \mid s, a) =  T^{(s)}_{k+1}(s^\prime \mid s) \cdot T^{(a)}_{k+1}(s \mid s,a)$. \;
+}
+Return the final simulation $\mathcal{M}^\prime \gets \mathcal{M}_{k+1}$\;
+\end{algorithm}
+%
+ 
+\subsection{Modeling Simulation as POMDP}
+A Partially Observable Markov Decision Process (POMDP) is used to represent a coded simulation. Formally a POMDP is represented as a tuple 
+$\mathcal{M} = \langle S, A, O, T, \Omega, R \rangle$ 
+where 
+$S$ is a set of states, 
+$A$ is a set of actions, 
+$O$ is a set of observations,  
+$T: S \times A \rightarrow \Dist{S}$ is a transition probability distribution, 
+$\Omega{}: S \rightarrow \Dist{O}$ is an observation function, and
+$R: S \times A \times S^\prime \rightarrow \mathbb{R}$ is the reward model~\footnote{We omit the discount factor $\gamma$ and the initial state distribution $\pi$ in the formulation for brevity. In our experiments, $\pi$ is generated alongside the states $S$.}. 
+
+
+
+
+
+
+We aim to generate a simulation from a prompt $Q_{\text{text}}$. In this paper, we are particularly interested in the case where $Q_{\text{text}}$ comprises detailed design specifications such that the resulting simulation could be used to train agents, though our method applies to any prompt for defining a simulation. In our experiments, $Q_{\text{text}}$ is a paragraph of text around 10 sentences specifying this simulation.
+\vspace{-1mm}
+\subsection{Chain of Thought}
+We first decompose the prompt $Q_{\text{text}}$ into a series of steps using Chain of Thought~\cite{wei2022chain}, each describing a module of the simulation to be implemented.
+Following similar formulation as in~\cite{prystawski2024think}, this can be thought of as marginalizing over a step-by-step plan variable $(q_1,\ldots,q_k)$ using $N$ Monte Carlo samples:
+\begin{align} \label{eq:chain_of_thought}
+\hat{p}(\mathcal{M}' | Q_\text{text}) = \frac{1}{N}\sum^N_{i=1} p(\mathcal{M}' | q^{(i)}_1,\ldots,q^{(i)}_K), \;\;\;\text{where} \;(q^{(i)}_1,\ldots,q^{(i)}_K) \sim p(q_1,\ldots,q_K | Q_\textit{text}),
+\end{align} 
+$p$ is a probability estimation model (i.e., an LLM in our experiments), and $\mathcal{M}'$ is the resulting code that fully specifies a simulation. In practice, we only produce a single plan $N=1$. 
+
+Intuitively, this process breaks the prompt into sub-tasks.
+After we sample such a plan of $K$ steps, we generate the simulation progressively.
+Given an existing POMDP $\mathcal{M}$ and a natural language specification $q$, we update the POMDP to reflect the changes specified.
+\begin{align}
+p(\mathcal{M}_{K+1} | q_1,\ldots,q_K) \approx \prod^K_{k=1}p(\mathcal{M}_{k+1} | \mathcal{M}_k, q_k)  
+\end{align}
+where $\mathcal{M}_{k+1}$ is the POMDP (simulation as code) after the $k$-th step is implemented, and $\mathcal{M}_{K+1}$ is the final simulation. While Chain-of-Thought prompting allows LLMs to avoid having to generate code for all simulation logic at once, 
+the complexity of each step still grows with $k$ due to the expanding codebase. This task remains challenging because LLMs must comprehend the code and accurately identify where modifications are needed.
+Acknowledging the limited reasoning ability of LLMs, we ask: can we further decompose the $p(\mathcal{M}_{k+1} | \mathcal{M}_k, q_k)$ into simpler distributions to reduce the complexity of each prompt?
+
+
+
+
+
+
+
+
+\vspace{-1mm}
+
+\begin{figure}[!t]
+  \centering
+\includegraphics[width=\linewidth]{rebuttal_figures/factorsim_overview_v5.png}
+\caption{An illustrative example of how the five main prompts in FactorSim correspond to our formulation in Algorithm 1. Note that the function \textit{red\_puck\_respawn} is retrieved as part of the context to Prompt 3, 4, and 5 because it modifies the state variable \textit{red\_puck\_position}, a state variable LLM identified as relevant in prompt 2.}
+   \label{fig:method_illustrative_overview}
+\end{figure}
+\subsection{Decomposition by Factorized Representation}
+Naively, we could further decompose a step of the generation into several steps, each focused on generating a different component of the POMDP:
+\begin{align}
+p(\mathcal{M}_{k+1} | \mathcal{M}_k, q_k) =  & p(S_{k+1} | \mathcal{M}_k, q_k) \cdot \label{eq:naive_state}\\
+   & p(T_{k+1} | S_{k+1},  \mathcal{M}_k, q_k) \cdot \\
+   & p(R_{k+1} | S_{k+1}, T_{k+1}, \mathcal{M}_k, q_k) \cdot \\
+   & p(\Omega_{k+1} | S_{k+1}, T_{k+1}, R_{k+1}, \mathcal{M}_k, q_k) \label{eq:naive_rendering}
+\end{align}
+However, this still requires the LLMs to take the entire simulation ($\mathcal{M}_k$) as context, which could be over hundreds of lines of code in our experiments. Empirically, we observe that many failed generations can be attributed to LLMs attending to or modifying parts of the input context unrelated to the prompt.
+
+
+
+
+
+To reduce the input context needed for each generation step, we propose to use a factored POMDP representation to remove the dependence on the full previous POMDP as context. For instance, given an existing simulation $M_k$ of red, green, and blue agents, to implement the $kth$-step instruction $q_k$: \texttt{respawn the red agent when it collides with the blue agent}, we only need context regarding the respawn logic of the red agent and the positions of the red and blue agents. Code regarding the green agent or the rendering logic would be unnecessary context.
+
+To formalize our approach, we first introduce notation common to the literature~\cite{osband2014near,szita2009optimistic}.
+Suppose we have a POMDP with a state space factored into $n$ state variables $S = S[1] \times \ldots S[n]$ and $Z$ is a subset of indices \( Z \subseteq \{1, 2, \ldots, n\} \), we define the scope set \(S[Z] := \bigotimes_{i \in Z} S[i] \) as the state space spanned by the subset of state variables. For example, if $Z = {1, 3, 4}$, then $S[Z]$ defines a state space defined by $S[1] \times S[3] \times S[4]$. We denote a state in the scoped state space $S[Z]$ as $s[Z]$. Below, let us formally define a factored POMDP.
+\begin{definition}
+A factored POMDP is a POMDP with both factored transition distribution and factored reward function. A transition probability distribution $T$ of a POMDP with discrete action space is factored over its state space $S = S_{1} \times \ldots S_{n}$ with scopes $Z_{1}, \ldots, Z_{m}$ if, for all $s \in \mathcal{S}, a \in A$ there exist some $\left\{T_{i} \right\}_{i=1}^{m}$ in the space of all possible transition distributions on the state space $S$ and action space $A$, such that,
+\begin{align} \label{eq:factor}
+      T(s | s, a)=\prod_{i=1}^{m} T_{i}\left(s[i] \mid s\left[Z_{i}\right], a\right).
+\end{align}
+A reward function $R$ of a POMDP is factored over $S = S_{1} \times \ldots S_{n}$ with scopes $Z_{1}, \ldots, Z_{l}$ if, for all $s \in \mathcal{S}, a \in A$ there exist some $\left\{R_{i} \right\}_{i=1}^{l}$ in the space of all possible reward functions on the state space $S$ and action space $A$, such that,
+\begin{align}
+    R(s, a)=\sum_{i=1}^{l} R_{i}\left( s\left[Z_{i}\right], a\right).
+\end{align}
+\end{definition}
+A factored POMDP can be represented as a factor graph~\footnote{More precisely, a factor graph of a Dynamic Bayesian Network (DBN)~\cite{hansen2000dynamic,boutilier1996computing}.} with two types of nodes: \textit{state variables} (i.e., $S_i$) and \textit{factors} (i.e., $T_i$ or $R_i$), functions of (state) variables. Our idea is to \textbf{reduce context dependence by structuring the code using a factored POMDP representation} and treat each generation step as expanding a factored POMDP with new state variables and new \textit{factors}. During every step $q_k$, we first select a set of relevant state variable indices $Z_k$. Then, we select existing factors that have overlapping scope with the selected set of state variables as context, which we denote as $T[Z_{k}]$ and $R[Z_{k}]$. That is, we can reduce the dependence on the previous simulation $M_k$ and rewrite Equation~\ref{eq:naive_state}-\ref{eq:naive_rendering} to the following:
+\begin{align}
+  p(\mathcal{M}_{k+1} | \mathcal{M}_k, q_k) \approx  & p(S_{k+1}| S_k, q_k) \cdot  & \text{update state space} \label{eq:update_state_space}\\
+   &  p( S\left[Z_{k}\right] | S_{k+1}, q_k) \cdot  & \text{identify relevant state variables} \label{eq:identify_scope} \\ 
+   & p(T_{k+1} | T[Z_{k}], S\left[Z_{k}\right], A, q_k) \cdot  & \text{update state transition function} \label{eq:state_transition} \\ 
+   & p(R_{k+1} | R[Z_{k}], S\left[Z_{k}\right], A, q_k) \cdot    & \text{update reward function} \label{eq:reward_function} \\ 
+   & p(\Omega_{k+1} | S\left[Z_{k}\right], q_k).   & \text{update partial observation function} \label{eq:rendering}
+\end{align}
+
+Note that $Z_k$ can only consist of state variable indices in the state space $S_{k+1}$. In practice, we achieve this by encouraging the LLM to select a minimal set of relevant states $Z_k$ in the prompt.
+
+
+
+We find that the term~\ref{eq:state_transition} is most prone to error, likely because the most complicated functions of a simulation are state transitions. Motivated by this observation, we propose to adopt the \textit{model-view-controller} design pattern for structuring these prompts. Instead of prompting LLMs to update the state transition function first and then update the reward function, we prompt the LLMs to update the action-dependent part of the state transition function (i.e. the \textit{Controller} component) and then the action-independent part (i.e., \textit{Model}). We treat the reward model as part of the state transition function that updates a \textit{score} state variable. That is, $T(s^\prime | s, a) = T^{(s)}(s^\prime | s) T^{(a)}(s | s, a)$ where $T^{(a)}(s | s,a)$ denotes the part of the state transition function that handles how actions affect the states and $T^{(s)}(s^\prime | s)$ denotes the part of the state transition function that how states are updated every step. This gives us our final algorithm as illustrated in Algorithm 1.
+
+In Algorithm 1, colors indicate the corresponding components of the model-view-controller pattern. Red highlights the \textit{controller}, corresponding to parts of the state transition dependent on user-input actions.Green shows the \textit{model}, corresponding to parts of the state transition function that are not dependent on user-input actions. 
+Blue shows the \textit{view} component, updating the observation function that acts as the ``renderer'' of the state space. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+\begin{table}[!t]
+\caption{Percentage of system tests passed by different methods of generating 2D RL games.}
+\small
+\centering
+\resizebox{\textwidth}{!}{\begin{tabular}{lcccccccc}
+\toprule
+\textit{\% of system tests passed.}& \multicolumn{1}{c}{\textbf{Flappy Bird}}   & \multicolumn{1}{c}{\textbf{Catcher}}  & \multicolumn{1}{c}{\textbf{Snake}}& \multicolumn{1}{c}{\textbf{Pixelcopter}}    & \multicolumn{1}{c}{\textbf{Pong}} & \multicolumn{1}{c}{\textbf{Puckworld}} & \multicolumn{1}{c}{\textbf{Waterworld}} & \multicolumn{1}{c}{\textbf{Monster Kong}} \\ 
+\midrule
+Mistral-7B-Instruct & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 \\
+Llama-3                 & 0.15 & 0.33 & 0.19 & 0.14 & 0.01 & 0.43 & 0.25 & 0.29 \\
+Llama-3 w/ self debug        & 0.15 & 0.41 & 0.28 & 0.19 & 0.03 & 0.44 & 0.22 & 0.31\\
+Llama-3 CoT w/ self debug & 0.20 & 0.39 & 0.25 & 0.21 & 0.16 & 0.50 & 0.42 & 0.35\\
+GPT-3.5 & 0.19 & 0.39 & 0.37 & 0.38 & 0.22 & 0.33 & 0.34 & 0.19 \\
+GPT-4 & 0.35 & 0.35 & 0.42 & 0.44 & 0.25 & 0.34 & 0.46 & 0.21\\
+GPT-4 w/ self debug & 0.33 & 0.53 & 0.43 & 0.51 & \textbf{0.75} & 0.41 & 0.45 & 0.31\\
+GPT-4 w/ AgentCoder & 0.18 & 0.45 & 0.27 & 0.43 & 0.43 & 0.33 & 0.20 & 0.23 \\
+GPT-4 CoT w/ self debug & 0.30 &  0.51  & 0.39  & 0.53  & 0.64  & 0.47  & 0.50  & 0.34\\
+\midrule
+Llama-3 w/ \method{} (ours) & 0.55 & 0.54 & \textbf{0.50} & 0.41 & 0.38 & 0.58 &0.27 & 0.35 \\
+GPT-4 w/ \method{} (ours) & \textbf{0.78}  & \textbf{0.66} & 0.44 & \textbf{0.78} &  0.61 & \textbf{0.81} &  \textbf{0.62} & \textbf{0.44} \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:code_gen_results}
+\end{table} 
+\begin{figure}\centering
+\includegraphics[width=.8\linewidth]{figures/token_performance.png}
+   \caption{Performance and token usage analysis of GPT-4-based methods. Ellipses correspond to 90\% confidence intervals for each algorithm, aggregated over all RL games.}
+\label{fig:token}
+\end{figure}
+
+\section{Experiments}
+In this paper, we consider two types of simulations: 2D Reinforcement Learning (RL) games and robotics tasks in a physics engine. We also introduce a new benchmark to evaluate generative simulation methods. Our experiments are designed to test three hypotheses. First, \method{} generates simulations with \textit{better prompt alignment}, which we evaluate through system tests and human evaluations. Second, \method{} enables \textit{better zero-shot transfer} by training RL agents in the simulated generated environments. Third, \method{}'s strengths in \textit{generating robotic tasks}.
+
+
+
+
+
+
+\subsection{RL Game Generation}
+To answer our first two hypotheses, we propose a new benchmark that includes all 2D games from the PyGame Learning Environment~\footnote{We exclude the sole 3D game Raycast Maze and leave 3D game generation to future work.}~\cite{tasfi2016PLE}: Flappy Bird, Catcher, Puckworld, Pixelcopter, Pong, Snake, Waterworld, and Monster Kong. 
+For each RL game, the input prompt consists of the game's online documentation. Since most game documentation is incomplete, we manually supplement them with additional details (see Appendix). This ensures that our method and the baselines do not hallucinate any missing game information, allowing for a fair evaluation across all methods.
+
+Following common practices in game development, we design system tests to verify that the generated simulations follow the specified logic programmatically. These tests simulate actions like key presses and mouse clicks and check if the game states are updated correctly. Refer to the Appendix for more details.
+
+
+
+\paragraph{Baselines}
+For baselines, we compare to three methods using a closed-source (GPT-4~\cite{achiam2023gpt}) and an open-source LLM (Llama-3~\cite{llama3modelcard}).
+The first approach prompts the LLM with all contexts at once, which we denote as the \textit{vanilla} method.
+The second approach uses \textit{self-debugging} \cite{chen2024teaching}, where the model retries generating the code when provided error messages from running the code (up to 10 times in our experiments).
+A third approach combines \textit{Chain-of-Thought~\cite{wei2022chain} (CoT)} reasoning with self-debugging, where the LLM generates code incrementally, processing one instruction at a time. Additionally, we incorporate AgentCoder~\cite{huang2023agentcoder} as a baseline.
+CoT with self-debugging is an ablation study of our method that acts without the factored POMDP representation.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/normalized_performance_scores.png}
+   \caption{Zero-shot transfer results on previously unseen environments (i.e., environments in the original RL benchmark~\cite{tasfi2016PLE}).}
+   \label{fig:zero_shot_transfer}
+\end{figure}
+
+
+\paragraph{Code Generation Evaluation}
+Table~\ref{tab:code_gen_results} shows the results for the baselines and our method. \method outperforms all baselines in 7 out of 8 games. Additionally, we compare performance and LLM token usage across various methods using GPT-4 (Figure~\ref{fig:token}). While the vanilla baseline uses the fewest tokens, it only achieves moderate accuracy. Additionally, combining Chain-of-Thought (CoT) reasoning with self-debugging results in the highest token usage but only marginally improves accuracy over iterative self-debugging. 
+\method achieves the highest accuracy with modest token usage, indicating that the decomposition of tasks reduces the need for extensive iterative debugging.
+
+Empirically, we find that certain prompts, when tested on baselines without the decomposition mechanism in \method, are prone to syntax or runtime errors that the LLMs cannot self-debug. This is particularly evident with Llama-3 (vanilla) and Llama-3 self-debug, which perform poorly as they
+generate highly similar incorrect implementations, ignoring the logic specified in the prompts even when the temperature is set to 1. We hypothesize that this behavior is due to the model having a strong prior for how certain games, like Pong and Flappy Bird, should be implemented, ignoring the prompt specifications. This ``mode collapse'' issue of LLMs could be caused by over-fitting in the instruction tuning stage~\cite{hamilton2024detecting}.
+
+While AgentCoder iteratively refines code, it performs poorly because it relies on a test designer agent and a test executor agent to write quality test cases. However, due to the complexity of the tasks in our benchmark, the test designer agent tends to write incorrect or infeasible tests, leading to negative feedback. This points to FactorSim being an improvement over the standard "role-based" Chain of Thought decompositions, and that it is non-trivial to generate simulations from complex textual specifications.
+
+
+\paragraph{Zero-shot Transfer Results} Additionally, we test \method by training a PPO~\cite{schulman2017proximal} agent on 10 generated environments for 10 million steps and zero-shot test it on the ``ground-truth'' environment implemented in the original RL benchmark (Figure~\ref{fig:zero_shot_transfer}).
+The rewards are linearly scaled such that 0 corresponds to the performance of a random policy and 1 corresponds to the performance of a PPO agent trained for 10 million steps on the "ground-truth" environment. \method achieves notably better zero-shot transfer results as a result of generating code that adheres more closely to the prompt specification. We also observe that the errors \method made tend to be more spread out across different components of the simulation. In contrast, many baselines suffer from failure modes concentrated in a specific aspect of the generation (e.g., incorrectly implementing the collision logic) that significantly hampers the ability of a set of generations to facilitate zero-shot transfer.\looseness=-1
+
+
+
+
+
+\begin{figure}[!t] \centering
+\includegraphics[width=0.6\textwidth]{figures/human_study_result.pdf}
+    \caption{Human evaluation results on the generated simulations of \method and the strongest baseline (i.e., GPT-4 CoT w/ self-debug), aggregated over all 8 RL games.}
+\label{fig:human_study_result}
+\end{figure}
+\paragraph{Human Study Evaluation} 
+Automated systems tests cannot holistically capture some aspects of game playability such as rendering a usable user interface.
+To address this limitation we conducted a human study where users were asked to play the generated games and evaluate their playability.
+Over 320 human evaluations (40 per game) we find \method generates more functional and playable games, compared to the strongest baseline GPT-4 CoT with iterative self-debugging (Figure~\ref{fig:human_study_result}).
+More details can be found in the Appendix.
+
+
+
+
+
+
+
+
+ \subsection{Robotics Task Generation}
+We evaluate on GenSim's~\cite{wang2023gensim} 50-task benchmark of robotics tasks in the CLIPort framework~\cite{shridhar2021cliport}. Refer to Figure~\ref{fig:robotics_overview} for an overview of our experimental setting.
+We compare \method{} with the best-performing methods in generating code that specifies tasks (object states and reward structure) that can be used to train robots. Analogous to the game generation experiment, we use \method to modularize the code generation process into subtasks and have LLMs generate each subtask using only a set of necessary states as context.  More details can be found in the Appendix.
+
+
+
+
+
+
+
+
+
+\paragraph{Baselines \& Metrics}
+We compare our method with the multiple GenSim baselines: vanilla (one-shot), Chain-of-Thought (topdown), and Chain-of-Thought (bottom-up). Adopting the same set of metrics, we evaluate all methods on a sequence of pass rates on ``syntax correctness'', ``runtime-verified'', and ``task completed''.
+A generated task is considered ``completed'' if a coded oracle agent could collect 99\% of the total reward half of the time. 
+
+
+We empirically found that the "task completion rate" is an imperfect metric for evaluating the success of a generated task. A task deemed "complete" by the oracle agent may fail to adhere to the prompt. For example, when asked to generate a task "build a wheel," a method might produce a task specification that involves rearranging blocks into a structure that does not resemble a wheel. To address this, we introduced a metric of the ``human pass rate''. This involved manually inspecting runtime-verified tasks to determine if the task specifications aligned with the prompt descriptions (see Appendix).
+
+
+\begin{figure}[!t]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{rebuttal_figures/robotics_overview.pdf}
+\end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.48\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{rebuttal_figures/robotics-demo1.drawio.png}
+\end{subfigure}
+  \caption{\textbf{Left}: an overview of our robotics task generation experimental setting. \textbf{Right}: Tasks successfully generated using FactorSim, which all other baselines fail on.}\label{fig:robotics_overview}
+\end{figure}
+
+
+\paragraph{Results \& Discussion}
+\begin{figure*}[!t]
+    \centering
+    \vspace{-4mm}
+    \includegraphics[width=\textwidth]{figures/gensim_results.png}
+        \vspace{-4mm}
+    \caption{Performance of \method and GenSim~\cite{wang2023gensim} baselines in generating robotic tasks.}
+    \vspace{-4mm}
+        \label{fig:robotics_eval_llama}
+\end{figure*}
+\method outperforms baselines in generating tasks with a higher runtime pass rate and better human evaluation scores, indicating improved prompt alignment (Figure~\ref{fig:robotics_eval_llama}). Task completion rates are generally low for all methods due to the limitation of the oracle agent. For example, tasks like "Build Ball Pit" (fill a container with balls to create a ball pit) often fail because the balls roll out of the visible area of the oracle agent, not because the generated task is invalid. \method performs particularly well on tasks that specify spatial relationships (e.g., "on top of," "left of," "outside of") between objects, such as the "build House" example in Figure~\ref{fig:robotics_demo}. This improvement is likely due to the decomposition process, where for each step, instead of addressing a combination of multiple spatial relations all at once, \method attends to a smaller context, allowing each spatial relation to be addressed separately.
+
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/robotics_figure.png}
+   \caption{This figure illustrates two input task prompts and the corresponding sequence of subtasks decomposed by \method.}
+   \label{fig:robotics_demo}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+\section{Conclusion \& Future Work}
+We have proposed \method as an approach to generate full simulations as code that can train agents while adhering to detailed design requirements specified as a text prompt. We also introduce a benchmark suite of eight RL environments to evaluate generative simulation methods.
+
+Generating complex simulations in code is challenging, and we anticipate numerous opportunities to extend the simulation generation process. 
+There is substantial room to address larger-scale, more complex games, and robotics environments that require code bases beyond what can be used effectively in the context window of existing LLMs.
+We also see great potential to accelerate RL agent training by generating code that can be accelerated on GPU devices. Our robotic simulation results will benefit from further investigations to demonstrate transfer to real-world environments.
+We have only addressed single-agent simulations, leaving the extension of our method to multi-agent settings to future work. In the future, we also plan to incorporate information from the agent training process to automatically modify the generated simulation environment for enhanced agent learning and generalization. 
+Taken together, we believe the generation of full simulations as code will be an important step toward enhancing the capabilities of LLMs to support the development of generalized RL agent policies.
+
+
+
+
+
+\begin{ack}
+This work was in part supported by the Stanford Institute for Human-Centered Artificial Intelligence (HAI), the Stanford Center for Integrated Facility Engineering (CIFE), NSF CCRI \#2120095, AFOSR YIP FA9550-23-1-0127, ONR N00014-23-1-2355, ONR YIP N00014-24-1-2117, and Google.
+\end{ack}
+
+\newpage
+\bibliographystyle{plain}
+\bibliography{neurips_2024}
+
+\clearpage
+\appendix
+
+
+
+
+
+
+\section{Societal Impact}
+This work can be applied broadly to many types of simulations, including robotics, autonomous vehicles, and other autonomous systems.
+Such systems have the potential for both positive and negative societal impact (e.g., harmful dual use).
+As researchers, we must critically evaluate such applications and promote beneficial ones.
+In this work we have focused on simulations with potential positive social impact, particularly in supporting the development of robots able to operate in human environments like households or manufacturing facilities.
+
+The methods we present generate simulations that can be used to train agents to perform tasks.
+One risk with generated simulations is for training agents in an unintended manner.
+By generating simulations specified as code we mitigate this concern by making the behavior of the simulation explicit and inspectable by humans.
+Further, our approach is better able to guide LLMs to generate code that matches input design specifications compared to baseline methods, reducing the risk of LLMs inadvertently producing undesirable functionality.
+We believe this can help enhance the reliability of generated simulations while offering strong editing and control capabilities to humans.
+
+The potential negative environmental impact of the compute for using our technique is small.
+We have shown our technique consumes less tokens than comparable methods to yield equally good results.
+Thus our method can be seen as a way to reduce computational needs when using LLMs for tasks like creating simulations.
+Compared to systems that use a neural world model our approach benefits from the relatively lower computational costs of running simulations in code compared to running large neural models for simulation.
+
+
+
+
+\section{Additional details of our experiments}
+\label{sec:experiment_details}
+All experiments are done on a workstation with 8 Nvidia A40 GPUs and
+1008G of RAM. For our code generation experiments, one generation (i.e., generation of one training environment) takes around 30 seconds to 5 minutes. For our Reinforcement Learning experiments, one trial of training (i.e. training on a set of environments for 10M steps in total) takes around 3-5 hours to complete.
+In all of our experiments, GPT-4 refers to the OpenAI's ``gpt-4-1106-preview'' model, GPT-3.5 refers to OpenAI's ``gpt-3.5-turbo'' model, and Llama-3 refers to the open-sourced ``meta-llama-3-70b-instruct'' model that can be found on huggingface.
+
+For the zero-shot transfer RL experiment, we supply all methods with the reference "controller" (i.e., the same key press/mouse click leads to the same thing). We do this because language descriptions of such can be very ambiguous (e.g., a description ``a key press leads the bird to flap its wings'' can imply a change in position, velocity, or acceleration). In our experiments, we generate 10 environments and filter out those that cannot be properly executed with a random policy. 
+
+
+
+All the RL experiments are implemented in RLLib~\cite{liang2018rllib}~\footnote{https://docs.ray.io/en/latest/rllib/index.html}. The PPO agent is trained with a batch size of 10,000, and an SGD minibatch size of 2048. Our agent used a fully connected network with hidden layers of sizes (4, 4) and post-FCNet hidden layers of size 16, all employing ReLU activation functions. The policy network uses an LSTM with a cell size of 64 to incorporate previous actions but not previous rewards. Over the course of the 10 million training steps, 20 checkpoints were saved, with the best zero-shot performance on the testing environment reported.
+
+\section{Additional details of \method}
+We provide code in the supplementary material. Here we provide the prompts used in \method.
+\lstinputlisting[label={list:supp:prompts:1},language={},caption=The first decompositional prompt used in \method.]{prompts/decompose.txt}
+
+\lstinputlisting[label={list:supp:prompts:2},language={},caption=The state context selection prompt used in \method.]{prompts/state_update.txt}
+
+\lstinputlisting[label={list:supp:prompts:3},language={},caption=The prompt for the \textbf{Controller} component (as defined in the Model-View-Controller) utilized in the \method.]{prompts/controller.txt}
+
+\lstinputlisting[label={list:supp:prompts:4},language={},caption=
+The prompt for the \textbf{Model} component (as defined in the Model-View-Controller) utilized in the \method.]{prompts/model.txt}
+
+\lstinputlisting[label={list:supp:prompts:5},language={},caption=The prompt for the \textbf{View} component (as defined in the Model-View-Controller) utilized in the \method.]{prompts/view.txt}
+
+
+
+\section{Additional details and results for the robotics task generation experiment}
+In this section, we provide the prompts we used for \method in the robotics task generation experiment. The prompts for the baselines can be found in the GenSim paper\footnote{https://github.com/liruiw/GenSim}~\cite{wang2023gensim}.
+
+To conduct human evaluation, we begin by observing the oracle agent attempting to solve the task. If the oracle agent successfully completes the task, we then assess whether the resulting goal states align with the input task prompt. If the oracle agent fails to solve the task, we investigate the reason for the failure. Often, the cause is apparent, such as the target container being too small or not having the right color of objects for the task. These are marked as failures. For cases where it is clear that the limitation lies in the oracle agent's ability, or when the reason for failure is not immediately apparent, we manually inspect the code for the task specification and base our decision on both the code and our observation of the oracle agent's attempt at solving the task.
+
+
+\begin{table}[]
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{|c|cccc||cccc||cccc||cccc|}
+\hline
+                                       & \multicolumn{4}{c|}{\textbf{FactorSim}}                                                                                                 & \multicolumn{4}{c|}{GenSim - vanilla}                                                                                         & \multicolumn{4}{c|}{GenSim Chain of Thought (topdown)}                                                                         & \multicolumn{4}{c|}{GenSim Chain of Thought (bottomup)}                                                                        \\ \cline{2-17}
+     \multirow{-2}{*}{\textbf{Target Tasks}} & \multicolumn{1}{c|}{Syntax}                & \multicolumn{1}{c|}{Runtime}               & Task & Human        & \multicolumn{1}{c|}{Syntax}                & \multicolumn{1}{c|}{Runtime}               & Task & Human       & \multicolumn{1}{c|}{Syntax}                & \multicolumn{1}{c|}{Runtime}               & Task & Human        & \multicolumn{1}{c|}{Syntax}                & \multicolumn{1}{c|}{Runtime}               & Task & Human        \\ \hline
+BuildDogHouse                       & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildLampPost                       & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{11734B} yes} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildNewsstand                      & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildBench                          & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildPicnicTable                    & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{11734B} yes} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildBicycleRack                    & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildPicnicBasket                   & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildCylinderStructure              & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{11734B} yes} & \multicolumn{1}{c|}{\color[HTML]{B10202} no}                         & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildBridge                         & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildCar                            & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & {\color[HTML]{B10202} no}  \\
+BuildTwoCircles                     & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\
+BuildWheel                          & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}} & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{11734B} yes}} & \multicolumn{1}{c|}{{\color[HTML]{B10202} no}}  & {\color[HTML]{B10202} no}  \\ \hline
+Aggregated Pass Rate & \textbf{92\%} & \textbf{58\%} & \textbf{33\%} & \textbf{25\%} & 75\% & 8\% & 0\% & 0\% & \textbf{92\%} & 42\% &  8\% & 0\% & \textbf{92\%} & 42\% & 8\% & 0\% \\
+\bottomrule
+\end{tabular}
+}
+\vspace{3mm}
+\caption{\textbf{Additional Experimental Results}: FactorSim outperforms other Chain of Thought baselines by a large margin on assembly tasks. \textit{Syntax} indicates the task passes the syntax check. \textit{Runtime} indicates that the task can run in the physics simulator. \textit{Task} indicates whether the task can  be completed by the oracle agent. \textit{Human} indicates whether the completed task matches the input prompt specification.}
+\end{table} 
+
+
+
+\lstinputlisting[label={list:supp:prompts:gensim1},language={},caption=The chain of thought prompt.]{prompts/controller.txt}
+
+\lstinputlisting[label={list:supp:prompts:gensim2},language={},caption=The state change prompt.]{prompts/gensim_state_variable_prompt.txt}
+
+\lstinputlisting[label={list:supp:prompts:gensim3},language={},caption=
+The subtask code generation prompt .]{prompts/gensim_subtask_codegen_prompt.txt}
+
+\section{Additional details for the proposed generative simulation benchmark}
+This section provides the prompts for all 8 RL games in the benchmark.
+\lstinputlisting[label={list:supp:prompts:catcher},language={},caption=
+The prompt for the game \textit{Catcher}.]{prompts/catcher.txt}
+\lstinputlisting[label={list:supp:prompts:flappy_bird},language={},caption=
+The prompt for the game \textit{Flappy Bird}.]{prompts/flappy_bird.txt}
+\lstinputlisting[label={list:supp:prompts:snake},language={},caption=
+The prompt for the game \textit{Snake}.]{prompts/snake.txt}
+\lstinputlisting[label={list:supp:prompts:pixelcopter},language={},caption=
+The prompt for the game \textit{Pixelcopter}.]{prompts/pixelcopter.txt}
+\lstinputlisting[label={list:supp:prompts:pong},language={},caption=
+The prompt for the game \textit{Pong}.]{prompts/pong.txt}
+\lstinputlisting[label={list:supp:prompts:puckworld},language={},caption=
+The prompt for the game \textit{Puckworld}.]{prompts/puckworld.txt}
+\lstinputlisting[label={list:supp:prompts:waterworld},language={},caption=
+The prompt for the game \textit{Waterworld}.]{prompts/waterworld.txt}
+\lstinputlisting[label={list:supp:prompts:monster_kong},language={},caption=
+The prompt for the game \textit{Monster Kong}.]{prompts/monster_kong.txt}
+
+
+\section{Additional details for the human study experiment}
+In this section, we first provide details for the experiment and then the instructions we gave to human participants in our human study, along with the user interface. We also provide the detailed results of this evaluation for all games in Figure~\ref{fig:all_human_study_result}.
+
+Human participants were asked to play and evaluate the generated games given the prompt while excluding factors such as aesthetics or difficulty. They rated the games on a scale of 1 to 4, where 4 indicates a fully playable game, 3 is a playable game with some bugs or flaws that hinder gameplay experience, 2 is an unplayable game (i.e., no interactivity) with correctly rendered UI, and 1 is a game that crashes or fails to launch.
+
+\lstinputlisting[label={list:supp:prompts:human study},language={},caption=The instructions we give to human participants to our human study.]{prompts/human_study_prompt.txt}
+\begin{figure}
+  \centering
+   \caption{Human study results on all 8 games.}
+       \vspace{2em}
+  \includegraphics[width=\linewidth]{figures/all_human_study_result.pdf}
+  \label{fig:all_human_study_result}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\linewidth]{figures/human_study_screenshot.png}
+   \caption{Human study interface screenshot.}
+  \label{fig:human_study_interface}
+\end{figure}
+ 
+
+
+\end{document}
