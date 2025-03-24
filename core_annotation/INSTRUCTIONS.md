@@ -16,16 +16,32 @@ Your folder is located in `./pset/your-repo-name/`. Follow these steps to comple
 
 
 # Notes on Marking the Core Function
-  - Wrap the core code snippets in # <paper2code name="snippet_name">... # </paper2code name="snippet_name"> tags.
-      - The two comments should be at the **same indentation level** of the code.
+  - Use annotation format:
+  ```python
+  def sum(numbers: List[Int]) -> Int:
+    # <paper2code name="sum a list">
+    s = 0
+    # <paper2code name="for loop">
+    for num in numbers:
+      # <paper2code name="add next number">
+      s += num
+      # <paper2code name="add next number">
+    # <paper2code name="for loop">
+    return s
+    # <paper2code name="sum a list">
+  ```
   - Multiple lines can be wrapped in a single <paper2code name="snippet_name">...</paper2code name="snippet_name"> tag with a unique name. The name should be concise but informative (as a hint for the llm).
   - You should have a variety of snippet sizes.
       - e.g. a single line, a few lines, such as a for loop, a function, etc.
       - Because different snippet sizes have different difficulty to generate.
   - Some functions might have branches that are experimental and not of the main interest.
       - Comment out the experimental branches as long as they are not affecting the main logic.
-  - The benchmarking process involves masking key parts of the core function individually, allowing a language model to complete them. The test cases will determine if the generated code functions equivalently to the original.
+  - **Ensure that the snippets are reproducible solely from the information in the paper.**
 
+## Why are we marking the core function?
+>The benchmarking process involves masking key parts of the core function individually, allowing a language model to complete them. The test cases will determine if the generated code functions behave equivalently to the original.
+## Why marking hierarchically?
+> We are marking the core functions hierarchically to create varying levels of difficulty for LLMs. This allows us to better differentiate their capabilities.
 
 # Notes on writing test cases
 
