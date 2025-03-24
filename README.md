@@ -8,9 +8,10 @@ Your folder is located in `./pset/your-repo-name/`. Follow these steps to comple
 2. **Annotate the Core Code**
    - Use `<paper2code name="example"></paper2code name="example">` tags to hierarchically mark key parts of the core function/method.
    - Refer to [`pset/DyT/dynamic_tanh.py`](./pset/DyT/dynamic_tanh.py) for an example.
+   - One function / method is enough.
 
 3. **Complete the Test Script**
-   - Ensure `paper2code_test.py` is complete and runs successfully.
+   - Ensure `paper2code_test.py` is complete and runs successfully as a test for the annotated function.
    - Complete the `paper2code_requirements.txt` with the minimally needed packages to run `python paper2code_test.py`.
    - Remove files or folders that are not required to run the test.
 
