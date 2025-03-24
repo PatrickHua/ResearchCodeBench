@@ -13,9 +13,9 @@ from utils import (
 from code_templates import PREPEND_CODE, APPEND_CODE
 from prompts import *
 from openai import OpenAI
-import replicate
 
 
+# <paper2code name="core_classes">
 # the class for state transitional functions and rendering functions
 class Function:
     def __init__(
@@ -41,12 +41,14 @@ class Function:
     def implementation(self, new_implementation):
         self._implementation = self.fix(new_implementation)
 
+    # <paper2code name="function_implementation">
     def fix(self, new_implementation):
         new_implementation = new_implementation.replace("""\\n""", "\n")
         if new_implementation.startswith('"""'):
             # extract the implementation from the triple quotes
             new_implementation = new_implementation.split('"""')[1]
         return new_implementation
+    # </paper2code name="function_implementation">
 
     def __str__(self):
         # extract all the lines after the first line of the implementation
@@ -76,8 +78,9 @@ class Function:
             )
         else:
             return False
+# </paper2code name="core_classes">
 
-
+# <paper2code name="state_management">
 class StateVariable:
     def __init__(self, name, value, variable_type, description, dont_clean=False):
         self.name = name
@@ -95,6 +98,7 @@ class StateVariable:
     def value(self, new_value):
         self._value = self.fix(new_value)
 
+    # <paper2code name="state_value_fix">
     def fix(self, new_value):
         if self.variable_type == None or self.variable_type == "bool":
             if new_value == "true":
@@ -104,8 +108,8 @@ class StateVariable:
         if self.variable_type == "str":
             if not new_value.startswith('"') and not new_value.startswith("'"):
                 return f'"""{new_value}"""'
-
         return new_value
+    # </paper2code name="state_value_fix">
 
     def __str__(self):
         if self.variable_type not in ["int", "float", "str", "bool", "tuple", "list"]:
@@ -114,8 +118,9 @@ class StateVariable:
             f"# {self.description}\n"
             f"self.{self.name} = {self.variable_type}({self.value})\n"
         )
+# </paper2code name="state_management">
 
-
+# <paper2code name="game_representation">
 class GameRep:
     def __init__(
         self,
@@ -143,6 +148,7 @@ class GameRep:
         if "gpt" in model:
             self.client = OpenAI()
 
+        # <paper2code name="game_state_initialization">
         # default variables
         self.states.append(
             StateVariable(
@@ -171,13 +177,163 @@ class GameRep:
                 dont_clean=True,
             )
         )
+        # </paper2code name="game_state_initialization">
 
         self.debug_mode = debug_mode
         self.log_dir = log_dir
         # create log dir if it doesn't exist
-        os.makedirs(log_dir, exist_ok=True)
+        # os.makedirs(log_dir, exist_ok=True)
         self.query_idx = 0
         self.num_api_calls = 0
+# </paper2code name="game_representation">
+
+# <paper2code name="core_game_logic">
+    def process_user_query(self, query):
+        self.queries.append({"query": query})
+        yield "################################################################"
+        yield f"processing new query... {query}"
+        original_states = self.states.copy()
+        original_input_logics = self.input_logics.copy()
+        original_logics = self.logics.copy()
+        original_renders = self.renders.copy()
+
+        #pass_check = False
+        #while not pass_check:
+        for _ in range(self.MAX_RETRIES):
+            self.states = original_states
+            self.input_logics = original_input_logics
+            self.logics = original_logics
+            self.renders = original_renders
+
+            # decompose query into actions
+            # get the values of the dict contextual_states
+            all_code = ""
+            try:
+                yield "context selection prompt ..."
+                contextual_states = self.state_change(query)
+                actions = self.decompose_query(query, contextual_states)
+                assert all(key in actions.keys() for key in ["input_logic", "state_transition", "ui_rendering"])
+
+                function_description = actions["input_logic"]["description"]
+                function_name = actions["input_logic"]["function_name"]
+                if not (function_name == "" or function_description == ""):
+                    yield "#####################################################"
+                    yield f"implementing {function_name} ..."
+                    yield f"{function_description}"
+                    self.input_logics = [
+                        function
+                        for function in self.input_logics
+                        if function.name != function_name
+                    ]
+                    input_logics = self.input_logic_add(
+                        function_name, function_description, contextual_states
+                    )
+                    self.queries[-1]["input_logic"] = [logic.name for logic in input_logics]
+                    self.add_new_function(self.input_logics, input_logics)
+
+                function_description = actions["state_transition"]["description"]
+                function_name = actions["state_transition"]["function_name"]
+                if not (function_name == "" or function_description == ""):
+                    yield "#####################################################"
+                    yield f"implementing {function_name} ..."
+                    yield f"{function_description}"
+                    self.logics = [
+                        function
+                        for function in self.logics
+                        if function.name != function_name
+                    ]
+                    logics = self.logic_add(
+                        function_name, function_description, contextual_states
+                    )
+                    self.queries[-1]["logic"] = [logic.name for logic in logics]
+                    self.add_new_function(self.logics, logics)
+
+                function_description = actions["ui_rendering"]["description"]
+                function_name = actions["ui_rendering"]["function_name"]
+                if not (function_name == "" or function_description == ""):
+                    yield "#####################################################"
+                    yield f"implementing {function_name} ..."
+                    yield f"{function_description}"
+                    self.renders = [
+                        function
+                        for function in self.renders
+                        if function.name != function_name
+                    ]
+                    renders = self.ui_add(
+                        function_name, function_description, contextual_states
+                    )
+                    self.queries[-1]["rendering"] = [logic.name for logic in renders]
+                    self.add_new_function(self.renders, renders)
+            except Exception as e:
+                print('================= exception ')
+                print(e)
+                continue
+
+            self.clean_states()
+            if self.debug_mode:
+                print("number of state variables", len(self.states))
+
+            all_code = self.export_code()
+            save_path = f"{self.log_dir}/{self.query_idx}/{self.num_api_calls}_final.py"
+            os.makedirs(f"{self.log_dir}/{self.query_idx}", exist_ok=True)
+            with open(save_path, "w") as f:
+                f.write(all_code)
+
+            pass_check, error_trace = self.pass_sanity_check()
+            if pass_check:
+                yield "pass sanity check."
+                break
+            else:
+                yield "fail sanity check."
+                yield error_trace
+
+        save_path = f"{self.log_dir}/{self.query_idx}/final.py"
+        os.makedirs(f"{self.log_dir}/{self.query_idx}/", exist_ok=True)
+        with open(save_path, "w") as f:
+            f.write(all_code)
+        self.query_idx += 1
+# </paper2code name="core_game_logic">
+
+# <paper2code name="code_generation">
+    def export_code(self):
+        all_code = PREPEND_CODE
+        # add StateManager
+        all_code += self.get_state_manager_code()
+
+        for input_logic in self.input_logics:
+            all_code += input_logic.implementation + "\n\n"
+
+        for logic in self.logics:
+            all_code += logic.implementation + "\n\n"
+
+        for render in self.renders:
+            all_code += render.implementation + "\n\n"
+
+        input_logic_code = ""
+        for function in self.input_logics:
+            input_logic_code += f"        # {function.description}\n"
+            input_logic_code += f"        {function.name}(state_manager, event)\n"
+            input_logic_code += "\n"
+
+        logic_code = ""
+        for function in self.logics:
+            logic_code += f"        # {function.description}\n"
+            logic_code += f"        {function.name}(state_manager)\n"
+            logic_code += "\n"
+
+        render_code = ""
+        for function in self.renders:
+            render_code += f"        # {function.description}\n"
+            render_code += f"        {function.name}(state_manager)\n"
+            render_code += "\n"
+        # add all logics code
+        all_code += APPEND_CODE.format(
+            input_logic_code=input_logic_code,
+            logic_code=logic_code,
+            render_code=render_code,
+        )
+        return all_code
+# </paper2code name="code_generation">
 
     def pass_sanity_check(self):
         for function in self.renders:
@@ -239,6 +395,7 @@ class GameRep:
                "top_p": 0.9,
                "temperature": 0.7,
             }
+            import replicate
             output = replicate.run("meta/meta-llama-3-70b-instruct", input=_input)
             output = "".join(output)
             matched_strings = re.findall(r"```json(.*?)```", output, re.DOTALL)
@@ -346,111 +503,6 @@ class GameRep:
                 )
             else:
                 existing_functions.append(new_function)
-
-    def process_user_query(self, query):
-        self.queries.append({"query": query})
-        yield "################################################################"
-        yield f"processing new query... {query}"
-        original_states = self.states.copy()
-        original_input_logics = self.input_logics.copy()
-        original_logics = self.logics.copy()
-        original_renders = self.renders.copy()
-
-        #pass_check = False
-        #while not pass_check:
-        for _ in range(self.MAX_RETRIES):
-            self.states = original_states
-            self.input_logics = original_input_logics
-            self.logics = original_logics
-            self.renders = original_renders
-
-            # decompose query into actions
-            # get the values of the dict contextual_states
-            all_code = ""
-            try:
-                yield "context selection prompt ..."
-                contextual_states = self.state_change(query)
-                actions = self.decompose_query(query, contextual_states)
-                assert all(key in actions.keys() for key in ["input_logic", "state_transition", "ui_rendering"])
-
-                function_description = actions["input_logic"]["description"]
-                function_name = actions["input_logic"]["function_name"]
-                if not (function_name == "" or function_description == ""):
-                    yield "#####################################################"
-                    yield f"implementing {function_name} ..."
-                    yield f"{function_description}"
-                    self.input_logics = [
-                        function
-                        for function in self.input_logics
-                        if function.name != function_name
-                    ]
-                    input_logics = self.input_logic_add(
-                        function_name, function_description, contextual_states
-                    )
-                    self.queries[-1]["input_logic"] = [logic.name for logic in input_logics]
-                    self.add_new_function(self.input_logics, input_logics)
-
-                function_description = actions["state_transition"]["description"]
-                function_name = actions["state_transition"]["function_name"]
-                if not (function_name == "" or function_description == ""):
-                    yield "#####################################################"
-                    yield f"implementing {function_name} ..."
-                    yield f"{function_description}"
-                    self.logics = [
-                        function
-                        for function in self.logics
-                        if function.name != function_name
-                    ]
-                    logics = self.logic_add(
-                        function_name, function_description, contextual_states
-                    )
-                    self.queries[-1]["logic"] = [logic.name for logic in logics]
-                    self.add_new_function(self.logics, logics)
-
-                function_description = actions["ui_rendering"]["description"]
-                function_name = actions["ui_rendering"]["function_name"]
-                if not (function_name == "" or function_description == ""):
-                    yield "#####################################################"
-                    yield f"implementing {function_name} ..."
-                    yield f"{function_description}"
-                    self.renders = [
-                        function
-                        for function in self.renders
-                        if function.name != function_name
-                    ]
-                    renders = self.ui_add(
-                        function_name, function_description, contextual_states
-                    )
-                    self.queries[-1]["rendering"] = [logic.name for logic in renders]
-                    self.add_new_function(self.renders, renders)
-            except Exception as e:
-                print('================= exception ')
-                print(e)
-                continue
-
-            self.clean_states()
-            if self.debug_mode:
-                print("number of state variables", len(self.states))
-
-            all_code = self.export_code()
-            save_path = f"{self.log_dir}/{self.query_idx}/{self.num_api_calls}_final.py"
-            os.makedirs(f"{self.log_dir}/{self.query_idx}", exist_ok=True)
-            with open(save_path, "w") as f:
-                f.write(all_code)
-
-            pass_check, error_trace = self.pass_sanity_check()
-            if pass_check:
-                yield "pass sanity check."
-                break
-            else:
-                yield "fail sanity check."
-                yield error_trace
-
-        save_path = f"{self.log_dir}/{self.query_idx}/final.py"
-        os.makedirs(f"{self.log_dir}/{self.query_idx}/", exist_ok=True)
-        with open(save_path, "w") as f:
-            f.write(all_code)
-        self.query_idx += 1
 
     def clean_states(self):
         # the first 3 are the default states
@@ -667,42 +719,3 @@ class GameRep:
             return new_functions
         else:
             raise Exception("ui_add failed")
-
-    def export_code(self):
-        all_code = PREPEND_CODE
-        # add StateManager
-        all_code += self.get_state_manager_code()
-
-        for input_logic in self.input_logics:
-            all_code += input_logic.implementation + "\n\n"
-
-        for logic in self.logics:
-            all_code += logic.implementation + "\n\n"
-
-        for render in self.renders:
-            all_code += render.implementation + "\n\n"
-
-        input_logic_code = ""
-        for function in self.input_logics:
-            input_logic_code += f"        # {function.description}\n"
-            input_logic_code += f"        {function.name}(state_manager, event)\n"
-            input_logic_code += "\n"
-
-        logic_code = ""
-        for function in self.logics:
-            logic_code += f"        # {function.description}\n"
-            logic_code += f"        {function.name}(state_manager)\n"
-            logic_code += "\n"
-
-        render_code = ""
-        for function in self.renders:
-            render_code += f"        # {function.description}\n"
-            render_code += f"        {function.name}(state_manager)\n"
-            render_code += "\n"
-        # add all logics code
-        all_code += APPEND_CODE.format(
-            input_logic_code=input_logic_code,
-            logic_code=logic_code,
-            render_code=render_code,
-        )
-        return all_code
