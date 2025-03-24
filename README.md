@@ -26,10 +26,10 @@ Your folder is located in `./pset/your-repo-name/`. Follow these steps to comple
     for num in numbers:
       # <paper2code name="add next number">
       s += num
-      # <paper2code name="add next number">
-    # <paper2code name="for loop">
+      # </paper2code name="add next number">
+    # </paper2code name="for loop">
     return s
-    # <paper2code name="sum a list">
+    # </paper2code name="sum a list">
   ```
 
   - Multiple lines can be wrapped in commented \<paper2code name="snippet_name">...</paper2code name="snippet_name"> tag with a unique name. The name should be concise but informative (as a hint for the llm).
