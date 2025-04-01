@@ -27,6 +27,7 @@ def parse_args():
     parser.add_argument("--gen", action="store_true")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("--run_one", default=None, type=str, help="Only generate solutions for this problem")
+    parser.add_argument("--wo_paper", action="store_true")
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
     
