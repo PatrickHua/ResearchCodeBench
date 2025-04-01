@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict
-from core_annotation.models.code import Code
-from core_annotation.models.prediction import Prediction
+from core.annotation.models.code import Code
+from core.annotation.models.prediction import Prediction
 from core.data_classes.llm_type import LLMType
 from pydantic import Field
 from textwrap import dedent

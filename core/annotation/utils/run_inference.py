@@ -1,8 +1,8 @@
 from core.data_classes.llm_type import LLMType
 from core.async_chat_clients import AsyncChatClients
-from core_annotation.models.prediction import Prediction, Completion, LLMJudgeResult
-from core_annotation.utils.extract_python_block import extract_python_code_blocks
-from core_annotation.models.code import Code
+from core.annotation.models.prediction import Prediction, Completion, LLMJudgeResult
+from core.annotation.utils.extract_python_block import extract_python_code_blocks
+from core.annotation.models.code import Code
 
 
 

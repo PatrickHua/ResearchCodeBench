@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List
-from core_annotation.models.file import File
-from core_annotation.models.code import Code
+from core.annotation.models.file import File
+from core.annotation.models.code import Code
 from typing import Dict
 import os
 import yaml

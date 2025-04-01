@@ -1,8 +1,8 @@
 from core.data_classes.llm_type import LLMType
 from core.async_chat_clients import AsyncChatClients
-from core_annotation.models.prediction import Prediction
+from core.annotation.models.prediction import Prediction
 from typing import List, Dict
-from core_annotation.utils.run_inference import run_inference
+from core.annotation.utils.run_inference import run_inference
 
 async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: List[LLMType], n_completions: int = 2, predictions: Dict[LLMType, Prediction] = None, clients: AsyncChatClients = None, temperature: float = 0.5) -> Dict[LLMType, Prediction]:
     # TODO: Implement this

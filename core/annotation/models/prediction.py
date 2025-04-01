@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 from typing import List
-from core_annotation.models.code import Code
+from core.annotation.models.code import Code
 from core.data_classes.llm_type import LLMType
 from pydantic import BaseModel, Field
-from core_annotation.models.code import Code
+from core.annotation.models.code import Code
 from typing import Optional
 
 

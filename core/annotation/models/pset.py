@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field
 from typing import List
-from core_annotation.models.problem import Problem
+from core.annotation.models.problem import Problem
 import yaml
 import os
 from core.async_chat_clients import AsyncChatClients
 from core.data_classes.llm_type import LLMType
 import shutil
-from core_annotation.utils.run_shell_command import run_shell_command, check_complete_success
+from core.annotation.utils.run_shell_command import run_shell_command, check_complete_success
 import copy
-from core_annotation.models.prediction import TestResult
-from core_annotation.utils.sync_folders import ignore_git
+from core.annotation.models.prediction import TestResult
+from core.annotation.utils.sync_folders import ignore_git
 from typing import Optional
 
 class PSet(BaseModel):
@@ -18,39 +18,36 @@ class PSet(BaseModel):
     problems: List[Problem]
     
     @classmethod
-    def parse_pset(cls, pset_dir: str, pset: Optional['PSet'] = None) -> 'PSet':
+    def parse_pset(cls, pset_dir: str, pset: Optional['PSet'] = None, run_one: Optional[str] = None) -> 'PSet':
         """
         If pset is not None, only add problems that are not already in the pset.
         """
         # get the folder name
         folder_name = os.path.basename(os.path.normpath(pset_dir))
-        # breakpoint()
         existing_problems = [problem.folder_name for problem in pset.problems] if pset is not None else []
         problems = []
         
         for problem_dir in os.listdir(pset_dir):
+            if run_one is not None and problem_dir != run_one:
+                continue
             if os.path.isdir(os.path.join(pset_dir, problem_dir)):
                 if problem_dir in existing_problems:
                     problems.append(pset.problems[existing_problems.index(problem_dir)])
                 else:
                     problems.append(Problem.parse_problem(pset_dir, problem_dir))
+        assert len(problems) > 0, f"No problems found in {pset_dir}"
         return cls(folder_name=folder_name, problems=problems)
 
-    async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, gen_one: Optional[str] = None):
+    async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients):
         for problem in self.problems:
-            if gen_one is not None and problem.folder_name != gen_one:
-                continue
-
             await problem.generate_solutions(llm_types, n_completions, temperature, clients)
 
-    def test_all(self, pset_src_folder: str, cache_dir: str, test_one: Optional[str] = None):
+    def test_all(self, pset_src_folder: str, cache_dir: str):
         # copy the pset to the cache dir
         pset_cache_dir = os.path.join(cache_dir, self.folder_name)
         os.makedirs(pset_cache_dir, exist_ok=True)
         
         for problem in self.problems:
-            if test_one is not None and problem.folder_name != test_one:
-                continue
 
             problem_cache_dir = os.path.join(pset_cache_dir, problem.folder_name)
             problem_src_dir = os.path.join(pset_src_folder, problem.folder_name)

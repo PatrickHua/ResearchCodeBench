@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from core_annotation.models.code import Code
-from core_annotation.models.snippet import Snippet
+from core.annotation.models.code import Code
+from core.annotation.models.snippet import Snippet
 import re
 import sys
 from typing import Union
@@ -74,7 +74,7 @@ class File(BaseModel):
         - That placeholder block is indented to match snippet's indentation
         - Optionally remove ALL snippet markers from the replaced file
         """
-        from core_annotation.models.file import remove_all_paper2code_markers
+        from core.annotation.models.file import remove_all_paper2code_markers
 
         # How many code lines are inside the snippet
         num_lines = len(snippet.code.get_code_lines())

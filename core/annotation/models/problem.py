@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 from typing import List
-from core_annotation.models.file import File
+from core.annotation.models.file import File
 import yaml
 import os
-from core_annotation.utils.generate_predictions import generate_predictions
+from core.annotation.utils.generate_predictions import generate_predictions
 from core.async_chat_clients import AsyncChatClients
 from core.data_classes.llm_type import LLMType
-from core_annotation.utils.run_shell_command import run_shell_command
+from core.annotation.utils.run_shell_command import run_shell_command
 
 
 class Problem(BaseModel):
