@@ -71,17 +71,17 @@ class PSet(BaseModel):
                         with open(problem_file_full_path, "w") as f:
                             f.write(problem_file_str)
 
-                        # run the test
-                        test_header = f"""
-import sys
-sys.path.append("{os.path.join(cache_dir, self.folder_name, problem.folder_name)}")
-"""
+#                         # run the test
+#                         test_header = f"""
+# import sys
+# sys.path.append("{os.path.join(cache_dir, self.folder_name, problem.folder_name)}")
+# """
                         with open(os.path.join(problem_cache_dir, problem.test_entry_point), "w") as f:
                             # prepend the test header
-                            f.write(test_header)
+                            # f.write(test_header)
                             f.write(open(os.path.join(problem_src_dir, problem.test_entry_point)).read())
 
-                        run_test_command = f"python {os.path.join(problem_cache_dir, problem.test_entry_point)}"
+                        run_test_command = f"cd {problem_cache_dir} && python {os.path.join(problem.test_entry_point)}"
                         print(run_test_command)
                         # breakpoint()
                         success, exit_code, stdout, stderr = run_shell_command(run_test_command)
@@ -106,7 +106,7 @@ sys.path.append("{os.path.join(cache_dir, self.folder_name, problem.folder_name)
             print(f"\nProblem {problem_idx}: {problem.folder_name}")
             
             for snippet_idx, snippet in enumerate(problem.problem_file.snippets, 1):
-                print(f"  Snippet {snippet_idx}:")
+                print(f"\n  Snippet {snippet_idx} ({snippet.name}):")
                 
                 for llm_type, predictions in snippet.predictions.items():
                     # Initialize stats for this LLM type if not already done
