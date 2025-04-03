@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--gen", action="store_true")
     parser.add_argument("--test", action="store_true")
-    parser.add_argument("--run_one", default=None, type=str, help="Only generate solutions for this problem")
+    parser.add_argument("--problems", default=None, nargs="+", help="Name of the problems to run. None means all.")
     parser.add_argument("--wo_paper", action="store_true")
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
@@ -42,10 +42,10 @@ def parse_args():
     if os.path.exists(output_file) and not args.overwrite:
         with open(output_file, "r", encoding="utf-8") as f:
             pset = PSet.model_validate_json(f.read())
-            if args.run_one is not None:
-                pset.problems = [problem for problem in pset.problems if problem.folder_name == args.run_one]
-    else:
-        pset = PSet.parse_pset(args.src_folder, pset, args.run_one)
+            if args.problems is not None:
+                pset.problems = [problem for problem in pset.problems if problem.folder_name in args.problems]
+    # else: 
+    pset = PSet.parse_pset(args.src_folder, pset, args.problems)
     return pset, llm_types, clients, output_file, args
 
 async def main(pset, llm_types, clients, args):

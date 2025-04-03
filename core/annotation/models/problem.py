@@ -11,29 +11,42 @@ from core.annotation.utils.run_shell_command import run_shell_command
 
 class Problem(BaseModel):
     folder_name: str
-    paper_tex: str
+    paper_tex_path: str
     context_files: List[File]
-    problem_file: File
+    problem_files: List[File]
     test_entry_point: str
     @classmethod
-    def parse_problem(cls, pset_dir: str, problem_name: str) -> 'Problem':
+    def parse_problem(cls, pset_dir: str, problem_name: str, paper_yaml: dict) -> 'Problem':
         problem_dir = os.path.join(pset_dir, problem_name)
 
-        with open(os.path.join(problem_dir, "paper2code.yaml"), "r") as f:
-            problem_yaml = yaml.load(f, Loader=yaml.FullLoader)
-        
-        with open(os.path.join(problem_dir, problem_yaml["paper_tex"]), "r", encoding="utf-8") as f:
-            paper_tex = f.read()
-        
-        # breakpoint()
-        problem_file = File.parse_file(problem_dir, problem_yaml["mask_file_path"])
 
-        # read context files
-        context_files = []
-        if problem_yaml["context_file_paths"] is not None:
-            for context_file_path in problem_yaml["context_file_paths"]:
-                context_files.append(File.parse_file(problem_dir, context_file_path))
-        return cls(folder_name=problem_name, paper_tex=paper_tex, context_files=context_files, problem_file=problem_file, test_entry_point=problem_yaml["test_entry_point"])
+        paper_tex_path = os.path.join(problem_dir, 'paper2code_paper.tex')
+
+        if isinstance(paper_yaml["annotated_file_paths"], str):
+            annotated_file_paths = [paper_yaml["annotated_file_paths"]]
+        elif isinstance(paper_yaml["annotated_file_paths"], list):
+            annotated_file_paths = paper_yaml["annotated_file_paths"]
+        else:
+            raise ValueError(f"Invalid annotated_file_paths: {paper_yaml['annotated_file_paths']}")  # no annotated files is problematic
+        
+        
+        if isinstance(paper_yaml["context_file_paths"], str):
+            context_file_paths = [paper_yaml["context_file_paths"]]
+        elif isinstance(paper_yaml["context_file_paths"], list):
+            context_file_paths = paper_yaml["context_file_paths"]
+        else:
+            context_file_paths = None  # no context files is fine
+        
+        
+        problem_files = [File.parse_file(problem_dir, annotated_file_path) for annotated_file_path in annotated_file_paths]
+
+        if context_file_paths is not None:
+            context_files = [File.parse_file(problem_dir, context_file_path) for context_file_path in context_file_paths]
+        else:
+            context_files = []
+
+
+        return cls(folder_name=problem_name, paper_tex_path=paper_tex_path, context_files=context_files, problem_files=problem_files, test_entry_point='paper2code_test.py')
 
 
 
@@ -43,21 +56,25 @@ class Problem(BaseModel):
         else:
             context_files_str = ''.join([file.flatten() for file in self.context_files])
         
-        for snippet in self.problem_file.snippets:
-            
-            # create a new problem file with the snippet masked
-            masked_problem_file_str = self.problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
-            masked_code_str = context_files_str + masked_problem_file_str
-            
-            snippet.predictions = await generate_predictions(
-                masked_code_str,
-                self.paper_tex,
-                llm_types=llm_types, 
-                n_completions=n_completions, 
-                predictions=snippet.predictions, 
-                clients=clients,
-                temperature=temperature
-            )
+        with open(self.paper_tex_path, "r", encoding="utf-8") as f:
+            paper_tex = f.read()
+        
+        for problem_file in self.problem_files:
+            for snippet in problem_file.snippets:
+                
+                # create a new problem file with the snippet masked
+                masked_problem_file_str = problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
+                masked_code_str = context_files_str + masked_problem_file_str
+                
+                snippet.predictions = await generate_predictions(
+                    masked_code_str,
+                    paper_tex,
+                    llm_types=llm_types, 
+                    n_completions=n_completions, 
+                    predictions=snippet.predictions, 
+                    clients=clients,
+                    temperature=temperature
+                )
 
 
     # def test(self, problem_src_dir: str, problem_cache_dir: str) -> List[str]:

@@ -20,6 +20,7 @@ class File(BaseModel):
         # 1. Validate the file
         with open(os.path.join(problem_dir, rel_path), 'r', encoding='utf-8') as f:
             code = Code(f.read())
+
             
         if not validate_paper2code_file(code.lines, enforce_unique_names=False):
             print("File failed validation. Please fix the errors above.")
