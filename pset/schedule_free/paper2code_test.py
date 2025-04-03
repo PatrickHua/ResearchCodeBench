@@ -21,7 +21,7 @@ class TestScheduleFree(unittest.TestCase):
         """Test that AdamWScheduleFree matches reference implementation and closure variant."""
         decay = 0.5
         warmup = 5
-        weight_closure = torch.randn(3, 2).cuda().requires_grad_()
+        weight_closure = torch.randn(3, 2).requires_grad_()
         weight = torch.clone(weight_closure.data).requires_grad_()
         weight_reference = torch.clone(weight_closure.data).requires_grad_()
         
