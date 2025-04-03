@@ -1,0 +1,109 @@
+- id: DiffusionDPO
+  title: Diffusion Model Alignment Using Direct Preference Optimization
+  arxiv_abs: https://arxiv.org/abs/2311.12908v1
+  arxiv_date: 2023-11-22
+  github_url: https://github.com/SalesforceAIResearch/DiffusionDPO
+  first_commit_date: 2023-12-24
+  venue: arXiv2023
+
+  annotated_file_paths: loss.py
+  context_file_paths: train.py
+
+
+- id: DyT
+  title: Transformers without Normalization
+  arxiv_abs: https://www.arxiv.org/abs/2503.10622v1
+  arxiv_date: 2025-03-13
+  github_url: https://github.com/jiachenzhu/DyT
+  first_commit_date: 2025-03-09
+  venue: CVPR2025
+
+  annotated_file_paths: dynamic_tanh.py
+  context_file_paths: null
+
+
+- id: eomt
+  title: Your ViT is Secretly an Image Segmentation Model
+  arxiv_abs: https://arxiv.org/abs/2503.19108v1
+  arxiv_date: 2025-03-24
+  github_url: https://github.com/tue-mps/eomt/
+  first_commit_date: 2025-03-16
+  venue: CVPR2025
+
+  annotated_file_paths: eomt.py
+  context_file_paths: null
+
+
+- id: fractalgen
+  title: Fractal Generative Models
+  arxiv_abs: https://arxiv.org/abs/2502.17437v2
+  arxiv_date: 2025-02-25
+  github_url: https://github.com/LTH14/fractalgen
+  first_commit_date: 2025-02-23
+  venue: arXiv2025
+
+  annotated_file_paths: models/mar.py
+  context_file_paths:
+    - models/pixelloss.py
+    - util/visualize.py
+
+- id: LEN
+  title: Second-Order Min-Max Optimization with Lazy Hessians
+  arxiv_abs: https://arxiv.org/abs/2410.09568v1
+  arxiv_date: 2024-10-12
+  github_url: https://github.com/TrueNobility303/LEN
+  first_commit_date: 2024-12-01
+  venue: ICLR2025
+
+  annotated_file_paths: Synthetic.py
+  context_file_paths: null
+
+
+- id: llm-sci-use
+  title: Mapping the increasing use of LLMs in scientific papers
+  arxiv_abs: https://arxiv.org/abs/2404.01268v1
+  arxiv_date: 2024-04-01
+  github_url: https://github.com/Weixin-Liang/Mapping-the-Increasing-Use-of-LLMs-in-Scientific-Papers
+  first_commit_date: 2024-05-12
+  venue: COLM2024
+
+  annotated_file_paths: src/MLE.py
+  context_file_paths: null
+
+
+- id: minp
+  title: Min-p Sampling for Creative and Coherent LLM Outputs
+  arxiv_abs: https://arxiv.org/abs/2407.01082v4
+  arxiv_date: 2025-03-20
+  github_url: https://github.com/menhguin/minp_paper
+  first_commit_date: 2024-06-09
+  venue: ICLR2025
+
+  annotated_file_paths: implementation.py
+  context_file_paths: null
+
+
+- id: schedule_free
+  title: The Road Less Scheduled
+  arxiv_abs: https://arxiv.org/abs/2405.15682v4
+  arxiv_date: 2024-10-29
+  github_url: https://github.com/facebookresearch/schedule_free
+  first_commit_date: 2024-03-31
+  venue: NeurIPS2024
+
+  annotated_file_paths: adamw_schedulefree_reference.py 
+  context_file_paths: null
+
+
+- id: semanticist
+  title: Principal Components Enable A New Language of Images
+  arxiv_abs: https://arxiv.org/abs/2503.08685v1
+  arxiv_date: 2025-03-11
+  github_url: https://github.com/visual-gen/semanticist
+  first_commit_date: 2025-03-09
+  venue: arXiv2025
+
+  annotated_file_paths: generate.py
+  context_file_paths: null
+
+

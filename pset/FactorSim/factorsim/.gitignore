@@ -1,8 +1,0 @@
-__pycache__
-*.pyc
-.DS_Store
-*.ipynb
-.ipynb_checkpoints/
-pyan/
-games/chess/
-*test_results.json
