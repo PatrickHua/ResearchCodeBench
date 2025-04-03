@@ -47,6 +47,19 @@
     - models/pixelloss.py
     - util/visualize.py
 
+
+- id: hyla
+  title: Attention as a Hypernetwork
+  arxiv_abs: https://arxiv.org/abs/2406.05816v4
+  arxiv_date: 2024-02-17
+  github_url: https://github.com/smonsays/hypernetwork-attention
+  first_commit_date: 2024-06-09
+  venue: ICLR2025
+
+  annotated_file_paths: attention.py
+  context_file_paths: null
+
+
 - id: LEN
   title: Second-Order Min-Max Optimization with Lazy Hessians
   arxiv_abs: https://arxiv.org/abs/2410.09568v1
