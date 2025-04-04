@@ -6,17 +6,6 @@ import torch.nn as nn
 from functools import partial
 import os
 
-# Conditionally import mask_by_order if it exists
-try:
-    from models.utils import mask_by_order
-except ImportError:
-    # Define a simple mask_by_order function if not available
-    def mask_by_order(mask_len, orders, bsz, seq_len):
-        device = orders.device
-        mask = torch.zeros(bsz, seq_len, device=device)
-        mask = torch.scatter(mask, dim=-1, index=orders[:, :int(mask_len)],
-                           src=torch.ones(bsz, seq_len, device=device))
-        return mask
 
 class TestMAR(unittest.TestCase):
     def setUp(self):
