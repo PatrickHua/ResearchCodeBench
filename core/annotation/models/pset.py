@@ -83,19 +83,11 @@ class PSet(BaseModel):
                             with open(problem_file_full_path, "w") as f:
                                 f.write(problem_file_str)
 
-    #                         # run the test
-    #                         test_header = f"""
-    # import sys
-    # sys.path.append("{os.path.join(cache_dir, self.folder_name, problem.folder_name)}")
-    # """
                             with open(os.path.join(problem_cache_dir, problem.test_entry_point), "w") as f:
-                                # prepend the test header
-                                # f.write(test_header)
                                 f.write(open(os.path.join(problem_src_dir, problem.test_entry_point)).read())
 
                             run_test_command = f"cd {problem_cache_dir} && python {os.path.join(problem.test_entry_point)}"
                             print(run_test_command)
-                            # breakpoint()
                             success, exit_code, stdout, stderr = run_shell_command(run_test_command)
                             print(success, exit_code, stdout, stderr)
                             print()

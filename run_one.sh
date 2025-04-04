@@ -1,15 +1,11 @@
 
-problem_name="hyla"
-problem_name2="DyT"
-problem_name3="DiffusionDPO"
-problem_name4="LEN"
 
 python main.py --src_folder pset/ \
-    --problems $problem_name $problem_name2 $problem_name3 $problem_name4 \
+    --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" \
     --gen \
     --test \
-    --llm_types "gemini-1.5-flash" "gpt-4o" \
+    --llm_types "gemini-1.5-flash" "gemini-2.0-flash" "gpt-4o-mini" "gpt-4o" \
     --n_completions 1 \
-    --temperature 0.6 \
+    --temperature 0.8 \
     --max_iter 10 \
     --summarize_results
