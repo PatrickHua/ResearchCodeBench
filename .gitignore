@@ -24,3 +24,4 @@ walkthrough.py
 walkthrough/
 
 **/_*/
+**/*.backup
