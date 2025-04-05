@@ -90,7 +90,7 @@ if __name__ == '__main__':
     
     
     if args.summarize_results:
-        pset.summarize_results()
+        pset.summarize_results(save_to_json=True)
 
 
     print(f"Total inference cost after creating problems: {clients.total_inference_cost}")

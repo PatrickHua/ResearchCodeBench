@@ -94,15 +94,26 @@ class PSet(BaseModel):
                             passed = check_complete_success(success, exit_code, stdout, stderr)
                             completion.test_result = TestResult(success=success, exit_code=exit_code, stdout=stdout, stderr=stderr, passed=passed)
 
-    def summarize_results(self):
+    def summarize_results(self, save_to_json: bool = False, json_path: str = "results_summary.json"):
         """
         Summarize the results of the test.
         Print the results of different llm types for each problem and snippet.
         Print the averaged success rate of each llm type - averaged over all problems and snippets.
         success rate of one problem = number of lines of code that pass the test / total number of lines of code
+        
+        Args:
+            save_to_json: If True, saves detailed results to a JSON file
+            json_path: Path to save the JSON file if save_to_json is True
         """
         # Dictionary to track success counts for each LLM type
         llm_stats = {}
+        
+        # Dictionary to store detailed results for JSON output
+        detailed_results = {
+            "problems": [],
+            "overall_stats": {},
+            "best_performing_llm": None
+        }
         
         # Print detailed results and gather statistics
         print("\n=== DETAILED RESULTS ===")
@@ -120,6 +131,13 @@ class PSet(BaseModel):
             # Track code lines that pass for each LLM type
             problem_llm_stats = {}
             
+            # Store problem-level results for JSON
+            problem_results = {
+                "problem_name": problem.folder_name,
+                "snippets": [],
+                "llm_stats": {}
+            }
+            
             for problem_file in problem.problem_files:
                 for snippet_idx, snippet in enumerate(problem_file.snippets, 1):
                     print(f"\n  Snippet {snippet_idx} ({snippet.name}):")
@@ -127,6 +145,13 @@ class PSet(BaseModel):
                     # Get the number of code lines in this snippet
                     snippet_code_lines = snippet.code.get_code_lines()
                     snippet_code_line_count = len(snippet_code_lines)
+                    
+                    # Store snippet-level results for JSON
+                    snippet_results = {
+                        "snippet_name": snippet.name,
+                        "total_lines": snippet_code_line_count,
+                        "llm_results": {}
+                    }
                     
                     for llm_type, predictions in snippet.predictions.items():
                         # Initialize stats for this LLM type if not already done
@@ -155,27 +180,63 @@ class PSet(BaseModel):
                         problem_llm_stats[llm_type]["success_lines"] += success_lines
                         problem_llm_stats[llm_type]["total_lines"] += snippet_code_line_count
                         
+                        # Store LLM results for JSON
+                        llm_results = {
+                            "successes": successes,
+                            "total": total,
+                            "success_rate": success_rate,
+                            "success_lines": success_lines,
+                            "total_lines": snippet_code_line_count,
+                            "completions": []
+                        }
+                        
+                        # Store individual completion results
+                        for comp_idx, completion in enumerate(predictions.completions, 1):
+                            result = "✓" if completion.test_result.passed else "✗"
+                            llm_results["completions"].append({
+                                "completion_idx": comp_idx,
+                                "passed": completion.test_result.passed,
+                                "exit_code": completion.test_result.exit_code
+                            })
+                            
+                            # Print individual completion results for debugging
+                            print(f"      {result} Completion {comp_idx} (Exit Code: {completion.test_result.exit_code})")
+                        
+                        snippet_results["llm_results"][llm_type] = llm_results
+                        
                         # Print snippet results
                         print(f"    {llm_type}: {successes}/{total} passed ({success_rate:.1f}%)")
                         print(f"    {llm_type}: {success_lines}/{snippet_code_line_count} lines passed ({success_lines/snippet_code_line_count*100:.1f}% of lines)")
-                        
-                        # Optionally print individual completion results for debugging
-                        for comp_idx, completion in enumerate(predictions.completions, 1):
-                            result = "✓" if completion.test_result.passed else "✗"
-                            exit_code = completion.test_result.exit_code
-                            print(f"      {result} Completion {comp_idx} (Exit Code: {exit_code})")
+                    
+                    problem_results["snippets"].append(snippet_results)
             
-            # Print problem-level success rates
-            print(f"\n  Problem {problem_idx} Success Rates (by lines of code):")
-            for llm_type, stats in sorted(problem_llm_stats.items()):
+            # Store problem-level LLM stats for JSON
+            for llm_type, stats in problem_llm_stats.items():
                 success_rate = (stats["success_lines"] / stats["total_lines"]) * 100 if stats["total_lines"] > 0 else 0
+                problem_results["llm_stats"][llm_type] = {
+                    "success_lines": stats["success_lines"],
+                    "total_lines": stats["total_lines"],
+                    "success_rate": success_rate
+                }
+                
+                # Print problem-level success rates
+                print(f"\n  Problem {problem_idx} Success Rates (by lines of code):")
                 print(f"    {llm_type}: {stats['success_lines']}/{stats['total_lines']} lines passed ({success_rate:.1f}%)")
+            
+            detailed_results["problems"].append(problem_results)
         
         # Calculate and print overall success rates
         print("\n=== OVERALL SUCCESS RATES ===")
         for llm_type, stats in sorted(llm_stats.items()):
             success_rate = (stats["success_lines"] / stats["total_lines"]) * 100 if stats["total_lines"] > 0 else 0
             print(f"{llm_type}: {stats['success_lines']}/{stats['total_lines']} lines passed ({success_rate:.1f}%)")
+            
+            # Store overall stats for JSON
+            detailed_results["overall_stats"][llm_type] = {
+                "success_lines": stats["success_lines"],
+                "total_lines": stats["total_lines"],
+                "success_rate": success_rate
+            }
         
         # Find the best performing LLM
         if llm_stats:
@@ -183,3 +244,16 @@ class PSet(BaseModel):
                           key=lambda x: (x[1]["success_lines"] / x[1]["total_lines"]) if x[1]["total_lines"] > 0 else 0)
             best_rate = (best_llm[1]["success_lines"] / best_llm[1]["total_lines"]) * 100 if best_llm[1]["total_lines"] > 0 else 0
             print(f"\nBest performing LLM: {best_llm[0]} ({best_rate:.1f}% of lines passed)")
+            
+            # Store best performing LLM for JSON
+            detailed_results["best_performing_llm"] = {
+                "llm_type": best_llm[0],
+                "success_rate": best_rate
+            }
+        
+        # Save results to JSON if requested
+        if save_to_json:
+            import json
+            with open(json_path, "w") as f:
+                json.dump(detailed_results, f, indent=2)
+            print(f"\nDetailed results saved to {json_path}")
