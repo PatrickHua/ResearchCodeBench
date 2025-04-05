@@ -119,6 +119,7 @@ class AsyncChatClients():
         return_full_response: bool = False,
         num_completions: int = 1,
         max_retries: int = 10,
+        stream: bool = False,
     ) -> Dict[str, Any]:
         """
         Runs the agent and returns the response along with cost information.
@@ -131,12 +132,15 @@ class AsyncChatClients():
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message},
+            ] if system_message is not None else [
+                {"role": "user", "content": user_message},
             ],
             temperature=temperature,
             max_completion_tokens=max_tokens,
             timeout=timeout,
-        ) | client_kwargs if client_kwargs else {}
-        
+            stream=stream,
+        ) | client_kwargs
+        # breakpoint()
         responses = []
         response_strs = []
         cost = 0
@@ -202,8 +206,9 @@ async def main():
             # llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
             # llm_type=LLMType.O3_MINI_HIGH,
             # llm_type=LLMType.CLAUDE_3_7_SONNET_2025_02_19,
-            # llm_type=LLMType.O1_HIGH,
-            llm_type=LLMType.DEEPSEEK_R1,
+            llm_type=LLMType.O1_HIGH,
+            # llm_type=LLMType.DEEPSEEK_R1,
+            # llm_type=LLMType.GEMINI_2_0_FLASH,
             user_message='Hello, how are you?',
             system_message='You are a helpful assistant.',
             num_completions=2,

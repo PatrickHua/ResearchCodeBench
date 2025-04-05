@@ -58,7 +58,7 @@ class LLMConfig(BaseModel):
     input_cost: Optional[float]
     output_cost: Optional[float]
     knowledge_cutoff_date: Optional[str] = None
-    client_kwargs: Optional[dict] = None
+    client_kwargs: dict = {}
     # def get_api_key(self) -> str:
     #     if self.company == 'OPENAI':
     #         return os.getenv('OPENAI_API_KEY')

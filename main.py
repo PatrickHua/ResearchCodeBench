@@ -40,6 +40,10 @@ def parse_args():
     output_file = os.path.join(args.src_folder, args.output_file)
     pset = None
     if os.path.exists(output_file) and not args.overwrite:
+        # Create backup of output file before reading
+        backup_file = f"{output_file}.backup"
+        shutil.copy2(output_file, backup_file)
+        
         with open(output_file, "r", encoding="utf-8") as f:
             pset = PSet.model_validate_json(f.read())
             if args.problems is not None:
@@ -64,6 +68,10 @@ if __name__ == '__main__':
 
         asyncio.run(main(pset, llm_types, clients, args))
 
+        # Create backup of output file
+        backup_file = f"{output_file}.backup"
+        shutil.copy2(output_file, backup_file)
+        
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))
         print(f"Done. Results saved to {output_file}")
