@@ -3,6 +3,8 @@
 import argparse
 import os
 import copy
+import sys
+import time
 from core.data_classes.llm_type import LLMType
 from core.async_chat_clients import AsyncChatClients
 import asyncio
@@ -15,7 +17,8 @@ import shutil
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--src_folder", type=str, default="./pset/")
+    parser.add_argument("--data_folder", type=str, default="./pset/")
+    parser.add_argument("--output_dir", type=str, default="./outputs/")
     parser.add_argument("--output_file", type=str, default="paper2code_answers.json")
     # parser.add_argument("--output_file", type=str, default="tmp.json")
     parser.add_argument("--overwrite", action="store_true")
@@ -35,10 +38,20 @@ def parse_args():
     parser.add_argument("--cache_dir", type=str, default="./.cache/")
     args = parser.parse_args()
 
+    # Save the command used to run this script
+    os.makedirs(args.output_dir, exist_ok=True)
+    run_command = " ".join(sys.argv)
+    
+    with open(os.path.join(args.output_dir, "run.sh"), "w") as f:
+        f.write(f"#!/bin/bash\n{sys.executable} {run_command}\n")
+
+    os.chmod(os.path.join(args.output_dir, "run.sh"), 0o755)  # Make it executable
+
     llm_types = [LLMType(name) for name in args.llm_types]
     clients = AsyncChatClients()
-    output_file = os.path.join(args.src_folder, args.output_file)
+    output_file = os.path.join(args.output_dir, args.output_file)
     pset = None
+    
     if os.path.exists(output_file) and not args.overwrite:
         # Create backup of output file before reading
         backup_file = f"{output_file}.backup"
@@ -49,7 +62,7 @@ def parse_args():
             if args.problems is not None:
                 pset.problems = [problem for problem in pset.problems if problem.folder_name in args.problems]
     # else: 
-    pset = PSet.parse_pset(args.src_folder, pset, args.problems)
+    pset = PSet.parse_pset(args.data_folder, pset, args.problems)
     return pset, llm_types, clients, output_file, args
 
 async def main(pset, llm_types, clients, args):
@@ -64,34 +77,44 @@ async def main(pset, llm_types, clients, args):
 if __name__ == '__main__':
     pset, llm_types, clients, output_file, args = parse_args()
     
+    gen_time = 0
+    test_time = 0
+    
     if args.gen:
-
+        start_time = time.time()
         asyncio.run(main(pset, llm_types, clients, args))
 
-        # Create backup of output file
-        backup_file = f"{output_file}.backup"
-        shutil.copy2(output_file, backup_file)
+        # # Create backup of output file
+        # backup_file = f"{output_file}.backup"
+        # shutil.copy2(output_file, backup_file)
         
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))
         print(f"Done. Results saved to {output_file}")
-
+        gen_time = time.time() - start_time
 
     if args.test:
-        # copy the pset to the cache dir
-        # cache_dir = os.path.join(args.cache_dir, os.path.basename(args.src_folder))
-        # shutil.copytree(args.src_folder, cache_dir)  # .cache/pset/
-        # breakpoint()
-        pset.test_all(args.src_folder, args.cache_dir)
+        start_time = time.time()
+        pset.test_all(args.data_folder, args.cache_dir)
 
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))
         print(f"Done. Results saved to {output_file}")
-    
+        test_time = time.time() - start_time
     
     if args.summarize_results:
-        pset.summarize_results(save_to_json=True)
-
+        pset.summarize_results(save_to_json=True, json_path=os.path.join(args.output_dir, "results_summary.json"))
 
     print(f"Total inference cost after creating problems: {clients.total_inference_cost}")
+    
+    # Print timing information
+    if args.gen and args.test:
+        print(f"\nExecution times:")
+        print(f"Generation time: {gen_time:.2f} seconds")
+        print(f"Testing time: {test_time:.2f} seconds")
+        print(f"Total time: {gen_time + test_time:.2f} seconds")
+    elif args.gen:
+        print(f"\nGeneration time: {gen_time:.2f} seconds")
+    elif args.test:
+        print(f"\nTesting time: {test_time:.2f} seconds")
     
