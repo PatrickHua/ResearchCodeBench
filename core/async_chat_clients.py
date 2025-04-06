@@ -4,6 +4,7 @@ import os
 from typing import List, Dict, Any, Optional
 
 from openai import AsyncOpenAI, RateLimitError
+import httpx
 
 from core.data_classes.llm_type import LLMType, MODEL_CONFIGS
 
@@ -11,24 +12,40 @@ from core.data_classes.llm_type import LLMType, MODEL_CONFIGS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create a shared HTTP client with connection pooling
+# This helps reuse connections across requests
+http_client = httpx.AsyncClient(
+    limits=httpx.Limits(
+        max_connections=100,  # Increased from default
+        max_keepalive_connections=20,
+        keepalive_expiry=30.0  # Keep connections alive longer
+    ),
+    timeout=httpx.Timeout(60.0)  # Default timeout
+)
 
 class AsyncChatClients():
     """
     LLM wrapper for async calls following OpenAI API format. Used for both OpenAI and other models.
     """
     def __init__(self) -> None:
+        # Use the shared HTTP client for all API clients
         self.llm_clients = {
             
-            'OPENAI': AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY')),
+            'OPENAI': AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'), http_client=http_client),
             'ANTHROPIC': AsyncOpenAI(api_key=os.getenv('ANTHROPIC_API_KEY'),
-                                    base_url="https://api.anthropic.com/v1"),
+                                    base_url="https://api.anthropic.com/v1",
+                                    http_client=http_client),
             'GOOGLE': AsyncOpenAI(api_key=os.getenv('GOOGLE_API_KEY'),
-                                  base_url="https://generativelanguage.googleapis.com/v1beta/"),
+                                  base_url="https://generativelanguage.googleapis.com/v1beta/",
+                                  http_client=http_client),
             'XAI': AsyncOpenAI(api_key=os.getenv('XAI_API_KEY'),
-                               base_url="https://api.x.ai/v1"),
-            'VLLM': AsyncOpenAI(api_key='EMPTY', base_url="http://localhost:8000/v1"),
+                               base_url="https://api.x.ai/v1",
+                               http_client=http_client),
+            'VLLM': AsyncOpenAI(api_key='EMPTY', base_url="http://localhost:8000/v1",
+                               http_client=http_client),
             'DEEPSEEK': AsyncOpenAI(api_key=os.getenv('DEEPSEEK_API_KEY'),
-                                    base_url="https://api.deepseek.com/v1"),
+                                    base_url="https://api.deepseek.com/v1",
+                                    http_client=http_client),
         }
         self.all_responses = []
         self.total_inference_cost = 0
@@ -140,33 +157,50 @@ class AsyncChatClients():
             timeout=timeout,
             stream=stream,
         ) | client_kwargs
-        # breakpoint()
-        responses = []
-        response_strs = []
-        cost = 0
-        for _ in range(num_completions):
+
+        # Instead of running sequentially, create tasks for all completions
+        async def make_single_request():
+            start_time = asyncio.get_event_loop().time()
+            request_id = id(start_time)  # Simple unique ID for each request
+            logger.info(f"[{request_id}] Starting request to {company} ({llm_type.value}) at {start_time:.3f}")
+            
             wait_time = 60
-            response = None
             for attempt in range(1, max_retries + 1):
                 try:
                     response = await self.llm_clients[company].chat.completions.create(**full_kwargs)
-                    break  # Success, exit retry loop
+                    end_time = asyncio.get_event_loop().time()
+                    duration = end_time - start_time
+                    logger.info(f"[{request_id}] Completed request to {company} ({llm_type.value}) at {end_time:.3f} (took {duration:.3f}s)")
+                    return response
                 except RateLimitError as e:
-                    logger.warning(f"Rate limit exceeded for {company} on attempt {attempt}/{max_retries}: {e}. Retrying in {wait_time} seconds.")
+                    logger.warning(f"[{request_id}] Rate limit exceeded for {company} on attempt {attempt}/{max_retries}: {e}. Retrying in {wait_time} seconds.")
                 except Exception as e:
-                    logger.error(f"Unexpected error for {company} on attempt {attempt}/{max_retries}: {e}. Retrying in {wait_time} seconds.")
+                    logger.error(f"[{request_id}] Unexpected error for {company} on attempt {attempt}/{max_retries}: {e}. Retrying in {wait_time} seconds.")
                 await asyncio.sleep(wait_time)
                 wait_time *= 1
+            
+            end_time = asyncio.get_event_loop().time()
+            logger.error(f"[{request_id}] Failed request to {company} after {max_retries} attempts. Total duration: {end_time - start_time:.3f}s")
+            raise Exception(f"Failed to get a valid response from {company} after {max_retries} attempts.")
 
-            if response is None:
-                raise Exception(f"Failed to get a valid response from {company} after {max_retries} attempts.")
-
-            responses.append(response)
-            cost += self.calc_cost(response=response, llm_type=llm_type)
-            response_strs.append(response.choices[0].message.content)
+        # Create tasks for all completions
+        tasks = [make_single_request() for _ in range(num_completions)]
+        
+        # Run all tasks concurrently
+        batch_start_time = asyncio.get_event_loop().time()
+        logger.info(f"Starting batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_start_time:.3f}")
+        
+        responses = await asyncio.gather(*tasks)
+        
+        batch_end_time = asyncio.get_event_loop().time()
+        batch_duration = batch_end_time - batch_start_time
+        logger.info(f"Completed batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_end_time:.3f} (took {batch_duration:.3f}s)")
+        
+        response_strs = [response.choices[0].message.content for response in responses]
+        cost = sum(self.calc_cost(response=response, llm_type=llm_type) for response in responses)
 
         full_response = {
-            'response': response,
+            'response': responses[-1],  # Keep the last response for backward compatibility
             'response_str': response_strs,
             'cost': cost
         }

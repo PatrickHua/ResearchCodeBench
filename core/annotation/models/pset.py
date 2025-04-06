@@ -11,6 +11,7 @@ import copy
 from core.annotation.models.prediction import TestResult
 from core.annotation.utils.sync_folders import ignore_git
 from typing import Optional
+import asyncio
 
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
@@ -50,8 +51,12 @@ class PSet(BaseModel):
         return cls(folder_name=folder_name, problems=problems)
 
     async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients):
-        for problem in self.problems:
-            await problem.generate_solutions(llm_types, n_completions, temperature, clients)
+        # Run all problems concurrently instead of sequentially
+        tasks = [
+            problem.generate_solutions(llm_types, n_completions, temperature, clients)
+            for problem in self.problems
+        ]
+        await asyncio.gather(*tasks)
 
     def test_all(self, pset_src_folder: str, cache_dir: str):
         # copy the pset to the cache dir

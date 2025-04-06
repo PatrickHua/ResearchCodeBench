@@ -1,10 +1,10 @@
 
 
 python main.py --src_folder pset/ \
-    --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" \
+    --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" "minp" "eomt" \
     --gen \
     --test \
-    --llm_types "gemini-2.0-flash" "gpt-4o" "o3-mini-2025-01-31" "deepseek-reasoner" "claude-3-5-sonnet-20241022" \
+    --llm_types "gemini-2.0-flash" "gpt-4o" "o3-mini-2025-01-31" "deepseek-reasoner" "claude-3-5-sonnet-20241022" "claude-3-7-sonnet-20250219" \
     --n_completions 1 \
     --temperature 0.8 \
     --max_iter 10 \

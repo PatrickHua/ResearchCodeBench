@@ -3,21 +3,53 @@ from core.async_chat_clients import AsyncChatClients
 from core.annotation.models.prediction import Prediction
 from typing import List, Dict
 from core.annotation.utils.run_inference import run_inference
+import asyncio
+import logging
 
 async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: List[LLMType], n_completions: int = 2, predictions: Dict[LLMType, Prediction] = None, clients: AsyncChatClients = None, temperature: float = 0.5) -> Dict[LLMType, Prediction]:
-    # TODO: Implement this
-    # call llm to generate predictions
-    # existing_llm_types = set([prediction.llm_type for prediction in predictions])
-    # breakpoint()
-    existing_llm_dict = predictions
+    # Initialize or use existing predictions dictionary
+    existing_llm_dict = predictions if predictions is not None else {}
+    
+    # Track tasks for all needed inference runs
+    inference_tasks = []
+    llm_type_for_task = []
+    
+    # Determine which LLM types need inference
     for llm_type in llm_types:
-        if llm_type not in existing_llm_dict.keys():
-            inference_results = await run_inference(masked_code_str, paper_tex, llm_type=llm_type, n_completions=n_completions, clients=clients, temperature=temperature)
-            existing_llm_dict[llm_type] = inference_results
-        # else:
-        if len(existing_llm_dict[llm_type].completions) < n_completions:
-            # inference_results = await run_inference(masked_code_str, paper_tex, llm_type=llm_type, n_completions=n_completions-len(existing_llm_dict[llm_type].completions), clients=clients, temperature=temperature)
-            inference_results = await run_inference(masked_code_str, paper_tex, llm_type=llm_type, n_completions=n_completions-len(existing_llm_dict[llm_type].completions), clients=clients, temperature=temperature)
-            existing_llm_dict[llm_type].add_completions(inference_results)
+        if llm_type not in existing_llm_dict:
+            # Need to get all completions for this LLM type
+            inference_tasks.append(
+                run_inference(masked_code_str, paper_tex, llm_type=llm_type, 
+                              n_completions=n_completions, clients=clients, temperature=temperature)
+            )
+            llm_type_for_task.append((llm_type, None))  # No existing prediction
+        elif len(existing_llm_dict[llm_type].completions) < n_completions:
+            # Need to get additional completions for this LLM type
+            missing_completions = n_completions - len(existing_llm_dict[llm_type].completions)
+            inference_tasks.append(
+                run_inference(masked_code_str, paper_tex, llm_type=llm_type,
+                              n_completions=missing_completions, clients=clients, temperature=temperature)
+            )
+            llm_type_for_task.append((llm_type, existing_llm_dict[llm_type]))  # Existing prediction to add to
+    
+    # Run all inference tasks concurrently
+    if inference_tasks:
+        logging.info(f"Starting batch of {len(inference_tasks)} LLM inference tasks across {len(set(lt for lt, _ in llm_type_for_task))} model types")
+        batch_start_time = asyncio.get_event_loop().time()
+        
+        inference_results = await asyncio.gather(*inference_tasks)
+        
+        batch_end_time = asyncio.get_event_loop().time()
+        batch_duration = batch_end_time - batch_start_time
+        logging.info(f"Completed all LLM inference tasks in {batch_duration:.3f}s")
+        
+        # Process the results
+        for (llm_type, existing_prediction), result in zip(llm_type_for_task, inference_results):
+            if existing_prediction is None:
+                # This is a new LLM type
+                existing_llm_dict[llm_type] = result
+            else:
+                # Add to existing completions
+                existing_prediction.add_completions(result)
     
     return existing_llm_dict
