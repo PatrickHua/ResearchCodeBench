@@ -4,6 +4,7 @@
 python main.py --data_folder pset/ \
     --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" "minp" "eomt" \
     --gen \
+    --test \
     --output_dir outputs/debug/baseline_o1_high_enhanced_prompt/ \
     --llm_types O1_HIGH \
     --n_completions 1 \

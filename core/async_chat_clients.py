@@ -31,6 +31,11 @@ http_client = httpx.AsyncClient(
     timeout=httpx.Timeout(60.0)
 )
 
+
+MODELS_USING_RESPONSE_API = [
+    LLMType.O1_HIGH,
+]
+
 class AsyncChatClients:
     def __init__(self) -> None:
         self.llm_clients = {
@@ -111,13 +116,13 @@ class AsyncChatClients:
             wait_time = 1  
             for attempt in range(1, max_retries + 1):
                 try:
-                    if llm_type == LLMType.O1_HIGH:
+                    if llm_type in MODELS_USING_RESPONSE_API:
                         # For O1, we need to use input instead of messages
-                        o1_kwargs = full_kwargs.copy()
-                        o1_kwargs["input"] = o1_kwargs.pop("messages")
-                        if "max_completion_tokens" in o1_kwargs:
-                            o1_kwargs["max_output_tokens"] = o1_kwargs.pop("max_completion_tokens")
-                        response = await self.llm_clients[company].responses.create(**o1_kwargs)
+                        response_kwargs = full_kwargs.copy()
+                        response_kwargs["input"] = response_kwargs.pop("messages")
+                        if "max_completion_tokens" in response_kwargs:
+                            response_kwargs["max_output_tokens"] = response_kwargs.pop("max_completion_tokens")
+                        response = await self.llm_clients[company].responses.create(**response_kwargs)
                     else:
                         response = await self.llm_clients[company].chat.completions.create(**full_kwargs)
                     end_time = asyncio.get_event_loop().time()
@@ -165,8 +170,8 @@ class AsyncChatClients:
         logger.info(f"Completed batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_end_time:.3f} (took {batch_duration:.3f}s)")
         
         # Handle different response formats
-        if llm_type == LLMType.O1_HIGH:
-            response_strs = [response.output_text for response in responses]
+        if llm_type in MODELS_USING_RESPONSE_API:
+            response_strs = [response.text for response in responses]
         else:
             response_strs = [response.choices[0].message.content for response in responses]
 
