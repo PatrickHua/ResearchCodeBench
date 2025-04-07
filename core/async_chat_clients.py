@@ -59,8 +59,14 @@ class AsyncChatClients:
         llm_config = MODEL_CONFIGS[llm_type]
         input_cost = llm_config.input_cost / 1_000_000  # cost per 1M tokens
         output_cost = llm_config.output_cost / 1_000_000
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
+
+        
+        if llm_type == LLMType.O1_HIGH:
+            output_tokens = response.usage.output_tokens
+            input_tokens = response.usage.input_tokens
+        else:
+            input_tokens = response.usage.prompt_tokens
+            output_tokens = response.usage.completion_tokens
         cost = (input_cost * input_tokens) + (output_cost * output_tokens)
         self.total_input_tokens += input_tokens
         self.total_output_tokens += output_tokens
@@ -105,15 +111,33 @@ class AsyncChatClients:
             wait_time = 1  
             for attempt in range(1, max_retries + 1):
                 try:
-                    response = await self.llm_clients[company].chat.completions.create(**full_kwargs)
+                    if llm_type == LLMType.O1_HIGH:
+                        # For O1, we need to use input instead of messages
+                        o1_kwargs = full_kwargs.copy()
+                        o1_kwargs["input"] = o1_kwargs.pop("messages")
+                        if "max_completion_tokens" in o1_kwargs:
+                            o1_kwargs["max_output_tokens"] = o1_kwargs.pop("max_completion_tokens")
+                        response = await self.llm_clients[company].responses.create(**o1_kwargs)
+                    else:
+                        response = await self.llm_clients[company].chat.completions.create(**full_kwargs)
                     end_time = asyncio.get_event_loop().time()
                     duration = end_time - start_time
                     logger.info(f"[{request_id}] Completed request to {company} ({llm_type.value}) at {end_time:.3f} (took {duration:.3f}s)")
                     return response
                 except RateLimitError as e:
-                    # If the API provides a Retry-After header, you could extract it here.
-                    # For now, we'll use our exponential backoff with jitter.
-                    logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. Retrying in {wait_time:.2f}s")
+                    # Check if the API provided a "Retry-After" header
+                    retry_after = None
+                    if hasattr(e, 'response') and e.response is not None:
+                        retry_after = e.response.headers.get("Retry-After")
+                    if retry_after:
+                        try:
+                            # Use the value from the header as the wait time
+                            wait_time = float(retry_after)
+                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. 'Retry-After' header found, retrying in {wait_time:.2f}s")
+                        except ValueError:
+                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. Invalid 'Retry-After' header value, using default wait time {wait_time:.2f}s")
+                    else:
+                        logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. No 'Retry-After' header found, retrying in {wait_time:.2f}s")
                 except Exception as e:
                     logger.error(f"[{request_id}] Unexpected error on attempt {attempt}/{max_retries}: {str(e)}, type: {type(e).__name__}. Full error: {repr(e)}. Retrying in {wait_time:.2f}s")
                     if hasattr(e, 'response'):
@@ -140,7 +164,12 @@ class AsyncChatClients:
         batch_duration = batch_end_time - batch_start_time
         logger.info(f"Completed batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_end_time:.3f} (took {batch_duration:.3f}s)")
         
-        response_strs = [response.choices[0].message.content for response in responses]
+        # Handle different response formats
+        if llm_type == LLMType.O1_HIGH:
+            response_strs = [response.output_text for response in responses]
+        else:
+            response_strs = [response.choices[0].message.content for response in responses]
+
         cost = sum(self.calc_cost(response=response, llm_type=llm_type) for response in responses)
 
         full_response = {

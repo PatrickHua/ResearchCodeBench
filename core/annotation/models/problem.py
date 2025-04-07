@@ -51,6 +51,8 @@ class Problem(BaseModel):
 
 
     async def generate_solutions(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients) -> str:
+        import asyncio
+        
         if len(self.context_files) == 0:
             context_files_str = ''
         else:
@@ -59,22 +61,30 @@ class Problem(BaseModel):
         with open(self.paper_tex_path, "r", encoding="utf-8") as f:
             paper_tex = f.read()
         
+        async def process_snippet(problem_file, snippet):
+            # create a new problem file with the snippet masked
+            masked_problem_file_str = problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
+            masked_code_str = context_files_str + masked_problem_file_str
+            
+            snippet.predictions = await generate_predictions(
+                masked_code_str,
+                paper_tex,
+                llm_types=llm_types, 
+                n_completions=n_completions, 
+                predictions=snippet.predictions, 
+                clients=clients,
+                temperature=temperature
+            )
+            return snippet
+        
+        # Gather all snippets across all problem files
+        tasks = []
         for problem_file in self.problem_files:
             for snippet in problem_file.snippets:
-                
-                # create a new problem file with the snippet masked
-                masked_problem_file_str = problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
-                masked_code_str = context_files_str + masked_problem_file_str
-                
-                snippet.predictions = await generate_predictions(
-                    masked_code_str,
-                    paper_tex,
-                    llm_types=llm_types, 
-                    n_completions=n_completions, 
-                    predictions=snippet.predictions, 
-                    clients=clients,
-                    temperature=temperature
-                )
+                tasks.append(process_snippet(problem_file, snippet))
+        
+        # Run all tasks concurrently
+        await asyncio.gather(*tasks)
 
 
     # def test(self, problem_src_dir: str, problem_cache_dir: str) -> List[str]:
