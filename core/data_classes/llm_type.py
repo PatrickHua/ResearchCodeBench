@@ -59,41 +59,7 @@ class LLMConfig(BaseModel):
     output_cost: Optional[float]
     knowledge_cutoff_date: Optional[str] = None
     client_kwargs: dict = {}
-    # def get_api_key(self) -> str:
-    #     if self.company == 'OPENAI':
-    #         return os.getenv('OPENAI_API_KEY')
-    #     elif self.company == 'ANTHROPIC':
-    #         return os.getenv('ANTHROPIC_API_KEY')
-    #     elif self.company == 'GOOGLE':
-    #         return os.getenv('GOOGLE_API_KEY')
-    #     elif self.company == 'VLLM':
-    #         return 'EMPTY'
-    #     elif self.company == 'XAI':
-    #         return os.getenv('XAI_API_KEY')
-    #     else:
-    #         raise ValueError(f"Unknown company: {self.company}")
 
-    # def get_base_url(self) -> str:
-    #     if self.company == 'OPENAI':
-    #         return None
-    #     elif self.company == 'ANTHROPIC':
-    #         return None
-    #     elif self.company == 'GOOGLE':
-    #         return "https://generativelanguage.googleapis.com/v1beta/"
-    #     elif self.company == 'VLLM':
-    #         return "http://localhost:8000/v1"
-    #     elif self.company == 'XAI':
-    #         return "https://api.x.ai/v1"
-    #     else:
-    #         raise ValueError(f"Unknown company: {self.company}")
-
-    # def get_api_key(self) -> str:
-    #     if not self.api_key:
-    #         raise ValueError("API key is not set.")
-    #     return self.api_key
-
-    # def calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
-    #     return self.input_cost * input_tokens + self.output_cost * output_tokens
 
 # Define configurations for each model using the enum values
 MODEL_CONFIGS = {
@@ -145,3 +111,13 @@ MODEL_CONFIGS = {
     # https://x.ai/pricing
     LLMType.GROK_2_1212: LLMConfig(company='XAI', input_cost=2, output_cost=10, knowledge_cutoff_date="2024-07-17"),
 }
+
+
+if __name__ == "__main__":
+    print(MODEL_CONFIGS[LLMType.GPT_4O])
+    print(LLMType.GPT_4O)
+    print(str(LLMType.GPT_4O))
+    print(f"{LLMType.GPT_4O}")
+    print(f"{LLMType.GPT_4O.value}")
+    print(f"{LLMType.GPT_4O.name}")
+ 

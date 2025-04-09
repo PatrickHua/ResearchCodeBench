@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument("--output_file", type=str, default="paper2code_answers.json")
     # parser.add_argument("--output_file", type=str, default="tmp.json")
     parser.add_argument("--overwrite", action="store_true")
-    parser.add_argument("--llm_types", nargs="+", type=str, default=[LLMType.GEMINI_1_5_FLASH_8B.value, LLMType.GPT_4O_MINI.value, LLMType.O3_MINI.value, LLMType.GPT_4O.value])
+    parser.add_argument("--llm_types", nargs="+", type=str, default=['GEMINI_1_5_FLASH_8B', 'GPT_4O_MINI', 'O3_MINI', 'GPT_4O'])
     parser.add_argument("--n_completions", type=int, default=3)
     parser.add_argument("--temperature", type=float, default=0.6)
     parser.add_argument("--max_iter", type=int, default=10)
@@ -54,11 +54,11 @@ def parse_args():
             # First try to get the enum by name
             llm_type = LLMType[name]
         except KeyError:
-            try:
-                # If that fails, try to get it by value
-                llm_type = LLMType(name)
-            except ValueError:
-                raise ValueError(f"Invalid LLM type: {name}. Valid values are: {[e.name for e in LLMType]}")
+            # try:
+            #     # If that fails, try to get it by value
+            #     llm_type = LLMType(name)
+            # except ValueError:
+            raise ValueError(f"Invalid LLM type: {name}. Valid values are: {[e.name for e in LLMType]}")
         llm_types.append(llm_type)
     
     clients = AsyncChatClients()

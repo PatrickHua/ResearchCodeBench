@@ -48,6 +48,21 @@
     - util/visualize.py
 
 
+- id: GMFlow
+  title: Gaussian Mixture Flow Matching Models
+  arxiv_abs: https://arxiv.org/abs/2504.05304v1
+  arxiv_date: 2025-04-07
+  github_url: https://github.com/Lakonik/GMFlow
+  first_commit_date: 2025-04-07
+  venue: arXiv2025
+
+  annotated_file_paths:
+    - gm_kl_loss.py
+    - lib/models/diffusions/gmflow.py
+  context_file_paths:
+    - lib/ops/gmflow_ops/gmflow_ops.py
+
+
 - id: hyla
   title: Attention as a Hypernetwork
   arxiv_abs: https://arxiv.org/abs/2406.05816v4

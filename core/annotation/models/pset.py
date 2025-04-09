@@ -159,31 +159,32 @@ class PSet(BaseModel):
                     }
                     
                     for llm_type, predictions in snippet.predictions.items():
+                        
                         # Initialize stats for this LLM type if not already done
                         if any(completion.test_result is None for completion in predictions.completions):
                             continue
                         
-                        if llm_type not in llm_stats:
-                            llm_stats[llm_type] = {"success_lines": 0, "total_lines": 0}
+                        if llm_type.name not in llm_stats:
+                            llm_stats[llm_type.name] = {"success_lines": 0, "total_lines": 0}
                         
-                        if llm_type not in problem_llm_stats:
-                            problem_llm_stats[llm_type] = {"success_lines": 0, "total_lines": 0}
+                        if llm_type.name not in problem_llm_stats:
+                            problem_llm_stats[llm_type.name] = {"success_lines": 0, "total_lines": 0}
                         
                         # Calculate success for this snippet
                         successes = sum(1 for completion in predictions.completions if completion.test_result.passed)
                         total = len(predictions.completions)
                         success_rate = (successes / total) * 100 if total > 0 else 0
-                        
+
                         # Calculate lines of code that pass
                         success_lines = snippet_code_line_count if successes > 0 else 0
                         
                         # Update overall stats
-                        llm_stats[llm_type]["success_lines"] += success_lines
-                        llm_stats[llm_type]["total_lines"] += snippet_code_line_count
+                        llm_stats[llm_type.name]["success_lines"] += success_lines
+                        llm_stats[llm_type.name]["total_lines"] += snippet_code_line_count
                         
                         # Update problem stats
-                        problem_llm_stats[llm_type]["success_lines"] += success_lines
-                        problem_llm_stats[llm_type]["total_lines"] += snippet_code_line_count
+                        problem_llm_stats[llm_type.name]["success_lines"] += success_lines
+                        problem_llm_stats[llm_type.name]["total_lines"] += snippet_code_line_count
                         
                         # Store LLM results for JSON
                         llm_results = {
@@ -207,31 +208,34 @@ class PSet(BaseModel):
                             # Print individual completion results for debugging
                             print(f"      {result} Completion {comp_idx} (Exit Code: {completion.test_result.exit_code})")
                         
-                        snippet_results["llm_results"][llm_type] = llm_results
+                        snippet_results["llm_results"][llm_type.name] = llm_results
                         
                         # Print snippet results
-                        print(f"    {llm_type}: {successes}/{total} passed ({success_rate:.1f}%)")
-                        print(f"    {llm_type}: {success_lines}/{snippet_code_line_count} lines passed ({success_lines/snippet_code_line_count*100:.1f}% of lines)")
+                        print(f"    {llm_type.name}: {successes}/{total} passed ({success_rate:.1f}%)")
+                        print(f"    {llm_type.name}: {success_lines}/{snippet_code_line_count} lines passed ({success_lines/snippet_code_line_count*100:.1f}% of lines)")
                     
                     problem_results["snippets"].append(snippet_results)
             
             # Store problem-level LLM stats for JSON
             for llm_type, stats in problem_llm_stats.items():
-                success_rate = (stats["success_lines"] / stats["total_lines"]) * 100 if stats["total_lines"] > 0 else 0
+                success_lines = stats["success_lines"]
+                total_lines = stats["total_lines"]
+                success_rate = (success_lines / total_lines) * 100 if total_lines > 0 else 0
                 problem_results["llm_stats"][llm_type] = {
-                    "success_lines": stats["success_lines"],
-                    "total_lines": stats["total_lines"],
+                    "success_lines": success_lines,
+                    "total_lines": total_lines,
                     "success_rate": success_rate
                 }
-                
+
                 # Print problem-level success rates
                 print(f"\n  Problem {problem_idx} Success Rates (by lines of code):")
-                print(f"    {llm_type}: {stats['success_lines']}/{stats['total_lines']} lines passed ({success_rate:.1f}%)")
+                print(f"    {llm_type}: {success_lines}/{total_lines} lines passed ({success_rate:.1f}%)")
             
             detailed_results["problems"].append(problem_results)
         
         # Calculate and print overall success rates
         print("\n=== OVERALL SUCCESS RATES ===")
+        
         for llm_type, stats in sorted(llm_stats.items()):
             success_rate = (stats["success_lines"] / stats["total_lines"]) * 100 if stats["total_lines"] > 0 else 0
             print(f"{llm_type}: {stats['success_lines']}/{stats['total_lines']} lines passed ({success_rate:.1f}%)")

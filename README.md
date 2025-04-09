@@ -67,11 +67,11 @@ TBD
 
 Before committing and pushing to a new branch, verify:
 
-- Files are up to date:
-  - `requirements.txt`
-  - `paper2code_paper.tex`
-  - `paper2code_test.py`
-  - `paper2code.yaml`
+- These files are up to date:
+  - `pset/repo_name/paper2code_requirements.txt`
+  - `pset/repo_name/paper2code_paper.tex`
+  - `pset/repo_name/paper2code_test.py`
+  - `pset/papers.yaml`
 - Removed unnecessary files:
   - `__pycache__`
   - `.git/`

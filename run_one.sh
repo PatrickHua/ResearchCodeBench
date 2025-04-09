@@ -1,16 +1,26 @@
 
-
-# O1_HIGH
 python main.py --data_folder pset/ \
-    --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" "minp" "eomt" \
+    --problems "GMFlow" \
     --gen \
     --test \
-    --output_dir outputs/debug/baseline_o1_high_enhanced_prompt/ \
-    --llm_types O1_HIGH \
-    --n_completions 1 \
+    --output_dir outputs/GMFlow2/ \
+    --llm_types GEMINI_2_0_FLASH GPT_4O_2024_11_20 \
+    --n_completions 3 \
     --temperature 0.8 \
     --max_iter 10 \
-    --summarize_results \
+    --summarize_results 
+
+# # O1_HIGH
+# python main.py --data_folder pset/ \
+#     --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" "minp" "eomt" \
+#     --gen \
+#     --test \
+#     --output_dir outputs/baseline_10paper/ \
+#     --llm_types O1_HIGH \
+#     --n_completions 1 \
+#     --temperature 0.8 \
+#     --max_iter 10 \
+#     --summarize_results \
 
 
 # python main.py --data_folder pset/ \
