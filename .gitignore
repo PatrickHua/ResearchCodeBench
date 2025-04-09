@@ -27,3 +27,4 @@ walkthrough/
 **/*.backup
 
 outputs/
+**/*.png
