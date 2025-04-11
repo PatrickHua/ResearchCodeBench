@@ -37,7 +37,7 @@ MODELS_USING_RESPONSE_API = [
 ]
 
 class AsyncChatClients:
-    def __init__(self) -> None:
+    def __init__(self, max_retries: int = 10) -> None:
         self.llm_clients = {
             'OPENAI': AsyncOpenAI(api_key=os.getenv('OPENAI_API_KEY'), http_client=http_client),
             'ANTHROPIC': AsyncOpenAI(api_key=os.getenv('ANTHROPIC_API_KEY'),
@@ -59,6 +59,7 @@ class AsyncChatClients:
         self.total_inference_cost = 0
         self.total_input_tokens = 0
         self.total_output_tokens = 0
+        self.max_retries = max_retries
 
     def calc_cost(self, response, llm_type) -> float:
         llm_config = MODEL_CONFIGS[llm_type]
@@ -87,7 +88,6 @@ class AsyncChatClients:
         timeout: Optional[int] = None,
         return_full_response: bool = False,
         num_completions: int = 1,
-        max_retries: int = 10,
         stream: bool = False,
     ) -> Any:
         company = MODEL_CONFIGS[llm_type].company
@@ -114,7 +114,7 @@ class AsyncChatClients:
             
             # Start with a modest wait time
             wait_time = 1  
-            for attempt in range(1, max_retries + 1):
+            for attempt in range(1, self.max_retries + 1):
                 try:
                     if llm_type in MODELS_USING_RESPONSE_API:
                         # For O1, we need to use input instead of messages
@@ -138,13 +138,13 @@ class AsyncChatClients:
                         try:
                             # Use the value from the header as the wait time
                             wait_time = float(retry_after)
-                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. 'Retry-After' header found, retrying in {wait_time:.2f}s")
+                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{self.max_retries}: {str(e)}. 'Retry-After' header found, retrying in {wait_time:.2f}s")
                         except ValueError:
-                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. Invalid 'Retry-After' header value, using default wait time {wait_time:.2f}s")
+                            logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{self.max_retries}: {str(e)}. Invalid 'Retry-After' header value, using default wait time {wait_time:.2f}s")
                     else:
-                        logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{max_retries}: {str(e)}. No 'Retry-After' header found, retrying in {wait_time:.2f}s")
+                        logger.warning(f"[{request_id}] Rate limit exceeded on attempt {attempt}/{self.max_retries}: {str(e)}. No 'Retry-After' header found, retrying in {wait_time:.2f}s")
                 except Exception as e:
-                    logger.error(f"[{request_id}] Unexpected error on attempt {attempt}/{max_retries}: {str(e)}, type: {type(e).__name__}. Full error: {repr(e)}. Retrying in {wait_time:.2f}s")
+                    logger.error(f"[{request_id}] Unexpected error on attempt {attempt}/{self.max_retries}: {str(e)}, type: {type(e).__name__}. Full error: {repr(e)}. Retrying in {wait_time:.2f}s")
                     if hasattr(e, 'response'):
                         logger.error(f"Response details: {e.response.text if hasattr(e.response, 'text') else e.response}")
                 
@@ -156,8 +156,8 @@ class AsyncChatClients:
                 wait_time *= 2
             
             end_time = asyncio.get_event_loop().time()
-            logger.error(f"[{request_id}] Failed request to {company} after {max_retries} attempts (total duration: {end_time - start_time:.3f}s)")
-            raise Exception(f"Failed to get a valid response from {company} after {max_retries} attempts.")
+            logger.error(f"[{request_id}] Failed request to {company} after {self.max_retries} attempts (total duration: {end_time - start_time:.3f}s)")
+            raise Exception(f"Failed to get a valid response from {company} after {self.max_retries} attempts.")
 
         tasks = [make_single_request() for _ in range(num_completions)]
         batch_start_time = asyncio.get_event_loop().time()

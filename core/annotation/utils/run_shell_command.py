@@ -80,6 +80,7 @@ def run_shell_commands_parallel(commands, max_workers=None):
             try:
                 results[index] = future.result()
             except Exception as e:
+                print(f"Error running command {commands[index]}: {e}")
                 results[index] = (False, -1, "", str(e))
     
     return results

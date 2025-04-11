@@ -2,7 +2,6 @@
 
 import argparse
 import os
-import copy
 import sys
 import time
 from core.data_classes.llm_type import LLMType
@@ -14,6 +13,8 @@ from core.annotation.models.pset import PSet
 # from paper2code_run import run_shell_command, _save_file_code
 import shutil
 # from core_annotation.utils.generate_predictions import generate_predictions
+from core.misc.output_file_timestamped import get_timestamped_output_dir
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -21,14 +22,15 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default="./outputs/")
     parser.add_argument("--output_file", type=str, default="paper2code_answers.json")
     # parser.add_argument("--output_file", type=str, default="tmp.json")
-    parser.add_argument("--overwrite", action="store_true")
     parser.add_argument("--llm_types", nargs="+", type=str, default=['GEMINI_1_5_FLASH_8B', 'GPT_4O_MINI', 'O3_MINI', 'GPT_4O'])
     parser.add_argument("--n_completions", type=int, default=3)
     parser.add_argument("--temperature", type=float, default=0.6)
-    parser.add_argument("--max_iter", type=int, default=10)
+    parser.add_argument("--max_retries", type=int, default=10)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--gen", action="store_true")
+    parser.add_argument("--overwrite_gen", action="store_true")
     parser.add_argument("--test", action="store_true")
+    parser.add_argument("--overwrite_test", type=str, default=None)
     parser.add_argument("--problems", default=None, nargs="+", help="Name of the problems to run. None means all.")
     parser.add_argument("--wo_paper", action="store_true")
     # parser.add_argument("--test_all", action="store_true")
@@ -38,8 +40,13 @@ def parse_args():
     parser.add_argument("--cache_dir", type=str, default="./.cache/")
     args = parser.parse_args()
 
+    if args.overwrite_gen:
+        args.overwrite_test = True
+
+    # Create timestamped output directory 
+    args.output_dir = get_timestamped_output_dir(args.output_dir)
+    
     # Save the command used to run this script
-    os.makedirs(args.output_dir, exist_ok=True)
     run_command = " ".join(sys.argv)
     
     with open(os.path.join(args.output_dir, "run.sh"), "w") as f:
@@ -61,11 +68,11 @@ def parse_args():
             raise ValueError(f"Invalid LLM type: {name}. Valid values are: {[e.name for e in LLMType]}")
         llm_types.append(llm_type)
     
-    clients = AsyncChatClients()
+    clients = AsyncChatClients(max_retries=args.max_retries)
     output_file = os.path.join(args.output_dir, args.output_file)
     pset = None
     
-    if os.path.exists(output_file) and not args.overwrite:
+    if os.path.exists(output_file) and not args.overwrite_gen:  # if the file exists and we are not overwriting, read the file
         # Create backup of output file before reading
         backup_file = f"{output_file}.backup"
         shutil.copy2(output_file, backup_file)
@@ -78,10 +85,10 @@ def parse_args():
     pset = PSet.parse_pset(args.data_folder, pset, args.problems)
     return pset, llm_types, clients, output_file, args
 
-async def main(pset, llm_types, clients, args):
+# async def main(pset, llm_types, clients, args):
 
 
-    await pset.solve_all(llm_types, args.n_completions, args.temperature, clients)
+#     await pset.solve_all(llm_types, args.n_completions, args.temperature, clients)
 
 
 
@@ -95,7 +102,8 @@ if __name__ == '__main__':
     
     if args.gen:
         start_time = time.time()
-        asyncio.run(main(pset, llm_types, clients, args))
+        # asyncio.run(main(pset, llm_types, clients, args))
+        asyncio.run(pset.solve_all(llm_types, args.n_completions, args.temperature, clients))
 
         # # Create backup of output file
         # backup_file = f"{output_file}.backup"
@@ -108,7 +116,7 @@ if __name__ == '__main__':
 
     if args.test:
         start_time = time.time()
-        pset.test_all(args.data_folder, args.cache_dir)
+        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10)
 
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))

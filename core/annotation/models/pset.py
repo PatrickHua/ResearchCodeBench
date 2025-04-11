@@ -6,12 +6,16 @@ import os
 from core.async_chat_clients import AsyncChatClients
 from core.data_classes.llm_type import LLMType
 import shutil
-from core.annotation.utils.run_shell_command import run_shell_command, check_complete_success
+from core.annotation.utils.run_shell_command import run_shell_command, check_complete_success, run_shell_commands_parallel
 import copy
 from core.annotation.models.prediction import TestResult
 from core.annotation.utils.sync_folders import ignore_git
 from typing import Optional
 import asyncio
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import uuid
 
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
@@ -58,13 +62,34 @@ class PSet(BaseModel):
         ]
         await asyncio.gather(*tasks)
 
-    def test_all(self, pset_src_folder: str, cache_dir: str):
+    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10):
+        """
+        Test all problems in the problem set.
+        
+        Args:
+            pset_src_folder: Path to the source folder of the problem set
+            cache_dir: Path to the cache directory
+            overwrite: Whether to overwrite existing test results
+            parallel: Whether to run tests in parallel
+            max_workers: Maximum number of worker threads for parallel execution
+            timeout_seconds: Timeout in seconds for each test
+        """
         # copy the pset to the cache dir
         pset_cache_dir = os.path.join(cache_dir, self.folder_name)
         os.makedirs(pset_cache_dir, exist_ok=True)
+
+        if parallel:
+            print(f"Running tests in parallel mode with timeout {timeout_seconds}s per test...")
+            self._test_all_parallel(pset_src_folder, cache_dir, overwrite, max_workers, timeout_seconds)
+        else:
+            print(f"Running tests sequentially with timeout {timeout_seconds}s per test...")
+            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds)
+
+    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10):
+        """Sequential implementation of test_all"""
+        pset_cache_dir = os.path.join(cache_dir, self.folder_name)
         
         for problem in self.problems:
-
             problem_cache_dir = os.path.join(pset_cache_dir, problem.folder_name)
             problem_src_dir = os.path.join(pset_src_folder, problem.folder_name)
             os.makedirs(problem_cache_dir, exist_ok=True)
@@ -74,7 +99,7 @@ class PSet(BaseModel):
                 for snippet in problem_file.snippets:
                     for llm_type, predictions in snippet.predictions.items():
                         for completion in predictions.completions:
-                            if completion.test_result is not None:
+                            if completion.test_result is not None and overwrite != problem.folder_name:
                                 continue
                             problem_file_code_copy = copy.deepcopy(problem_file.code)
                             problem_file_code_copy.lines[snippet.start_line+1:snippet.end_line] = completion.formatted_completion.lines
@@ -91,13 +116,120 @@ class PSet(BaseModel):
                             with open(os.path.join(problem_cache_dir, problem.test_entry_point), "w") as f:
                                 f.write(open(os.path.join(problem_src_dir, problem.test_entry_point)).read())
 
-                            run_test_command = f"cd {problem_cache_dir} && python {os.path.join(problem.test_entry_point)}"
+                            run_test_command = f"cd {problem_cache_dir} && timeout {timeout_seconds} python {os.path.join(problem.test_entry_point)}"
                             print(run_test_command)
                             success, exit_code, stdout, stderr = run_shell_command(run_test_command)
                             print(success, exit_code, stdout, stderr)
                             print()
                             passed = check_complete_success(success, exit_code, stdout, stderr)
                             completion.test_result = TestResult(success=success, exit_code=exit_code, stdout=stdout, stderr=stderr, passed=passed)
+
+    def _test_all_parallel(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10):
+        """Parallel implementation of test_all using run_shell_commands_parallel"""
+        pset_cache_dir = os.path.join(cache_dir, self.folder_name)
+        os.makedirs(pset_cache_dir, exist_ok=True)
+        
+        # Collect all test tasks
+        test_tasks = []
+        task_metadata = []
+        
+        for problem in self.problems:
+            problem_src_dir = os.path.join(pset_src_folder, problem.folder_name)
+            assert os.path.exists(problem_src_dir), f"Problem source directory not found: {problem_src_dir}"
+            
+            for problem_file in problem.problem_files:
+                for snippet in problem_file.snippets:
+                    for llm_type, predictions in snippet.predictions.items():
+                        for completion_idx, completion in enumerate(predictions.completions):
+                            # skip if the test result is done and overwrite is not set to this problem
+                            if completion.test_result is not None and overwrite != problem.folder_name:
+                                continue
+                            # Create a unique directory for this test to avoid conflicts in parallel execution
+                            unique_id = str(uuid.uuid4())[:8]
+                            unique_problem_dir = os.path.join(pset_cache_dir, f"{problem.folder_name}_{unique_id}")
+                            
+                            # Prepare the test
+                            test_tasks.append({
+                                'problem': problem,
+                                'problem_file': problem_file,
+                                'snippet': snippet,
+                                'llm_type': llm_type,
+                                'completion': completion,
+                                'completion_idx': completion_idx,
+                                'problem_src_dir': problem_src_dir,
+                                'unique_problem_dir': unique_problem_dir,
+                                'timeout_seconds': timeout_seconds
+                            })
+        
+        if not test_tasks:
+            print("No tests to run.")
+            return
+            
+        print(f"Preparing to run {len(test_tasks)} tests in parallel...")
+        
+        # First create all the unique test directories with the right code
+        commands = []
+        
+        for task in test_tasks:
+            # Create unique directory
+            os.makedirs(task['unique_problem_dir'], exist_ok=True)
+            
+            # Copy the problem source files
+            shutil.copytree(task['problem_src_dir'], task['unique_problem_dir'], 
+                          dirs_exist_ok=True, 
+                          ignore=ignore_git)
+            
+            # Prepare the modified file with the completion
+            problem_file_code_copy = copy.deepcopy(task['problem_file'].code)
+            snippet = task['snippet']
+            completion = task['completion']
+            problem_file_code_copy.lines[snippet.start_line+1:snippet.end_line] = completion.formatted_completion.lines
+            problem_file_str = str(problem_file_code_copy)
+            
+            # Write the modified file
+            problem_file_path = os.path.join(task['unique_problem_dir'], task['problem_file'].rel_path)
+            os.makedirs(os.path.dirname(problem_file_path), exist_ok=True)
+            with open(problem_file_path, "w") as f:
+                f.write(problem_file_str)
+            
+            # Ensure the test script is also present
+            with open(os.path.join(task['unique_problem_dir'], task['problem'].test_entry_point), "w") as f:
+                f.write(open(os.path.join(task['problem_src_dir'], task['problem'].test_entry_point)).read())
+            
+            # Create the command
+            cmd = f"cd {task['unique_problem_dir']} &&  python {os.path.join(task['problem'].test_entry_point)}"
+            commands.append(cmd)
+            task_metadata.append(task)
+        
+        # Run all tests in parallel
+        print(f"Executing {len(commands)} tests in parallel with {max_workers or 'default'} workers...")
+        results = run_shell_commands_parallel(commands, max_workers=max_workers)
+        
+        # Process results
+        for i, (success, exit_code, stdout, stderr) in enumerate(results):
+            task = task_metadata[i]
+            
+            print(f"Result for problem: {task['problem'].folder_name}, snippet: {task['snippet'].name}, "
+                  f"LLM: {task['llm_type'].name}, completion: {task['completion_idx']}")
+            print(f"Command: {commands[i]}")
+            print(f"Success: {success}, Exit code: {exit_code}")
+            
+            passed = check_complete_success(success, exit_code, stdout, stderr)
+            task['completion'].test_result = TestResult(
+                success=success, 
+                exit_code=exit_code, 
+                stdout=stdout, 
+                stderr=stderr, 
+                passed=passed
+            )
+            
+            # Clean up the unique directory after test is done
+            try:
+                shutil.rmtree(task['unique_problem_dir'])
+            except Exception as e:
+                print(f"Warning: Failed to clean up directory {task['unique_problem_dir']}: {e}")
+        
+        print(f"Completed {len(results)} parallel test executions.")
 
     def summarize_results(self, save_to_json: bool = False, json_path: str = "results_summary.json"):
         """
@@ -125,144 +257,117 @@ class PSet(BaseModel):
         for problem_idx, problem in enumerate(self.problems, 1):
             print(f"\nProblem {problem_idx}: {problem.folder_name}")
             
-            # Calculate total code lines for this problem
-            total_code_lines = 0
-            for problem_file in problem.problem_files:
-                for snippet in problem_file.snippets:
-                    # Get the number of code lines (excluding comments and empty lines)
-                    code_lines = snippet.code.get_code_lines()
-                    total_code_lines += len(code_lines)
-            
-            # Track code lines that pass for each LLM type
-            problem_llm_stats = {}
-            
-            # Store problem-level results for JSON
-            problem_results = {
-                "problem_name": problem.folder_name,
-                "snippets": [],
-                "llm_stats": {}
-            }
+            llm_stats[problem.folder_name] = {}
             
             for problem_file in problem.problem_files:
                 for snippet_idx, snippet in enumerate(problem_file.snippets, 1):
-                    print(f"\n  Snippet {snippet_idx} ({snippet.name}):")
-                    
+                    # print(f"\n  Snippet {snippet_idx} ({snippet.name}):")
+                    # llm_stats[problem.folder_name][snippet.name] = {}
                     # Get the number of code lines in this snippet
                     snippet_code_lines = snippet.code.get_code_lines()
                     snippet_code_line_count = len(snippet_code_lines)
-                    
-                    # Store snippet-level results for JSON
-                    snippet_results = {
-                        "snippet_name": snippet.name,
-                        "total_lines": snippet_code_line_count,
-                        "llm_results": {}
-                    }
+
                     
                     for llm_type, predictions in snippet.predictions.items():
-                        
                         # Initialize stats for this LLM type if not already done
                         if any(completion.test_result is None for completion in predictions.completions):
                             continue
+                        if llm_type.name not in llm_stats[problem.folder_name]:
+                            llm_stats[problem.folder_name][llm_type.name] = {}
+                        if snippet.name not in llm_stats[problem.folder_name][llm_type.name]:
+                            llm_stats[problem.folder_name][llm_type.name][snippet.name] = []
                         
-                        if llm_type.name not in llm_stats:
-                            llm_stats[llm_type.name] = {"success_lines": 0, "total_lines": 0}
-                        
-                        if llm_type.name not in problem_llm_stats:
-                            problem_llm_stats[llm_type.name] = {"success_lines": 0, "total_lines": 0}
-                        
-                        # Calculate success for this snippet
-                        successes = sum(1 for completion in predictions.completions if completion.test_result.passed)
-                        total = len(predictions.completions)
-                        success_rate = (successes / total) * 100 if total > 0 else 0
-
-                        # Calculate lines of code that pass
-                        success_lines = snippet_code_line_count if successes > 0 else 0
-                        
-                        # Update overall stats
-                        llm_stats[llm_type.name]["success_lines"] += success_lines
-                        llm_stats[llm_type.name]["total_lines"] += snippet_code_line_count
-                        
-                        # Update problem stats
-                        problem_llm_stats[llm_type.name]["success_lines"] += success_lines
-                        problem_llm_stats[llm_type.name]["total_lines"] += snippet_code_line_count
-                        
-                        # Store LLM results for JSON
-                        llm_results = {
-                            "successes": successes,
-                            "total": total,
-                            "success_rate": success_rate,
-                            "success_lines": success_lines,
-                            "total_lines": snippet_code_line_count,
-                            "completions": []
-                        }
-                        
-                        # Store individual completion results
-                        for comp_idx, completion in enumerate(predictions.completions, 1):
-                            result = "✓" if completion.test_result.passed else "✗"
-                            llm_results["completions"].append({
-                                "completion_idx": comp_idx,
+                        for completion_idx, completion in enumerate(predictions.completions):
+                            llm_stats[problem.folder_name][llm_type.name][snippet.name].append({
+                                "snippet_code_line_count": snippet_code_line_count,
+                                "completion_idx": completion_idx,
                                 "passed": completion.test_result.passed,
                                 "exit_code": completion.test_result.exit_code
                             })
-                            
-                            # Print individual completion results for debugging
-                            print(f"      {result} Completion {comp_idx} (Exit Code: {completion.test_result.exit_code})")
-                        
-                        snippet_results["llm_results"][llm_type.name] = llm_results
-                        
-                        # Print snippet results
-                        print(f"    {llm_type.name}: {successes}/{total} passed ({success_rate:.1f}%)")
-                        print(f"    {llm_type.name}: {success_lines}/{snippet_code_line_count} lines passed ({success_lines/snippet_code_line_count*100:.1f}% of lines)")
-                    
-                    problem_results["snippets"].append(snippet_results)
-            
-            # Store problem-level LLM stats for JSON
-            for llm_type, stats in problem_llm_stats.items():
-                success_lines = stats["success_lines"]
-                total_lines = stats["total_lines"]
-                success_rate = (success_lines / total_lines) * 100 if total_lines > 0 else 0
-                problem_results["llm_stats"][llm_type] = {
-                    "success_lines": success_lines,
-                    "total_lines": total_lines,
-                    "success_rate": success_rate
-                }
 
-                # Print problem-level success rates
-                print(f"\n  Problem {problem_idx} Success Rates (by lines of code):")
-                print(f"    {llm_type}: {success_lines}/{total_lines} lines passed ({success_rate:.1f}%)")
+        # Dictionary to store success rates for plotting
+        problem_llm_success_rates = {}
+        
+        for problem_folder_name, problem_stats in llm_stats.items():
+            problem_llm_success_rates[problem_folder_name] = {}
             
-            detailed_results["problems"].append(problem_results)
-        
-        # Calculate and print overall success rates
-        print("\n=== OVERALL SUCCESS RATES ===")
-        
-        for llm_type, stats in sorted(llm_stats.items()):
-            success_rate = (stats["success_lines"] / stats["total_lines"]) * 100 if stats["total_lines"] > 0 else 0
-            print(f"{llm_type}: {stats['success_lines']}/{stats['total_lines']} lines passed ({success_rate:.1f}%)")
-            
-            # Store overall stats for JSON
-            detailed_results["overall_stats"][llm_type] = {
-                "success_lines": stats["success_lines"],
-                "total_lines": stats["total_lines"],
-                "success_rate": success_rate
-            }
-        
-        # Find the best performing LLM
-        if llm_stats:
-            best_llm = max(llm_stats.items(), 
-                          key=lambda x: (x[1]["success_lines"] / x[1]["total_lines"]) if x[1]["total_lines"] > 0 else 0)
-            best_rate = (best_llm[1]["success_lines"] / best_llm[1]["total_lines"]) * 100 if best_llm[1]["total_lines"] > 0 else 0
-            print(f"\nBest performing LLM: {best_llm[0]} ({best_rate:.1f}% of lines passed)")
-            
-            # Store best performing LLM for JSON
-            detailed_results["best_performing_llm"] = {
-                "llm_type": best_llm[0],
-                "success_rate": best_rate
-            }
-        
+            for llm_type_name, llm_type_stats in problem_stats.items():
+                success_lines = 0
+                total_lines = 0
+                for snippet_name, snippet_stats in llm_type_stats.items():
+                    success_lines_snippet = 0
+                    total_lines_snippet = 0
+                    for completion_stats in snippet_stats:
+                        if completion_stats["passed"]:
+                            success_lines_snippet += completion_stats["snippet_code_line_count"]
+                        total_lines_snippet += completion_stats["snippet_code_line_count"]
+                    success_rate_snippet = success_lines_snippet / total_lines_snippet
+                    print(f"{problem_folder_name} {llm_type_name} {snippet_name} {success_lines_snippet}/{total_lines_snippet} ({success_rate_snippet:.1f}%)")
+                    success_lines += success_lines_snippet
+                    total_lines += total_lines_snippet
+                
+                success_rate = success_lines / total_lines if total_lines > 0 else 0
+                print(f"#### {problem_folder_name} {llm_type_name} {success_lines}/{total_lines} ({success_rate:.1f}%)")
+                problem_llm_success_rates[problem_folder_name][llm_type_name] = success_rate * 100  # Convert to percentage
+
+        # Create visualization
+        self._create_performance_plots(problem_llm_success_rates, json_path)
+
         # Save results to JSON if requested
         if save_to_json:
             import json
             with open(json_path, "w") as f:
-                json.dump(detailed_results, f, indent=2)
+                json.dump(llm_stats, f, indent=2)
             print(f"\nDetailed results saved to {json_path}")
+    
+    def _create_performance_plots(self, problem_llm_success_rates, json_path):
+        """
+        Create a visualization of LLM performance for each problem.
+        
+        Args:
+            problem_llm_success_rates: Dictionary mapping problem names to LLM success rates
+            json_path: Path to use for saving the plot (will replace .json with .png)
+        """
+        num_problems = len(problem_llm_success_rates)
+        if num_problems == 0:
+            print("No problems with results to visualize.")
+            return
+            
+        # Calculate grid dimensions for subplots
+        cols = min(4, num_problems)  # Max 4 columns
+        rows = math.ceil(num_problems / cols)
+        
+        # Create figure and subplots
+        plt.figure(figsize=(cols * 5, rows * 4))
+        
+        for i, (problem_name, llm_rates) in enumerate(problem_llm_success_rates.items(), 1):
+            # Sort LLMs by name for consistent ordering
+            llm_names = sorted(llm_rates.keys())
+            success_rates = [llm_rates[llm] for llm in llm_names]
+            
+            # Create subplot
+            ax = plt.subplot(rows, cols, i)
+            
+            # Plot histogram/bar chart for this problem
+            bars = ax.bar(range(len(llm_names)), success_rates, color='skyblue', alpha=0.7)
+            
+            # Add labels and customize
+            ax.set_title(f"Problem: {problem_name}")
+            ax.set_xlabel("LLM Type")
+            ax.set_ylabel("Success Rate (%)")
+            ax.set_xticks(range(len(llm_names)))
+            ax.set_xticklabels(llm_names, rotation=45, ha='right')
+            ax.set_ylim(0, 105)  # 0-100% with a little margin
+            
+            # Add value labels on top of bars
+            for bar, rate in zip(bars, success_rates):
+                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                        f"{rate:.1f}%", ha='center', va='bottom')
+        
+        plt.tight_layout()
+        
+        # Save plot
+        plot_path = json_path.replace('.json', '.png')
+        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
+        print(f"Performance visualization saved to {plot_path}")
+        plt.close()

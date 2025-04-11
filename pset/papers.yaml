@@ -111,6 +111,19 @@
   context_file_paths: null
 
 
+- id: OptimalSteps
+  title: Optimal Stepsize for Diffusion Sampling
+  arxiv_abs: https://arxiv.org/abs/2503.21774v1
+  arxiv_date: 2025-03-27
+  github_url: https://github.com/bebebe666/OptimalSteps
+  first_commit_date: 2025-03-27
+  venue: arXiv2025
+
+  annotated_file_paths: OSS.py
+  context_file_paths: null
+
+
+
 - id: schedule_free
   title: The Road Less Scheduled
   arxiv_abs: https://arxiv.org/abs/2405.15682v4

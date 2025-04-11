@@ -1,15 +1,18 @@
 
 python main.py --data_folder pset/ \
-    --problems "GMFlow" \
+    --problems "DiffusionDPO" "DyT" "eomt" "fractalgen" "GMFlow" "hyla" "LEN" "llm-sci-use" "minp" "OptimalSteps" "schedule_free" "semanticist" \
     --gen \
     --test \
-    --output_dir outputs/GMFlow2/ \
-    --llm_types GEMINI_2_0_FLASH GPT_4O_2024_11_20 \
-    --n_completions 3 \
+    --output_dir outputs/12llms/ \
+    --llm_types GEMINI_2_0_FLASH GPT_4O_MINI GPT_4O_2024_08_06 O3_MINI_HIGH \
+    --n_completions 5 \
     --temperature 0.8 \
-    --max_iter 10 \
-    --summarize_results 
+    --summarize_results \
+    --max_retries 100 \
+    --overwrite_test semanticist
 
+    # --problems "DiffusionDPO" "DyT" "eomt" "fractalgen" "GMFlow" "hyla" "LEN" "llm-sci-use" "minp" "OptimalSteps" "schedule_free" "semanticist" \
+# 
 # # O1_HIGH
 # python main.py --data_folder pset/ \
 #     --problems "hyla" "DyT" "DiffusionDPO" "LEN" "fractalgen" "llm-sci-use" "minp" "eomt" \
