@@ -139,5 +139,5 @@
   first_commit_date: 2025-03-27
   venue: arXiv2025
 
-  annotated_file_paths: 
-  context_file_paths:
+  annotated_file_paths: model.py
+  context_file_paths: null
