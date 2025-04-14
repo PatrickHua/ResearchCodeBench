@@ -148,3 +148,24 @@
   context_file_paths: null
 
 
+- id: TabDiff
+  title: TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation
+  arxiv_abs: https://arxiv.org/abs/2410.20626v3
+  arxiv_date: 2025-02-16
+  github_url: https://github.com/MinkaiXu/TabDiff
+  first_commit_date: 2025-02-16
+  venue: ICLR2025
+
+  annotated_file_paths: model.py
+  context_file_paths: null
+
+- id: oss
+  title: Optimal Stepsize for Diffusion Sampling
+  arxiv_abs: https://arxiv.org/abs/2503.21774
+  arxiv_date: 2025-03-27
+  github_url: https://github.com/bebebe666/OptimalSteps
+  first_commit_date: 2025-03-27
+  venue: arXiv2025
+
+  annotated_file_paths: model.py
+  context_file_paths: null
