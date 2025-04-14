@@ -141,3 +141,14 @@
 
   annotated_file_paths: model.py
   context_file_paths: null
+
+- id: grid-cell-conformal-isometry
+  title: On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding
+  arxiv_abs: https://arxiv.org/abs/2405.16865v4
+  arxiv_date: 2025-02-27
+  github_url: https://github.com/DehongXu/grid-cell-conformal-isometry.git
+  first_commit_date: 2025-02-18
+  venue: ICLR2025
+
+  annotated_file_paths: model.py
+  context_file_paths: sim_data.py
