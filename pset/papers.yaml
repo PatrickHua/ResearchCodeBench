@@ -146,7 +146,7 @@
   title: On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding
   arxiv_abs: https://arxiv.org/abs/2405.16865v4
   arxiv_date: 2025-02-27
-  github_url: https://github.com/DehongXu/grid-cell-conformal-isometry.git
+  github_url: https://github.com/DehongXu/grid-cell-conformal-isometry
   first_commit_date: 2025-02-18
   venue: ICLR2025
 
@@ -163,3 +163,15 @@
 
   annotated_file_paths: model.py
   context_file_paths: null
+
+- id: SISS
+  title: Data Unlearning in Diffusion Models
+  arxiv_abs: https://arxiv.org/abs/2503.01034
+  arxiv_date: 2025-03-02
+  github_url: https://github.com/claserken/SISS
+  first_commit_date: 2025-03-02
+  venue: ICLR2025
+
+  annotated_file_paths: losses.py
+  context_file_paths: null
+
