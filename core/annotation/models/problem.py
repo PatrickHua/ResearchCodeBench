@@ -50,7 +50,7 @@ class Problem(BaseModel):
 
 
 
-    async def generate_solutions(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients) -> str:
+    async def generate_solutions(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False) -> str:
         import asyncio
         
         if len(self.context_files) == 0:
@@ -73,7 +73,8 @@ class Problem(BaseModel):
                 n_completions=n_completions, 
                 predictions=snippet.predictions, 
                 clients=clients,
-                temperature=temperature
+                temperature=temperature,
+                wo_paper=wo_paper
             )
             return snippet
         

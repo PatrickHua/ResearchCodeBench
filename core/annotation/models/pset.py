@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import uuid
+from core.annotation.utils.prepare_task import task_preparation
 
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
@@ -54,10 +55,10 @@ class PSet(BaseModel):
         
         return cls(folder_name=folder_name, problems=problems)
 
-    async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients):
+    async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False):
         # Run all problems concurrently instead of sequentially
         tasks = [
-            problem.generate_solutions(llm_types, n_completions, temperature, clients)
+            problem.generate_solutions(llm_types, n_completions, temperature, clients, wo_paper=wo_paper)
             for problem in self.problems
         ]
         await asyncio.gather(*tasks)
@@ -84,6 +85,7 @@ class PSet(BaseModel):
         else:
             print(f"Running tests sequentially with timeout {timeout_seconds}s per test...")
             self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds)
+
 
     def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10):
         """Sequential implementation of test_all"""
@@ -288,6 +290,8 @@ class PSet(BaseModel):
         # Dictionary to store success rates for plotting
         problem_llm_success_rates = {}
         
+        # benchmark_results = {}
+        
         for problem_folder_name, problem_stats in llm_stats.items():
             problem_llm_success_rates[problem_folder_name] = {}
             
@@ -309,9 +313,18 @@ class PSet(BaseModel):
                 success_rate = success_lines / total_lines if total_lines > 0 else 0
                 print(f"#### {problem_folder_name} {llm_type_name} {success_lines}/{total_lines} ({success_rate:.1f}%)")
                 problem_llm_success_rates[problem_folder_name][llm_type_name] = success_rate * 100  # Convert to percentage
+                # if benchmark_results.get(llm_type_name) is None:
+                #     benchmark_results[llm_type_name] = {}
+                # benchmark_results[llm_type_name][problem_folder_name] = success_rate
 
         # Create visualization
         self._create_performance_plots(problem_llm_success_rates, json_path)
+
+        # Show overall success rates for each LLM type across all problems
+        self._show_overall_success_rates(llm_stats)
+        
+        # Count snippets per LLM per completion
+        self._count_snippets_per_llm(llm_stats)
 
         # Save results to JSON if requested
         if save_to_json:
@@ -371,3 +384,86 @@ class PSet(BaseModel):
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         print(f"Performance visualization saved to {plot_path}")
         plt.close()
+
+    def _show_overall_success_rates(self, llm_stats):
+        """
+        Display the overall success rates for each LLM type across all problems.
+        Success rate is calculated as: (total passed lines) / (total lines) across all problems.
+        """
+        print("\n=== OVERALL SUCCESS RATES ===")
+        
+        # Track total success and total lines for each LLM type
+        overall_stats = {}
+        
+        # Gather statistics
+        for problem_folder_name, problem_stats in llm_stats.items():
+            for llm_type_name, llm_type_stats in problem_stats.items():
+                if llm_type_name not in overall_stats:
+                    overall_stats[llm_type_name] = {"success_lines": 0, "total_lines": 0}
+                
+                for snippet_name, snippet_stats in llm_type_stats.items():
+                    for completion_stats in snippet_stats:
+                        line_count = completion_stats["snippet_code_line_count"]
+                        overall_stats[llm_type_name]["total_lines"] += line_count
+                        if completion_stats["passed"]:
+                            overall_stats[llm_type_name]["success_lines"] += line_count
+        
+        # Sort LLMs by success rate for better readability
+        sorted_llms = sorted(
+            overall_stats.items(),
+            key=lambda x: x[1]["success_lines"] / x[1]["total_lines"] if x[1]["total_lines"] > 0 else 0,
+            reverse=True
+        )
+        
+        # Print summary table
+        print(f"{'LLM Type':<20} {'Success Lines':<15} {'Total Lines':<15} {'Success Rate':<15}")
+        print("-" * 65)
+        
+        for llm_type_name, stats in sorted_llms:
+            success_lines = stats["success_lines"]
+            total_lines = stats["total_lines"]
+            success_rate = (success_lines / total_lines * 100) if total_lines > 0 else 0
+            print(f"{llm_type_name:<20} {success_lines:<15} {total_lines:<15} {success_rate:.2f}%")
+
+    def _count_snippets_per_llm(self, llm_stats):
+        """
+        Count the total number of snippets attempted per LLM per completion.
+        This helps understand the distribution of test attempts across different models.
+        """
+        print("\n=== SNIPPET COUNT PER LLM ===")
+        
+        # Track snippets per LLM and completion
+        snippet_counts = {}
+        
+        # Gather statistics
+        for problem_folder_name, problem_stats in llm_stats.items():
+            for llm_type_name, llm_type_stats in problem_stats.items():
+                if llm_type_name not in snippet_counts:
+                    snippet_counts[llm_type_name] = {}
+                
+                for snippet_name, snippet_stats in llm_type_stats.items():
+                    for completion_stats in snippet_stats:
+                        completion_idx = completion_stats["completion_idx"]
+                        if completion_idx not in snippet_counts[llm_type_name]:
+                            snippet_counts[llm_type_name][completion_idx] = 0
+                        snippet_counts[llm_type_name][completion_idx] += 1
+        
+        # Print summary
+        for llm_type_name, completion_counts in sorted(snippet_counts.items()):
+            print(f"\nLLM: {llm_type_name}")
+            print(f"{'Completion #':<15} {'Snippet Count':<15}")
+            print("-" * 30)
+            
+            # Calculate total for this LLM
+            total_snippets = sum(completion_counts.values())
+            
+            # Print per-completion breakdown
+            for completion_idx, count in sorted(completion_counts.items()):
+                print(f"{completion_idx:<15} {count:<15}")
+            
+            # Print total
+            print(f"{'TOTAL':<15} {total_snippets:<15}")
+            
+        # Print grand total across all LLMs
+        all_llm_total = sum(sum(completions.values()) for completions in snippet_counts.values())
+        print(f"\nTotal snippets across all LLMs: {all_llm_total}")

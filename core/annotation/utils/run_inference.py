@@ -8,12 +8,23 @@ from core.annotation.models.code import Code
 
 
 
-async def run_inference(masked_code_str: str, paper_tex: str, llm_type: LLMType, n_completions: int = 2, temperature: float = 0.5, clients: AsyncChatClients = None) -> Prediction:
-    prompt = f"""
+async def run_inference(masked_code_str: str, paper_tex: str, llm_type: LLMType, n_completions: int = 2, temperature: float = 0.5, clients: AsyncChatClients = None, wo_paper: bool = False) -> Prediction:
+
+    prompt_header_with_paper = f"""
 You are an expert in reproducing research code from a paper.
 
 Here is the paper that you need to use to complete the code:
 {paper_tex}
+
+"""
+
+    prompt_header_without_paper = f"""
+You are an expert in completing research code.
+
+"""
+
+    prompt_code = f"""
+
 
 Here is the code that you need to complete:
 {masked_code_str}
@@ -25,7 +36,7 @@ Please implement the missing code in the TODO blocks. Follow these guidelines ca
 2. Your implementation must preserve the EXACT indentation level of the TODO block you are replacing
 3. Do not include the function/class definitions or any surrounding code
 4. Ensure your implementation is complete, functional, and follows best practices
-5. Use the paper as a reference for algorithms and techniques
+5. If a corresponding paper is given, use it as a reference for reproducing the code
 6. ALWAYS wrap your implementation in ```python and ``` markers
 
 For example, if you see this nested TODO block:
@@ -48,6 +59,11 @@ Notice how:
 1. The implementation maintains the same indentation level as the TODO comment it replaces
 2. The code is wrapped in ```python at the start and ``` at the end
 """
+
+    if wo_paper:
+        prompt = prompt_header_without_paper + prompt_code
+    else:
+        prompt = prompt_header_with_paper + prompt_code
     # with open(f"tmp_prompt.txt", "w") as f:
     #     f.write(prompt)
     # breakpoint()

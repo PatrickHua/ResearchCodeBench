@@ -6,7 +6,7 @@ from core.annotation.utils.run_inference import run_inference
 import asyncio
 import logging
 
-async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: List[LLMType], n_completions: int = 2, predictions: Dict[LLMType, Prediction] = None, clients: AsyncChatClients = None, temperature: float = 0.5) -> Dict[LLMType, Prediction]:
+async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: List[LLMType], n_completions: int = 2, predictions: Dict[LLMType, Prediction] = None, clients: AsyncChatClients = None, temperature: float = 0.5, wo_paper: bool = False) -> Dict[LLMType, Prediction]:
     # Initialize or use existing predictions dictionary
     existing_llm_dict = predictions if predictions is not None else {}
     
@@ -20,7 +20,7 @@ async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: 
             # Need to get all completions for this LLM type
             inference_tasks.append(
                 run_inference(masked_code_str, paper_tex, llm_type=llm_type, 
-                              n_completions=n_completions, clients=clients, temperature=temperature)
+                              n_completions=n_completions, clients=clients, temperature=temperature, wo_paper=wo_paper)
             )
             llm_type_for_task.append((llm_type, None))  # No existing prediction
         elif len(existing_llm_dict[llm_type].completions) < n_completions:
@@ -28,7 +28,7 @@ async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: 
             missing_completions = n_completions - len(existing_llm_dict[llm_type].completions)
             inference_tasks.append(
                 run_inference(masked_code_str, paper_tex, llm_type=llm_type,
-                              n_completions=missing_completions, clients=clients, temperature=temperature)
+                              n_completions=missing_completions, clients=clients, temperature=temperature, wo_paper=wo_paper)
             )
             llm_type_for_task.append((llm_type, existing_llm_dict[llm_type]))  # Existing prediction to add to
     

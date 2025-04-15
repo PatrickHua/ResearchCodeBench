@@ -103,7 +103,7 @@ if __name__ == '__main__':
     if args.gen:
         start_time = time.time()
         # asyncio.run(main(pset, llm_types, clients, args))
-        asyncio.run(pset.solve_all(llm_types, args.n_completions, args.temperature, clients))
+        asyncio.run(pset.solve_all(llm_types, args.n_completions, args.temperature, clients, wo_paper=args.wo_paper))
 
         # # Create backup of output file
         # backup_file = f"{output_file}.backup"
