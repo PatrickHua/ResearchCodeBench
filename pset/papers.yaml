@@ -152,3 +152,14 @@
 
   annotated_file_paths: model.py
   context_file_paths: sim_data.py
+
+- id: Diff-Transformer
+  title: Differential Transformer
+  arxiv_abs: https://arxiv.org/abs/2410.05258v2
+  arxiv_date: 2025-04-07
+  github_url: https://aka.ms/Diff-Transformer
+  first_commit_date: 2024-10-07
+  venue: ICLR2025
+
+  annotated_file_paths: model.py
+  context_file_paths: null
