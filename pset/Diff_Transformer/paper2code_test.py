@@ -73,15 +73,6 @@ class TestModelEquivalence(unittest.TestCase):
             self.assertAlmostEqual(lambda1, lambda2, places=6,
                                  msg=f"Lambda init values differ at depth {depth}: {lambda1} vs {lambda2}")
 
-    # def test_rms_norm_equivalence(self):
-    #     """Test that both RMSNorm implementations produce the same output."""
-    #     # Test with elementwise affine
-    #     x = torch.randn(self.batch_size, self.seq_len, self.embed_dim)
-    #     output1 = self.rms_norm(x)
-    #     output2 = self.rms_norm_ref(x)
-    #     self.assertTrue(torch.allclose(output1, output2, rtol=1e-5, atol=1e-5),
-    #                    "RMSNorm outputs differ")
-
     def test_reparameterize_lambda_equivalence(self):
         """Test that both reparameterize_lambda implementations produce the same output."""
         # Create random lambda parameters
