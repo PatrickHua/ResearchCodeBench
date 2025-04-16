@@ -135,6 +135,17 @@
   context_file_paths: null
 
 
+- id: SISS
+  title: Data Unlearning in Diffusion Models
+  arxiv_abs: https://arxiv.org/abs/2503.01034
+  arxiv_date: 2025-03-02
+  github_url: https://github.com/claserken/SISS
+  first_commit_date: 2025-03-02
+  venue: ICLR2025
+
+  annotated_file_paths: losses.py
+  context_file_paths: null
+
 
 - id: schedule_free
   title: The Road Less Scheduled
@@ -171,16 +182,6 @@
   annotated_file_paths: model.py
   context_file_paths: null
 
-- id: oss
-  title: Optimal Stepsize for Diffusion Sampling
-  arxiv_abs: https://arxiv.org/abs/2503.21774
-  arxiv_date: 2025-03-27
-  github_url: https://github.com/bebebe666/OptimalSteps
-  first_commit_date: 2025-03-27
-  venue: arXiv2025
-
-  annotated_file_paths: model.py
-  context_file_paths: null
 
 - id: grid-cell-conformal-isometry
   title: "On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding"
@@ -195,16 +196,7 @@
 
 
 
-- id: SISS
-  title: Data Unlearning in Diffusion Models
-  arxiv_abs: https://arxiv.org/abs/2503.01034
-  arxiv_date: 2025-03-02
-  github_url: https://github.com/claserken/SISS
-  first_commit_date: 2025-03-02
-  venue: ICLR2025
 
-  annotated_file_paths: losses.py
-  context_file_paths: null
 
 
 - id: Tanh-Init
