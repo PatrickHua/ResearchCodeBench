@@ -124,7 +124,7 @@ if __name__ == '__main__':
         test_time = time.time() - start_time
     
     if args.summarize_results:
-        pset.summarize_results(save_to_json=True, json_path=os.path.join(args.output_dir, "results_summary.json"))
+        pset.summarize_results(args.n_completions, save_to_json=True, json_path=os.path.join(args.output_dir, "results_summary.json"))
 
     print(f"Total inference cost after creating problems: {clients.total_inference_cost}")
     
