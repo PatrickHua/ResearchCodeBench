@@ -80,9 +80,7 @@ class PowerMeanNoise_PerColumn(nn.Module):
     self.sigma_max = sigma_max
     self.num_numerical = num_numerical
     self.rho_offset = rho_offset
-    # <paper2code name="initialize noise rate rho">
     self.rho_raw = nn.Parameter(torch.tensor([rho_init] * self.num_numerical, dtype=torch.float32))
-    # </paper2code name="initialize noise rate rho">
 
   def rho(self):
     # <paper2code name="softplus transformation for rho to make sure rho is not smaller than rho_offset and monotonically increasing">
@@ -118,10 +116,10 @@ class PowerMeanNoise_PerColumn(nn.Module):
     Returns: t: [batch_size, num_numerical]
     """
     rho = self.rho()
-    # <paper2code name="calculate lower and upper bounds for noise sigma">
+    # <paper2code name="calculate lower and upper bounds for noise sigma 2">
     sigma_min_pow = self.sigma_min ** (1 / rho)  # Shape: [num_numerical]
     sigma_max_pow = self.sigma_max ** (1 / rho)  # Shape: [num_numerical]
-    # </paper2code name="calculate lower and upper bounds for noise sigma">
+    # </paper2code name="calculate lower and upper bounds for noise sigma 2">
 
     # <paper2code name="calculate time t from noise sigma">
     t = (sigma.pow(1 / rho) - sigma_min_pow) / (sigma_max_pow - sigma_min_pow)
@@ -139,14 +137,12 @@ class LogLinearNoise_PerColumn(nn.Module):
     # Use softplus to ensure k is positive
     self.num_categories = num_categories
     self.k_offset = k_offset
-    # <paper2code name="initialize noise rate k">
     self.k_raw = nn.Parameter(torch.tensor([k_init] * self.num_categories, dtype=torch.float32))
-    # </paper2code name="initialize noise rate k">
 
   def k(self):
-    # <paper2code name="softplus transformation for k to make sure k is not smaller than k_offset and monotonically increasing">
+    # <paper2code name="softplus transformation">
     return torch.nn.functional.softplus(self.k_raw) + self.k_offset
-    # </paper2code name="softplus transformation for k to make sure k is not smaller than k_offset and monotonically increasing">
+    # </paper2code name="softplus transformation">
 
   def rate_noise(self, t, noise_fn=None):
     """
@@ -312,8 +308,9 @@ class UnifiedCtimeDiffusion(torch.nn.Module):
         bs = x.shape[0]
         xt_soft = torch.zeros(bs, torch.sum(self.mask_index+1), device=x.device)
         xt = torch.zeros_like(x)
-        # <paper2code name="corrupt categorical data using learnable noise schedules and gumble softmax">
         for i in range(len(self.num_classes)):
+          # <paper2code name="corrupt categorical data using learnable noise schedules and gumble softmax">
+
           slice_i = self.slices_for_classes_with_mask[i]
           # set the bernoulli probabilities, which determines the "coin flip" transition to the mask class
           prob_i = torch.zeros(bs, 2, device=x.device)

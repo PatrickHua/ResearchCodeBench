@@ -75,7 +75,6 @@
     - lib/ops/gmflow_ops/gmflow_ops.py
 
 
-
 - id: grid-cell-conformal-isometry
   title: "On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding"
   arxiv_abs: https://arxiv.org/abs/2405.16865v4
@@ -86,7 +85,6 @@
 
   annotated_file_paths: model.py
   context_file_paths: sim_data.py
-
 
 
 - id: hyla
@@ -149,18 +147,6 @@
   context_file_paths: null
 
 
-- id: SISS
-  title: Data Unlearning in Diffusion Models
-  arxiv_abs: https://arxiv.org/abs/2503.01034
-  arxiv_date: 2025-03-02
-  github_url: https://github.com/claserken/SISS
-  first_commit_date: 2025-03-02
-  venue: ICLR2025
-
-  annotated_file_paths: losses.py
-  context_file_paths: null
-
-
 - id: schedule_free
   title: The Road Less Scheduled
   arxiv_abs: https://arxiv.org/abs/2405.15682v4
@@ -171,7 +157,6 @@
 
   annotated_file_paths: adamw_schedulefree_reference.py 
   context_file_paths: null
-
 
 - id: semanticist
   title: Principal Components Enable A New Language of Images
@@ -185,6 +170,18 @@
   context_file_paths: null
 
 
+- id: SISS
+  title: Data Unlearning in Diffusion Models
+  arxiv_abs: https://arxiv.org/abs/2503.01034
+  arxiv_date: 2025-03-02
+  github_url: https://github.com/claserken/SISS
+  first_commit_date: 2025-03-02
+  venue: ICLR2025
+
+  annotated_file_paths: losses.py
+  context_file_paths: null
+
+
 - id: TabDiff
   title: "TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation"
   arxiv_abs: https://arxiv.org/abs/2410.20626v3
@@ -195,12 +192,6 @@
 
   annotated_file_paths: model.py
   context_file_paths: null
-
-
-
-
-
-
 
 
 - id: Tanh-Init
