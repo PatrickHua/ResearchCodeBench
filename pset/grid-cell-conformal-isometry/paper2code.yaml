@@ -1,8 +1,0 @@
-mask_file_path: model.py
-
-context_file_paths: sim_data.py
-
-test_entry_point: paper2code_test.py  # will run this script to check if the code is correct
-
-paper_tex: paper2code_paper.tex
-# other
