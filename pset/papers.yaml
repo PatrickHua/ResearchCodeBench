@@ -1,3 +1,15 @@
+- id: advantage-alignment
+  title: Advantage Alignment Algorithms
+  arxiv_abs: https://arxiv.org/abs/2406.14662v3
+  arxiv_date: 2025-02-06
+  github_url: https://github.com/jduquevan/advantage-alignment
+  first_commit_date: 2025-04-07
+  venue: ICLR2025
+
+  annotated_file_paths: train.py
+  context_file_paths: null
+
+
 - id: Diff-Transformer
   title: Differential Transformer
   arxiv_abs: https://arxiv.org/abs/2410.05258v2
@@ -73,6 +85,18 @@
     - lib/models/diffusions/gmflow.py
   context_file_paths:
     - lib/ops/gmflow_ops/gmflow_ops.py
+
+
+- id: GPS
+  title: "GPS: A Probabilistic Distributional Similarity with Gumbel Priors for Set-to-Set Matching"
+  arxiv_abs: https://openreview.net/forum?id=U0SijGsCHJ
+  arxiv_date: 2025-01-22
+  github_url: https://github.com/Zhang-VISLab/ICLR2025-GPS
+  first_commit_date: 2025-02-28
+  venue: ICLR2025
+
+  annotated_file_paths: model.py
+  context_file_paths: null
 
 
 - id: grid-cell-conformal-isometry

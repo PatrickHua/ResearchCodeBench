@@ -19,8 +19,13 @@ class Problem(BaseModel):
     def parse_problem(cls, pset_dir: str, problem_name: str, paper_yaml: dict) -> 'Problem':
         problem_dir = os.path.join(pset_dir, problem_name)
 
-
-        paper_tex_path = os.path.join(problem_dir, 'paper2code_paper.tex')
+        # check if paper2code_paper.tex exists
+        if os.path.exists(os.path.join(problem_dir, 'paper2code_paper.tex')):
+            paper_tex_path = os.path.join(problem_dir, 'paper2code_paper.tex')
+        elif os.path.exists(os.path.join(problem_dir, 'paper2code_paper.md')):
+            paper_tex_path = os.path.join(problem_dir, 'paper2code_paper.md')
+        else:
+            raise FileNotFoundError(f"paper2code_paper.tex or paper2code_paper.md not found in {problem_dir}")
 
         if isinstance(paper_yaml["annotated_file_paths"], str):
             annotated_file_paths = [paper_yaml["annotated_file_paths"]]
