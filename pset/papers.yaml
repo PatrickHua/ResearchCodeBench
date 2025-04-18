@@ -171,6 +171,21 @@
   context_file_paths: null
 
 
+- id: REPA-E
+  title: "REPA-E: Unlocking VAE for End-to-End Tuning with Latent Diffusion Transformers"
+  arxiv_abs: https://arxiv.org/abs/2504.10483v1
+  arxiv_date: 2025-04-14
+  github_url: https://github.com/jduquevan/REPA-E
+  first_commit_date: 2025-04-16
+  venue: arXiv2025
+
+  annotated_file_paths:
+    - models/sit.py
+    - train_repae.py
+  context_file_paths:
+    - loss/losses.py
+
+
 - id: schedule_free
   title: The Road Less Scheduled
   arxiv_abs: https://arxiv.org/abs/2405.15682v4
