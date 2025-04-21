@@ -118,17 +118,17 @@ def load_encoders(enc_type, device, resolution=256):
             encoder.eval()
         
         elif encoder_type == 'mae':
-            from models.mae_vit import vit_large_patch16
+            from models.mae_vit import vit_base_patch16
             import timm
             kwargs = dict(img_size=256)
-            encoder = vit_large_patch16(**kwargs).to(device)
-            with open(f"ckpts/mae_vit{model_config}.pth", "rb") as f:
-                state_dict = torch.load(f)
-            if 'pos_embed' in state_dict["model"].keys():
-                state_dict["model"]['pos_embed'] = timm.layers.pos_embed.resample_abs_pos_embed(
-                    state_dict["model"]['pos_embed'], [16, 16],
-                )
-            encoder.load_state_dict(state_dict["model"])
+            encoder = vit_base_patch16(**kwargs).to(device)
+            # with open(f"ckpts/mae_vit{model_config}.pth", "rb") as f:
+            #     state_dict = torch.load(f)
+            # if 'pos_embed' in state_dict["model"].keys():
+            #     state_dict["model"]['pos_embed'] = timm.layers.pos_embed.resample_abs_pos_embed(
+            #         state_dict["model"]['pos_embed'], [16, 16],
+            #     )
+            # encoder.load_state_dict(state_dict["model"])
 
             encoder.pos_embed.data = timm.layers.pos_embed.resample_abs_pos_embed(
                 encoder.pos_embed.data, [16, 16],

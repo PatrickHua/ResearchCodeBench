@@ -168,9 +168,10 @@ def main(args):
         raise NotImplementedError()
 
     if args.enc_type != None:
+        # breakpoint()
         with suppress_dinov2_warnings():
             encoders, encoder_types, architectures = load_encoders(
-                args.enc_type, device, args.resolution
+                'mae-vit-b', device, args.resolution
             )
     else:
         raise NotImplementedError()

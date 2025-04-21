@@ -1,5 +1,6 @@
 import yaml
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 def main():
     pset_dir = "pset"
@@ -11,6 +12,8 @@ def main():
 
     for paper in papers:
         folder_name = paper["id"]
+        # if folder_name != "GMFlow":
+        #     continue
         folder_path = f"{pset_dir}/{folder_name}"
         if not os.path.exists(folder_path):
             print(f"Folder {folder_path} does not exist")
