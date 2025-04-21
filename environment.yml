@@ -6,7 +6,6 @@ channels:
 dependencies:
   - python=3.11
   - pip>=23.0
-  - pytorch-cuda=11.8
   - pytorch=2.1.2
   - torchvision=0.16.2
   - numpy=1.26
