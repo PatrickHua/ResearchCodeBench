@@ -1,3 +1,10 @@
+torch
+torch-fidelity
+torchaudio
+torchdiffeq
+torchrl
+torchsde
+torchvision
 absl-py
 accelerate
 addict
@@ -200,13 +207,7 @@ tld
 tokenizers
 tomli
 toolz
-torch
-torch-fidelity
-torchaudio
-torchdiffeq
-torchrl
-torchsde
-torchvision
+
 tqdm
 trampoline
 transaction
