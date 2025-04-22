@@ -12,7 +12,6 @@ dependencies:
   - pip:
     - opencv-python>=4.8.0
     - timm==0.9.12
-    - tensorboard>=2.14.0
     - scipy>=1.11.0
     - gdown>=5.2.0
     - -e git+https://github.com/LTH14/torch-fidelity.git@master#egg=torch-fidelity
@@ -21,7 +20,6 @@ dependencies:
     - git+https://github.com/huggingface/diffusers.git@57084dacc5275d7212513b24837b60a28e55603d
     - transformers
     - torchsde
-    - tensorboard
     - setuptools>=65.5.1
     - apex==0.9.10dev
     - bitsandbytes
