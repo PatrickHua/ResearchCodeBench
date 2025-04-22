@@ -81,8 +81,9 @@ def parse_args():
             pset = PSet.model_validate_json(f.read())
             if args.problems is not None:
                 pset.problems = [problem for problem in pset.problems if problem.folder_name in args.problems]
-    # else: 
+
     pset = PSet.parse_pset(args.data_folder, pset, args.problems)
+
     return pset, llm_types, clients, output_file, args
 
 # async def main(pset, llm_types, clients, args):

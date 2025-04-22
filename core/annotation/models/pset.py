@@ -269,19 +269,19 @@ class PSet(BaseModel):
                     snippet_code_line_count = len(snippet_code_lines)
 
                     
-                    for llm_type, predictions in snippet.predictions.items():
+                    for llm_type_name, predictions in snippet.predictions.items():
                         # Initialize stats for this LLM type if not already done
                         if any(completion.test_result is None for completion in predictions.completions):
                             continue
-                        if llm_type.name not in llm_stats[problem.folder_name]:
-                            llm_stats[problem.folder_name][llm_type.name] = {}
-                        if snippet.name not in llm_stats[problem.folder_name][llm_type.name]:
-                            llm_stats[problem.folder_name][llm_type.name][snippet.name] = []
+                        if llm_type_name not in llm_stats[problem.folder_name]:
+                            llm_stats[problem.folder_name][llm_type_name] = {}
+                        if snippet.name not in llm_stats[problem.folder_name][llm_type_name]:
+                            llm_stats[problem.folder_name][llm_type_name][snippet.name] = []
                         
                         for completion_idx, completion in enumerate(predictions.completions):
                             if completion_idx + 1 > n_completions:
                                 break
-                            llm_stats[problem.folder_name][llm_type.name][snippet.name].append({
+                            llm_stats[problem.folder_name][llm_type_name][snippet.name].append({
                                 "snippet_code_line_count": snippet_code_line_count,
                                 "completion_idx": completion_idx,
                                 "passed": completion.test_result.passed,

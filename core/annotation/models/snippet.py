@@ -22,7 +22,7 @@ class Snippet(BaseModel):
     # rel_path: str
     # Make predictions optional with a proper default value
     # predictions: Optional[List[Predictions]] = Field(default_factory=list)
-    predictions: Optional[Dict[LLMType, Prediction]] = Field(default_factory=dict)
+    predictions: Optional[Dict[str, Prediction]] = Field(default_factory=dict)
     
 
     
