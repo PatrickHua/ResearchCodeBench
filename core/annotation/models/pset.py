@@ -61,8 +61,16 @@ class PSet(BaseModel):
             for problem in self.problems
         ]
         await asyncio.gather(*tasks)
+    
+    async def solve_sequentially(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False, output_file: str = None):
+        for problem in self.problems:
+            await problem.generate_solutions(llm_types, n_completions, temperature, clients, wo_paper=wo_paper)
+            if output_file is not None:
+                with open(output_file, "w") as f:
+                    f.write(self.model_dump_json(indent=4))
+            
 
-    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10):
+    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10, output_file: str = None):
         """
         Test all problems in the problem set.
         
@@ -83,10 +91,10 @@ class PSet(BaseModel):
             self._test_all_parallel(pset_src_folder, cache_dir, overwrite, max_workers, timeout_seconds)
         else:
             print(f"Running tests sequentially with timeout {timeout_seconds}s per test...")
-            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds)
+            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds, output_file)
 
 
-    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10):
+    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10, output_file: str = None):
         """Sequential implementation of test_all"""
         pset_cache_dir = os.path.join(cache_dir, self.folder_name)
         
@@ -124,6 +132,10 @@ class PSet(BaseModel):
                             print()
                             passed = check_complete_success(success, exit_code, stdout, stderr)
                             completion.test_result = TestResult(success=success, exit_code=exit_code, stdout=stdout, stderr=stderr, passed=passed)
+
+                            if output_file is not None:
+                                with open(output_file, "w") as f:
+                                    f.write(self.model_dump_json(indent=4))
 
     def _test_all_parallel(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10):
         """Parallel implementation of test_all using run_shell_commands_parallel"""

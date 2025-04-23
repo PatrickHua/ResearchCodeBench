@@ -34,6 +34,7 @@ http_client = httpx.AsyncClient(
 
 MODELS_USING_RESPONSE_API = [
     LLMType.O1_HIGH,
+    LLMType.O3_MINI_HIGH,
 ]
 
 class AsyncChatClients:
@@ -67,7 +68,7 @@ class AsyncChatClients:
         output_cost = llm_config.output_cost / 1_000_000
 
         
-        if llm_type == LLMType.O1_HIGH:
+        if llm_type in MODELS_USING_RESPONSE_API:
             output_tokens = response.usage.output_tokens
             input_tokens = response.usage.input_tokens
         else:
@@ -92,7 +93,7 @@ class AsyncChatClients:
     ) -> Any:
         company = MODEL_CONFIGS[llm_type].company
         client_kwargs = MODEL_CONFIGS[llm_type].client_kwargs
-
+        # breakpoint()
         full_kwargs = dict(
             model=MODEL_CONFIGS[llm_type].model,
             messages=(
@@ -193,10 +194,11 @@ async def main():
     try:
         output = await clients.run(
             # llm_type=LLMType.O1_HIGH,  # Adjust to your model type
-            llm_type=LLMType.GPT_4O_MINI,
+            # llm_type=LLMType.GPT_4O_MINI,
+            llm_type=LLMType.O3_MINI_HIGH,
             user_message='Hello, how are you?',
             system_message='You are a helpful assistant.',
-            num_completions=2,
+            num_completions=1,
             temperature=0,
         )
         print("Response:", output)

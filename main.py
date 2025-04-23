@@ -104,8 +104,8 @@ if __name__ == '__main__':
     if args.gen:
         start_time = time.time()
         # asyncio.run(main(pset, llm_types, clients, args))
-        asyncio.run(pset.solve_all(llm_types, args.n_completions, args.temperature, clients, wo_paper=args.wo_paper))
-
+        # asyncio.run(pset.solve_all(llm_types, args.n_completions, args.temperature, clients, wo_paper=args.wo_paper))
+        asyncio.run(pset.solve_sequentially(llm_types, args.n_completions, args.temperature, clients, wo_paper=args.wo_paper, output_file=output_file))
         # # Create backup of output file
         # backup_file = f"{output_file}.backup"
         # shutil.copy2(output_file, backup_file)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
 
     if args.test:
         start_time = time.time()
-        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10)
+        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10, output_file=output_file)
 
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))
