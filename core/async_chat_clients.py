@@ -35,6 +35,8 @@ http_client = httpx.AsyncClient(
 MODELS_USING_RESPONSE_API = [
     LLMType.O1_HIGH,
     LLMType.O3_MINI_HIGH,
+    LLMType.O3_HIGH,
+    LLMType.O3,
 ]
 
 class AsyncChatClients:
@@ -195,7 +197,7 @@ async def main():
         output = await clients.run(
             # llm_type=LLMType.O1_HIGH,  # Adjust to your model type
             # llm_type=LLMType.GPT_4O_MINI,
-            llm_type=LLMType.O3_MINI_HIGH,
+            llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
             user_message='Hello, how are you?',
             system_message='You are a helpful assistant.',
             num_completions=1,

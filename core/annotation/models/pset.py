@@ -17,6 +17,8 @@ import numpy as np
 import math
 import uuid
 from typing import Dict
+from tqdm import tqdm
+
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
     # description: str
@@ -63,14 +65,14 @@ class PSet(BaseModel):
         await asyncio.gather(*tasks)
     
     async def solve_sequentially(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False, output_file: str = None):
-        for problem in self.problems:
+        for problem in tqdm(self.problems, desc="Solving problems"):
             await problem.generate_solutions(llm_types, n_completions, temperature, clients, wo_paper=wo_paper)
             if output_file is not None:
                 with open(output_file, "w") as f:
                     f.write(self.model_dump_json(indent=4))
             
 
-    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10, output_file: str = None):
+    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
         """
         Test all problems in the problem set.
         
@@ -91,10 +93,10 @@ class PSet(BaseModel):
             self._test_all_parallel(pset_src_folder, cache_dir, overwrite, max_workers, timeout_seconds)
         else:
             print(f"Running tests sequentially with timeout {timeout_seconds}s per test...")
-            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds, output_file)
+            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds, output_file, overwrite_by_llm)
 
 
-    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10, output_file: str = None):
+    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
         """Sequential implementation of test_all"""
         pset_cache_dir = os.path.join(cache_dir, self.folder_name)
         
@@ -107,6 +109,9 @@ class PSet(BaseModel):
             for problem_file in problem.problem_files:
                 for snippet in problem_file.snippets:
                     for llm_type, predictions in snippet.predictions.items():
+                        # breakpoint()
+                        if overwrite_by_llm is not None and llm_type != overwrite_by_llm:
+                            continue
                         for completion in predictions.completions:
                             if completion.test_result is not None and overwrite != problem.folder_name:
                                 continue

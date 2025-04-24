@@ -31,6 +31,7 @@ def parse_args():
     parser.add_argument("--overwrite_gen", action="store_true")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("--overwrite_test", type=str, default=None)
+    parser.add_argument("--overwrite_test_by_llm", type=str, default=None)
     parser.add_argument("--problems", default=None, nargs="+", help="Name of the problems to run. None means all.")
     parser.add_argument("--wo_paper", action="store_true")
     # parser.add_argument("--test_all", action="store_true")
@@ -117,7 +118,7 @@ if __name__ == '__main__':
 
     if args.test:
         start_time = time.time()
-        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10, output_file=output_file)
+        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10, output_file=output_file, overwrite_by_llm=args.overwrite_test_by_llm)
 
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))
