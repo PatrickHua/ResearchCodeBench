@@ -34,6 +34,7 @@ def parse_args():
     parser.add_argument("--overwrite_test_by_llm", type=str, default=None)
     parser.add_argument("--problems", default=None, nargs="+", help="Name of the problems to run. None means all.")
     parser.add_argument("--wo_paper", action="store_true")
+    parser.add_argument("--contamination_free", action="store_true")
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
     
@@ -99,6 +100,8 @@ def parse_args():
 if __name__ == '__main__':
     pset, llm_types, clients, output_file, args = parse_args()
     
+
+    # breakpoint()
     gen_time = 0
     test_time = 0
     
@@ -126,7 +129,7 @@ if __name__ == '__main__':
         test_time = time.time() - start_time
     
     if args.summarize_results:
-        pset.summarize_results(args.n_completions, save_to_json=True, output_dir=args.output_dir)
+        pset.summarize_results(args.n_completions, save_to_json=True, output_dir=args.output_dir, contamination_free=args.contamination_free, llm_types=llm_types)
 
     print(f"Total inference cost after creating problems: {clients.total_inference_cost}")
     

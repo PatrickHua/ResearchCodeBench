@@ -18,6 +18,10 @@ import math
 import uuid
 from typing import Dict
 from tqdm import tqdm
+from core.annotation.utils.knowledge_cut_off_date import get_nearest_knowledge_cutoff
+import datetime
+from datetime import datetime as dt
+
 
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
@@ -41,19 +45,19 @@ class PSet(BaseModel):
             papers = yaml.safe_load(f)
         
         for paper in papers:
-            folder_name = paper["id"]
-            if selected_problems is not None and folder_name not in selected_problems:
+            sub_folder_name = paper["id"]
+            if selected_problems is not None and sub_folder_name not in selected_problems:
                 continue
         
-            problem_dir = os.path.join(pset_dir, folder_name)
+            problem_dir = os.path.join(pset_dir, sub_folder_name)
             if os.path.isdir(problem_dir):
-                if folder_name in existing_problems:
-                    problems.append(pset.problems[existing_problems.index(folder_name)])
+                if sub_folder_name in existing_problems:
+                    problems.append(pset.problems[existing_problems.index(sub_folder_name)])
                 else:
-                    problems.append(Problem.parse_problem(pset_dir, folder_name, paper))
+                    problems.append(Problem.parse_problem(pset_dir, sub_folder_name, paper))
 
         assert len(problems) > 0, f"No problems found in {pset_dir}"
-        
+        # breakpoint()
         return cls(folder_name=folder_name, problems=problems)
 
     async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False):
@@ -249,7 +253,7 @@ class PSet(BaseModel):
         
         print(f"Completed {len(results)} parallel test executions.")
 
-    def summarize_results(self, n_completions: int, save_to_json: bool = False, output_dir: str = None):
+    def summarize_results(self, n_completions: int, save_to_json: bool = False, output_dir: str = None, contamination_free: bool = False, llm_types: Optional[List[LLMType]] = None):
         """
         Summarize the results of the test.
         Print the results of different llm types for each problem and snippet.
@@ -269,13 +273,47 @@ class PSet(BaseModel):
             "overall_stats": {},
             "best_performing_llm": None
         }
+        # breakpoint()
+        paper_yaml_path = os.path.join(self.folder_name, "papers.yaml")
+        with open(paper_yaml_path, "r") as f:
+            papers = yaml.safe_load(f)
+        papers_dict = {paper["id"]: paper for paper in papers}
+
+        
+        # Convert nearest_knowledge_cutoff string (YYYY-MM) to a datetime.date object
+        contaminated_problems = []
+
+        if contamination_free:
+            for problem in self.problems:
+                first_commit_date = papers_dict[problem.folder_name]['first_commit_date']
+                nearest_knowledge_cutoff = get_nearest_knowledge_cutoff(llm_types)
+                cutoff_year, cutoff_month = map(int, nearest_knowledge_cutoff.split('-'))
+                cutoff_date = datetime.date(cutoff_year, cutoff_month, 1)
+                
+                # Compare the dates
+                is_contaminated = first_commit_date <= cutoff_date
+                print(f"First commit date: {first_commit_date}, Knowledge cutoff: {cutoff_date}")
+                print(f"Is contaminated: {is_contaminated}")
+                if is_contaminated:
+                    contaminated_problems.append(problem.folder_name)
+            print(f"Found {len(contaminated_problems)} contaminated problems: {contaminated_problems}")
+            # papers_dict = {k: v for k, v in papers_dict.items() if k not in contaminated_problems}
+        # breakpoint()
+        # for paper in papers:
+        #     if paper["id"] not in self.problems:
+        #         print(f"Paper {paper['id']} not found in pset")
+        #         breakpoint()
         
         # Print detailed results and gather statistics
         print("\n=== DETAILED RESULTS ===")
         for problem_idx, problem in enumerate(self.problems, 1):
             print(f"\nProblem {problem_idx}: {problem.folder_name}")
-            
+
+            if problem.folder_name in contaminated_problems:
+                continue
             llm_stats[problem.folder_name] = {}
+            
+            papers_dict[problem.folder_name]['first_commit_date']
             
             for problem_file in problem.problem_files:
                 for snippet_idx, snippet in enumerate(problem_file.snippets, 1):
@@ -315,6 +353,8 @@ class PSet(BaseModel):
         for i in range(n_completions):
             problem_llm_success_rates_per_completion = {}
             for problem_folder_name, problem_stats in llm_stats.items():
+                if problem_folder_name in contaminated_problems:
+                    continue
                 problem_llm_success_rates_per_completion[problem_folder_name] = {}
                 
                 for llm_type_name, llm_type_stats in problem_stats.items():
@@ -339,10 +379,10 @@ class PSet(BaseModel):
         #     print(problem_llm_success_rates[i]["OptimalSteps"]['O3_MINI_HIGH'])
         # breakpoint()
         # Create visualization
-        self._create_performance_plots(problem_llm_success_rates, plot_path=os.path.join(output_dir, "results_summary.png"))
+        self._create_performance_plots(problem_llm_success_rates, plot_path=os.path.join(output_dir, f"results_summary_{'contamination_free' if contamination_free else ''}.png"))
 
         # Show overall success rates for each LLM type across all problems
-        self._show_overall_success_rates(llm_stats, plot_path=os.path.join(output_dir, "overall_success_rates.png"))
+        self._show_overall_success_rates(llm_stats, plot_path=os.path.join(output_dir, f"overall_success_rates_{'contamination_free' if contamination_free else ''}.png"))
         
         # Count snippets per LLM per completion
         self._count_snippets_per_llm(llm_stats)
@@ -350,7 +390,7 @@ class PSet(BaseModel):
         # Save results to JSON if requested
         if save_to_json:
             import json
-            with open(os.path.join(output_dir, "results_summary.json"), "w") as f:
+            with open(os.path.join(output_dir, f"results_summary_{'contamination_free' if contamination_free else ''}.json"), "w") as f:
                 json.dump(llm_stats, f, indent=2)
             print(f"\nDetailed results saved to {os.path.join(output_dir, 'results_summary.json')}")
     
@@ -416,8 +456,8 @@ class PSet(BaseModel):
             
             # Plot bar chart with error bars
             x_pos = np.arange(len(all_llm_types))
-            bars = ax.bar(x_pos, means, yerr=stds, align='center', 
-                         color='skyblue', alpha=0.7, ecolor='black', capsize=5)
+            bars = ax.bar(x_pos, means, yerr=[std if std > 0 else np.nan for std in stds], 
+                         align='center', color='skyblue', alpha=0.7, ecolor='black', capsize=5)
             
             # Add labels and customize
             ax.set_title(f"Problem: {problem_name}")
@@ -429,8 +469,12 @@ class PSet(BaseModel):
             
             # Add value labels on top of bars
             for bar, mean, std in zip(bars, means, stds):
-                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 1,
-                        f"{mean:.1f}%±{std:.1f}", ha='center', va='bottom', fontsize=8)
+                if std > 0:
+                    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 1,
+                            f"{mean:.1f}%±{std:.1f}", ha='center', va='bottom', fontsize=8)
+                else:
+                    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                            f"{mean:.1f}%", ha='center', va='bottom', fontsize=8)
         
         plt.tight_layout()
         
@@ -572,7 +616,8 @@ class PSet(BaseModel):
         
         # Plot bar chart with error bars
         x_pos = np.arange(len(llm_names))
-        bars = plt.bar(x_pos, means, yerr=stds, align='center', 
+        yerr = [std if std > 0 else np.nan for std in stds]
+        bars = plt.bar(x_pos, means, yerr=yerr, align='center', 
                      color='skyblue', alpha=0.7, ecolor='black', capsize=5)
         
         # Add labels and customize
@@ -584,8 +629,12 @@ class PSet(BaseModel):
         
         # Add value labels on top of bars
         for bar, mean, std in zip(bars, means, stds):
-            plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 1,
-                    f"{mean:.1f}%±{std:.1f}", ha='center', va='bottom', fontsize=9)
+            if std > 0:
+                plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 1,
+                        f"{mean:.1f}%±{std:.1f}", ha='center', va='bottom', fontsize=9)
+            else:
+                plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
+                        f"{mean:.1f}%", ha='center', va='bottom', fontsize=9)
         
         plt.tight_layout()
         

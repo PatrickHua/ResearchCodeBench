@@ -8,6 +8,7 @@ python main.py --data_folder pset/ \
     --summarize_results \
     --max_retries 100 \
     --test \
+    # --contamination_free \
     # --overwrite_test_by_llm DEEPSEEK_R1
 
 # GEMINI_2_0_FLASH 2

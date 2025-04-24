@@ -265,6 +265,16 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight')
     print(f"Visualization saved to {output_path}")
+
+    # Also save as PNG if the output is PDF or vice versa
+    if output_path.suffix.lower() == '.pdf':
+        png_path = output_path.with_suffix('.png')
+        plt.savefig(png_path, dpi=300, bbox_inches='tight')
+        print(f"Visualization also saved as {png_path}")
+    elif output_path.suffix.lower() == '.png':
+        pdf_path = output_path.with_suffix('.pdf')
+        plt.savefig(pdf_path, dpi=300, bbox_inches='tight') 
+        print(f"Visualization also saved as {pdf_path}")
     plt.close()
 
 def calculate_statistics(papers_df, llm_df):
