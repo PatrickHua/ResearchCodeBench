@@ -3,7 +3,7 @@ import shutil
 import glob
 import datetime
 
-def get_timestamped_output_dir(base_output_dir):
+def get_timestamped_output_dir(base_output_dir, copy_from_dir=None):
     # Create a timestamp directory name
     current_time = datetime.datetime.now()
     timestamp = current_time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -11,12 +11,23 @@ def get_timestamped_output_dir(base_output_dir):
     # Create the base output directory if it doesn't exist
     os.makedirs(base_output_dir, exist_ok=True)
     
-    # Look for most recent timestamped directory
-    timestamp_dirs = glob.glob(os.path.join(base_output_dir, "*-*-*-*-*-*"))
-    
+
     # Create the new timestamped directory
     new_output_dir = os.path.join(base_output_dir, timestamp)
     os.makedirs(new_output_dir, exist_ok=True)
+    
+    if copy_from_dir:
+        # Copy the contents of the most recent timestamped directory
+        # most_recent_dir = os.path.join(base_output_dir, copy_from_dir)
+        if os.path.exists(copy_from_dir):
+            shutil.copytree(copy_from_dir, new_output_dir, dirs_exist_ok=True)
+        else:
+            print(f"Warning: Directory {copy_from_dir} does not exist.")
+        return new_output_dir
+    
+    # Look for most recent timestamped directory
+    timestamp_dirs = glob.glob(os.path.join(base_output_dir, "*-*-*-*-*-*"))
+    
     
     # If there are previous timestamped directories, copy the most recent one
     if timestamp_dirs:

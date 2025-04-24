@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument("--problems", default=None, nargs="+", help="Name of the problems to run. None means all.")
     parser.add_argument("--wo_paper", action="store_true")
     parser.add_argument("--contamination_free", action="store_true")
+    parser.add_argument("--resume_from_ckpt_dir", type=str, default=None)
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
     
@@ -46,7 +47,7 @@ def parse_args():
         args.overwrite_test = True
 
     # Create timestamped output directory 
-    args.output_dir = get_timestamped_output_dir(args.output_dir)
+    args.output_dir = get_timestamped_output_dir(args.output_dir, copy_from_dir=args.resume_from_ckpt_dir)
     
     # Save the command used to run this script
     run_command = " ".join(sys.argv)
