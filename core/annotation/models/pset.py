@@ -249,7 +249,7 @@ class PSet(BaseModel):
         
         print(f"Completed {len(results)} parallel test executions.")
 
-    def summarize_results(self, n_completions: int, save_to_json: bool = False, json_path: str = "results_summary.json"):
+    def summarize_results(self, n_completions: int, save_to_json: bool = False, output_dir: str = None):
         """
         Summarize the results of the test.
         Print the results of different llm types for each problem and snippet.
@@ -258,7 +258,7 @@ class PSet(BaseModel):
         
         Args:
             save_to_json: If True, saves detailed results to a JSON file
-            json_path: Path to save the JSON file if save_to_json is True
+            output_dir: Path to save output files
         """
         # Dictionary to track success counts for each LLM type
         llm_stats = {}
@@ -339,10 +339,10 @@ class PSet(BaseModel):
         #     print(problem_llm_success_rates[i]["OptimalSteps"]['O3_MINI_HIGH'])
         # breakpoint()
         # Create visualization
-        self._create_performance_plots(problem_llm_success_rates, json_path)
+        self._create_performance_plots(problem_llm_success_rates, plot_path=os.path.join(output_dir, "results_summary.png"))
 
         # Show overall success rates for each LLM type across all problems
-        self._show_overall_success_rates(llm_stats)
+        self._show_overall_success_rates(llm_stats, plot_path=os.path.join(output_dir, "overall_success_rates.png"))
         
         # Count snippets per LLM per completion
         self._count_snippets_per_llm(llm_stats)
@@ -350,17 +350,17 @@ class PSet(BaseModel):
         # Save results to JSON if requested
         if save_to_json:
             import json
-            with open(json_path, "w") as f:
+            with open(os.path.join(output_dir, "results_summary.json"), "w") as f:
                 json.dump(llm_stats, f, indent=2)
-            print(f"\nDetailed results saved to {json_path}")
+            print(f"\nDetailed results saved to {os.path.join(output_dir, 'results_summary.json')}")
     
-    def _create_performance_plots(self, problem_llm_success_rates, json_path):
+    def _create_performance_plots(self, problem_llm_success_rates, plot_path: str):
         """
         Create a visualization of LLM performance for each problem with error bars.
         
         Args:
             problem_llm_success_rates: List of dictionaries mapping problem names to LLM success rates
-            json_path: Path to use for saving the plot (will replace .json with .png)
+            output_dir: Path to use for saving the plot 
         """
         num_completions = len(problem_llm_success_rates)
         
@@ -435,12 +435,12 @@ class PSet(BaseModel):
         plt.tight_layout()
         
         # Save plot
-        plot_path = json_path.replace('.json', '.png')
+        # plot_path = json_path.replace('.json', '.png')
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         print(f"Performance visualization saved to {plot_path}")
         plt.close()
 
-    def _show_overall_success_rates(self, llm_stats):
+    def _show_overall_success_rates(self, llm_stats, plot_path: str = "overall_success_rates.png"):
         """
         Display the overall success rates for each LLM type across all problems.
         Success rate is calculated as: (total passed lines) / (total lines) across all problems.
@@ -510,7 +510,7 @@ class PSet(BaseModel):
         
         # Create bar chart visualization with error bars
         if sorted_llms:
-            self._plot_overall_success_rates(sorted_llms)
+            self._plot_overall_success_rates(sorted_llms, plot_path=plot_path)
 
     def _count_snippets_per_llm(self, llm_stats):
         """
@@ -555,7 +555,7 @@ class PSet(BaseModel):
         all_llm_total = sum(sum(completions.values()) for completions in snippet_counts.values())
         print(f"\nTotal snippets across all LLMs: {all_llm_total}")
 
-    def _plot_overall_success_rates(self, sorted_llms):
+    def _plot_overall_success_rates(self, sorted_llms, plot_path: str = "overall_success_rates.png"):
         """
         Create a bar chart visualization of overall success rates with error bars.
         
@@ -590,7 +590,6 @@ class PSet(BaseModel):
         plt.tight_layout()
         
         # Save plot
-        plot_path = "overall_success_rates.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         print(f"Overall success rates visualization saved to {plot_path}")
         plt.close()

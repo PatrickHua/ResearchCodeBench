@@ -54,9 +54,10 @@ class LLMType(str, Enum):
     GEMINI_2_0_FLASH = auto()
     GEMINI_2_0_FLASH_LITE_PREVIEW_02_05 = auto()
     GEMINI_2_5_FLASH_PREVIEW_04_17 = auto()
+    GEMINI_2_5_PRO_PREVIEW_03_25 = auto()
     # XAI models
     GROK_2_1212 = auto()
-
+    GROK_3_BETA = auto()
     # DeepSeek models
     DEEPSEEK_R1 = auto()
 
@@ -118,14 +119,15 @@ MODEL_CONFIGS = {
     LLMType.GEMINI_1_5_FLASH_8B: LLMConfig(model="gemini-1.5-flash-8b", company='GOOGLE', input_cost=0.0375, output_cost=0.15, knowledge_cutoff_date="2024-05"),
     LLMType.GEMINI_1_5_PRO: LLMConfig(model="gemini-1.5-pro", company='GOOGLE', input_cost=1.25, output_cost=5.00, knowledge_cutoff_date="2024-05"),
     # LLMType.GEMINI_1_0_PRO: LLMConfig(company='GOOGLE', input_cost=0.50, output_cost=1.50, knowledge_cutoff_date="2023-02"),
-    LLMType.GEMINI_2_5_FLASH_PREVIEW_04_17: LLMConfig(model="gemini-2.5-flash-preview-04-17", company='GOOGLE', input_cost=0.15, output_cost=0.6, knowledge_cutoff_date="2025-04"),
-    
+    LLMType.GEMINI_2_5_FLASH_PREVIEW_04_17: LLMConfig(model="gemini-2.5-flash-preview-04-17", company='GOOGLE', input_cost=0.15, output_cost=0.6, knowledge_cutoff_date="2025-01"),
+    LLMType.GEMINI_2_5_PRO_PREVIEW_03_25: LLMConfig(model="gemini-2.5-pro-preview-03-25", company='GOOGLE', input_cost=1.25, output_cost=10, knowledge_cutoff_date="2025-01"),
     
     LLMType.DEEPSEEK_R1: LLMConfig(model="deepseek-reasoner", company='DEEPSEEK', input_cost=0.14, output_cost=2.19, knowledge_cutoff_date="2024-10", client_kwargs={'stream': False}),
 
 
     # https://x.ai/pricing
     LLMType.GROK_2_1212: LLMConfig(model="grok-2-1212", company='XAI', input_cost=2, output_cost=10, knowledge_cutoff_date="2024-07-17"),
+    LLMType.GROK_3_BETA: LLMConfig(model="grok-3-beta", company='XAI', input_cost=3, output_cost=15, knowledge_cutoff_date="2024-11-17"),
 }
 
 

@@ -161,6 +161,34 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
                    ha='right', va='top', fontweight='bold', fontsize=9, rotation=90,
                    transform=ax.get_xaxis_transform())
     
+    # Plot individual LLM knowledge cutoff dates at the bottom
+    # Define the y-position for the LLM markers - move them further down
+    llm_y_pos = -0.06  # Further below the x-axis
+    
+    # Add a thin horizontal line to separate the LLM markers from the main plot
+    ax.axhline(y=-0.02, color='#dddddd', linestyle='-', linewidth=0.8, zorder=1)
+    
+    # Group LLMs by company and unique cutoff dates 
+    for company, group in llm_df.groupby('company'):
+        color = company_colors.get(company, '#999999')
+        
+        # Get unique cutoff dates for this company
+        unique_dates = group['cutoff_date'].unique()
+        
+        # Plot a marker for each unique cutoff date
+        for date in unique_dates:
+            # Count models with this cutoff date for marker size
+            count = sum(group['cutoff_date'] == date)
+            size = max(40, 40 + (count * 8))  # Increase base size for better visibility
+            
+            # Plot the marker - use uniform size and no numbers
+            ax.scatter(date, llm_y_pos, color=color, s=70, marker='v', # Fixed size, no scaling
+                      alpha=0.8, zorder=5, edgecolors='white', linewidth=0.8)
+            
+    # Add a label for the LLM markers
+    ax.text(min_date, llm_y_pos, "LLM Knowledge\nCutoff Dates:", ha='right', va='center', 
+           fontsize=8, fontweight='bold', color='#333333')
+    
     # Plot papers as horizontal lines with markers
     for i, paper in enumerate(papers_df.iterrows()):
         idx = i + 1  # offset for better spacing
@@ -176,8 +204,8 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
         ax.plot([paper['arxiv_date'], paper['first_commit_date']], [idx, idx], 
                 color='#aaaaaa', linewidth=0.8, alpha=0.6)
         
-        # Mark arxiv date with circle
-        ax.scatter(paper['arxiv_date'], idx, color='#4285F4', s=40, zorder=5, alpha=0.8)
+        # Mark arxiv date with circle - change color to teal/cyan to avoid confusion with any company colors
+        ax.scatter(paper['arxiv_date'], idx, color='#00CCCC', s=40, zorder=5, alpha=0.8)  # Changed to teal/cyan
         
         # Mark first commit date with star
         ax.scatter(paper['first_commit_date'], idx, color='#DB4437', s=60, 
@@ -202,8 +230,9 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     
     # Create simple legend with additional explanation for the percentages if needed
     legend_elements = [
-        Line2D([0], [0], marker='o', color='w', markerfacecolor='#4285F4', markersize=7, label='Paper Publication'),
-        Line2D([0], [0], marker='*', color='w', markerfacecolor='#DB4437', markersize=9, label='First Code Commit')
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='#00CCCC', markersize=7, label='Paper Publication'),
+        Line2D([0], [0], marker='*', color='w', markerfacecolor='#DB4437', markersize=12, label='First Code Commit'),
+        Line2D([0], [0], marker='v', color='w', markerfacecolor='gray', markersize=7, label='Knowledge Cutoff of Models')
     ]
     
     # Add percentage explanation to legend if showing percentages
@@ -217,7 +246,7 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
               frameon=True, framealpha=0.95, ncol=1)
     
     # Configure the main axis
-    ax.set_ylim(0, len(papers_df) + 1)
+    ax.set_ylim(-0.09, len(papers_df) + 1)  # Extend y-axis further below 0 to make room for LLM markers
     ax.set_xlim(min_date, max_date)
     
     # Set the x-axis to show dates nicely
@@ -227,7 +256,7 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     
     # Hide y-axis ticks and labels
     ax.set_yticks([])
-    ax.set_xlabel('Date', fontsize=10, labelpad=10)  # Reset labelpad to original value
+    ax.set_xlabel('Date', fontsize=10, labelpad=25)  # Increase labelpad more for the LLM markers
     
     # Add title with proper spacing
     ax.set_title('Research Paper Timeline vs. LLM Knowledge Cutoff Dates', pad=20, fontsize=14)
@@ -431,7 +460,7 @@ def main():
     # Get file paths
     script_dir = Path(__file__).parent
     output_dir = script_dir / "outputs"
-    output_path = output_dir / "knowledge_cutoff_vs_papers.png"
+    output_path = output_dir / "knowledge_cutoff_vs_papers.pdf"
     
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)

@@ -197,7 +197,9 @@ async def main():
         output = await clients.run(
             # llm_type=LLMType.O1_HIGH,  # Adjust to your model type
             # llm_type=LLMType.GPT_4O_MINI,
-            llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
+            # llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
+            # llm_type=LLMType.GROK_3_BETA,
+            llm_type=LLMType.GROK_2_1212,
             user_message='Hello, how are you?',
             system_message='You are a helpful assistant.',
             num_completions=1,
