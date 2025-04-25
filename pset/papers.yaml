@@ -4,6 +4,7 @@
   arxiv_date: 2025-02-06
   github_url: https://github.com/jduquevan/advantage-alignment
   first_commit_date: 2025-04-07
+  last_commit_date: 2025-04-07
   venue: ICLR2025
 
   annotated_file_paths: train.py
@@ -16,6 +17,7 @@
   arxiv_date: 2025-04-07
   github_url: https://aka.ms/Diff-Transformer
   first_commit_date: 2024-10-07
+  last_commit_date: 2025-03-03
   venue: ICLR2025
 
   annotated_file_paths: model.py
@@ -28,6 +30,7 @@
   arxiv_date: 2023-11-22
   github_url: https://github.com/SalesforceAIResearch/DiffusionDPO
   first_commit_date: 2023-12-24
+  last_commit_date: 2025-02-03
   venue: arXiv2023
 
   annotated_file_paths: loss.py
@@ -40,6 +43,7 @@
   arxiv_date: 2025-03-13
   github_url: https://github.com/jiachenzhu/DyT
   first_commit_date: 2025-03-09
+  last_commit_date: 2025-03-30
   venue: CVPR2025
 
   annotated_file_paths: dynamic_tanh.py
@@ -52,6 +56,7 @@
   arxiv_date: 2025-03-24
   github_url: https://github.com/tue-mps/eomt/
   first_commit_date: 2025-03-16
+  last_commit_date: 2025-04-18
   venue: CVPR2025
 
   annotated_file_paths: eomt.py
@@ -64,6 +69,7 @@
   arxiv_date: 2025-02-25
   github_url: https://github.com/LTH14/fractalgen
   first_commit_date: 2025-02-23
+  last_commit_date: 2025-02-25
   venue: arXiv2025
 
   annotated_file_paths: models/mar.py
@@ -78,6 +84,7 @@
   arxiv_date: 2025-04-07
   github_url: https://github.com/Lakonik/GMFlow
   first_commit_date: 2025-04-07
+  last_commit_date: 2025-04-24
   venue: arXiv2025
 
   annotated_file_paths:
@@ -93,6 +100,7 @@
   arxiv_date: 2025-01-22
   github_url: https://github.com/Zhang-VISLab/ICLR2025-GPS
   first_commit_date: 2025-02-28
+  last_commit_date: 2025-02-28
   venue: ICLR2025
 
   annotated_file_paths: model.py
@@ -105,6 +113,7 @@
   arxiv_date: 2025-02-27
   github_url: https://github.com/DehongXu/grid-cell-conformal-isometry
   first_commit_date: 2025-02-18
+  last_commit_date: 2025-02-28
   venue: ICLR2025
 
   annotated_file_paths: model.py
@@ -117,6 +126,7 @@
   arxiv_date: 2024-02-17
   github_url: https://github.com/smonsays/hypernetwork-attention
   first_commit_date: 2024-06-09
+  last_commit_date: 2024-06-22
   venue: ICLR2025
 
   annotated_file_paths: attention.py
@@ -129,6 +139,7 @@
   arxiv_date: 2024-10-12
   github_url: https://github.com/TrueNobility303/LEN
   first_commit_date: 2024-12-01
+  last_commit_date: 2025-01-09
   venue: ICLR2025
 
   annotated_file_paths: Synthetic.py
@@ -141,6 +152,7 @@
   arxiv_date: 2024-04-01
   github_url: https://github.com/Weixin-Liang/Mapping-the-Increasing-Use-of-LLMs-in-Scientific-Papers
   first_commit_date: 2024-05-12
+  last_commit_date: 2025-03-20
   venue: COLM2024
 
   annotated_file_paths: src/MLE.py
@@ -152,7 +164,7 @@
   arxiv_abs: https://arxiv.org/abs/2407.01082v4
   arxiv_date: 2025-03-20
   github_url: https://github.com/menhguin/minp_paper
-  first_commit_date: 2024-06-09
+  first_commit_date: 2025-03-15
   venue: ICLR2025
 
   annotated_file_paths: implementation.py
@@ -165,6 +177,7 @@
   arxiv_date: 2025-03-27
   github_url: https://github.com/bebebe666/OptimalSteps
   first_commit_date: 2025-03-27
+  last_commit_date: 2025-04-12
   venue: arXiv2025
 
   annotated_file_paths: OSS.py
@@ -175,8 +188,9 @@
   title: "REPA-E: Unlocking VAE for End-to-End Tuning with Latent Diffusion Transformers"
   arxiv_abs: https://arxiv.org/abs/2504.10483v1
   arxiv_date: 2025-04-14
-  github_url: https://github.com/jduquevan/REPA-E
+  github_url: https://github.com/End2End-Diffusion/REPA-E
   first_commit_date: 2025-04-16
+  last_commit_date: 2025-04-16
   venue: arXiv2025
 
   annotated_file_paths:
@@ -192,6 +206,7 @@
   arxiv_date: 2024-10-29
   github_url: https://github.com/facebookresearch/schedule_free
   first_commit_date: 2024-03-31
+  last_commit_date: 2025-04-11
   venue: NeurIPS2024
 
   annotated_file_paths: adamw_schedulefree_reference.py 
@@ -203,6 +218,7 @@
   arxiv_date: 2025-03-11
   github_url: https://github.com/visual-gen/semanticist
   first_commit_date: 2025-03-09
+  last_commit_date: 2025-04-17
   venue: arXiv2025
 
   annotated_file_paths: generate.py
@@ -215,6 +231,7 @@
   arxiv_date: 2025-03-02
   github_url: https://github.com/claserken/SISS
   first_commit_date: 2025-03-02
+  last_commit_date: 2025-03-05
   venue: ICLR2025
 
   annotated_file_paths: losses.py
@@ -227,6 +244,7 @@
   arxiv_date: 2025-02-16
   github_url: https://github.com/MinkaiXu/TabDiff
   first_commit_date: 2025-02-16
+  last_commit_date: 2025-04-12
   venue: ICLR2025
 
   annotated_file_paths: model.py
@@ -239,6 +257,7 @@
   arxiv_date: 2025-03-02
   github_url: https://github.com/1HyunwooLee/Tanh-Init
   first_commit_date: 2025-02-11
+  last_commit_date: 2025-04-21
   venue: ICLR2025
 
   annotated_file_paths: model.py

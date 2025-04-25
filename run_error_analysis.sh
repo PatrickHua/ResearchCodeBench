@@ -1,4 +1,4 @@
-python error_analysis.py \
+python -m core.analysis.generate_categories \
     --resume_from_ckpt_dir outputs/20llms_greedy/2025-04-24-13-55-17/ \
     --data_folder pset/ \
     --problems "advantage-alignment" "Diff-Transformer" "DiffusionDPO" "DyT" "eomt" "fractalgen" "GMFlow" "GPS" "grid-cell-conformal-isometry" "hyla" "LEN" "llm-sci-use" "minp" "OptimalSteps" "REPA-E" "schedule_free" "semanticist" "SISS" "TabDiff" "Tanh-Init" \
