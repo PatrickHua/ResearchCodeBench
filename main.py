@@ -36,6 +36,7 @@ def parse_args():
     parser.add_argument("--wo_paper", action="store_true")
     parser.add_argument("--contamination_free", action="store_true")
     parser.add_argument("--resume_from_ckpt_dir", type=str, default=None)
+    parser.add_argument("--timeout_seconds", type=int, default=60)
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
     
@@ -74,7 +75,7 @@ def parse_args():
     clients = AsyncChatClients(max_retries=args.max_retries)
     output_file = os.path.join(args.output_dir, args.output_file)
     pset = None
-    
+    # breakpoint()
     if os.path.exists(output_file) and not args.overwrite_gen:  # if the file exists and we are not overwriting, read the file
         # Create backup of output file before reading
         backup_file = f"{output_file}.backup"
@@ -122,7 +123,7 @@ if __name__ == '__main__':
 
     if args.test:
         start_time = time.time()
-        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=10, output_file=output_file, overwrite_by_llm=args.overwrite_test_by_llm)
+        pset.test_all(args.data_folder, args.cache_dir, overwrite=args.overwrite_test, parallel=False, max_workers=20, timeout_seconds=args.timeout_seconds, output_file=output_file, overwrite_by_llm=args.overwrite_test_by_llm)
 
         with open(output_file, "w") as f:
             f.write(pset.model_dump_json(indent=4))

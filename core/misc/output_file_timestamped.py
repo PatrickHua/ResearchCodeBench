@@ -10,7 +10,7 @@ def get_timestamped_output_dir(base_output_dir, copy_from_dir=None):
     
     # Create the base output directory if it doesn't exist
     os.makedirs(base_output_dir, exist_ok=True)
-    
+    timestamp_dirs = glob.glob(os.path.join(base_output_dir, "*-*-*-*-*-*"))
 
     # Create the new timestamped directory
     new_output_dir = os.path.join(base_output_dir, timestamp)
@@ -24,9 +24,6 @@ def get_timestamped_output_dir(base_output_dir, copy_from_dir=None):
         else:
             print(f"Warning: Directory {copy_from_dir} does not exist.")
         return new_output_dir
-    
-    # Look for most recent timestamped directory
-    timestamp_dirs = glob.glob(os.path.join(base_output_dir, "*-*-*-*-*-*"))
     
     
     # If there are previous timestamped directories, copy the most recent one
@@ -45,5 +42,4 @@ def get_timestamped_output_dir(base_output_dir, copy_from_dir=None):
                     shutil.copytree(source, destination, dirs_exist_ok=True)
                 else:
                     shutil.copy2(source, destination)
-    
     return new_output_dir

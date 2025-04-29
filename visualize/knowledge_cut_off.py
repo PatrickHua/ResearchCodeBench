@@ -94,7 +94,7 @@ def load_llm_data():
     
     return pd.DataFrame(llm_data)
 
-def create_visualization(papers_df, llm_df, output_path, show_percentages=False):
+def create_visualization(papers_df, llm_df, output_path, show_percentages=False, use_last_commit=False):
     """Create a publication-quality visualization.
     
     Args:
@@ -102,9 +102,14 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
         llm_df: DataFrame containing LLM cutoff dates
         output_path: Path to save the visualization
         show_percentages: Whether to show percentages of LLMs with cutoffs before papers (default: False)
+        use_last_commit: Whether to use last_commit_date instead of first_commit_date (default: False)
     """
     # Sort papers by arxiv date for better visualization
     papers_df = papers_df.sort_values(by='arxiv_date')
+    
+    # Determine which commit date to use
+    commit_date_field = 'last_commit_date' if use_last_commit else 'first_commit_date'
+    commit_label = 'Last Code Commit' if use_last_commit else 'First Code Commit'
     
     # Create the main figure and axis
     fig, ax = plt.subplots(figsize=(12, 10), dpi=300)
@@ -125,7 +130,7 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     llm_df['color'] = llm_df['company'].map(lambda x: company_colors.get(x, '#999999'))
     
     # Get min and max dates for better plotting
-    all_dates = list(papers_df['arxiv_date']) + list(papers_df['first_commit_date']) + list(llm_df['cutoff_date'])
+    all_dates = list(papers_df['arxiv_date']) + list(papers_df[commit_date_field]) + list(llm_df['cutoff_date'])
     min_date = min(all_dates) - pd.DateOffset(months=1)
     max_date = max(all_dates) + pd.DateOffset(months=1)
     
@@ -196,19 +201,19 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
         
         # Count how many LLMs have knowledge cutoffs before paper publication and implementation
         cutoffs_before_arxiv = sum(llm_df['cutoff_date'] <= paper['arxiv_date'])
-        cutoffs_before_commit = sum(llm_df['cutoff_date'] <= paper['first_commit_date'])
+        cutoffs_before_commit = sum(llm_df['cutoff_date'] <= paper[commit_date_field])
         pct_llms_before_arxiv = 100 * cutoffs_before_arxiv / len(llm_df)
         pct_llms_before_commit = 100 * cutoffs_before_commit / len(llm_df)
         
-        # Draw line from arxiv date to first commit date
-        ax.plot([paper['arxiv_date'], paper['first_commit_date']], [idx, idx], 
+        # Draw line from arxiv date to commit date
+        ax.plot([paper['arxiv_date'], paper[commit_date_field]], [idx, idx], 
                 color='#aaaaaa', linewidth=0.8, alpha=0.6)
         
         # Mark arxiv date with circle - change color to teal/cyan to avoid confusion with any company colors
         ax.scatter(paper['arxiv_date'], idx, color='#00CCCC', s=40, zorder=5, alpha=0.8)  # Changed to teal/cyan
         
-        # Mark first commit date with star
-        ax.scatter(paper['first_commit_date'], idx, color='#DB4437', s=60, 
+        # Mark commit date with star
+        ax.scatter(paper[commit_date_field], idx, color='#DB4437', s=60, 
                   marker='*', zorder=5, alpha=0.8)
         
         # Add paper ID on the left
@@ -231,7 +236,7 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     # Create simple legend with additional explanation for the percentages if needed
     legend_elements = [
         Line2D([0], [0], marker='o', color='w', markerfacecolor='#00CCCC', markersize=7, label='Paper Publication'),
-        Line2D([0], [0], marker='*', color='w', markerfacecolor='#DB4437', markersize=12, label='First Code Commit'),
+        Line2D([0], [0], marker='*', color='w', markerfacecolor='#DB4437', markersize=12, label=commit_label),
         Line2D([0], [0], marker='v', color='w', markerfacecolor='gray', markersize=7, label='Knowledge Cutoff of Models')
     ]
     
@@ -259,7 +264,8 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
     ax.set_xlabel('Date', fontsize=10, labelpad=25)  # Increase labelpad more for the LLM markers
     
     # Add title with proper spacing
-    ax.set_title('Research Paper Timeline vs. LLM Knowledge Cutoff Dates', pad=20, fontsize=14)
+    commit_type = "Last" if use_last_commit else "First"
+    ax.set_title(f'Research Paper Timeline vs. LLM Knowledge Cutoff Dates (Using {commit_type} Commit)', pad=20, fontsize=14)
     
     # Adjust layout and save with default parameters
     plt.tight_layout()
@@ -277,22 +283,26 @@ def create_visualization(papers_df, llm_df, output_path, show_percentages=False)
         print(f"Visualization also saved as {pdf_path}")
     plt.close()
 
-def calculate_statistics(papers_df, llm_df):
+def calculate_statistics(papers_df, llm_df, use_last_commit=False):
     """Calculate and print statistics about the relationship between papers and LLM cutoff dates."""
     # If no papers were loaded, return empty stats
     if len(papers_df) == 0:
         print("No papers with valid dates were found. Cannot calculate statistics.")
         return pd.DataFrame()
     
+    # Determine which commit date to use
+    commit_date_field = 'last_commit_date' if use_last_commit else 'first_commit_date'
+    commit_type = "last" if use_last_commit else "first"
+    
     # For each paper, check how many LLM cutoff dates it comes after
     stats = []
     
     for _, paper in papers_df.iterrows():
         arxiv_date = paper['arxiv_date']
-        first_commit_date = paper['first_commit_date']
+        commit_date = paper[commit_date_field]
         
         cutoffs_before_arxiv = sum(llm_df['cutoff_date'] < arxiv_date)
-        cutoffs_before_commit = sum(llm_df['cutoff_date'] < first_commit_date)
+        cutoffs_before_commit = sum(llm_df['cutoff_date'] < commit_date)
         
         stats.append({
             'paper_id': paper['id'],
@@ -309,12 +319,12 @@ def calculate_statistics(papers_df, llm_df):
     avg_pct_before_commit = stats_df['pct_llms_before_implementation'].mean()
     
     print(f"\nOn average, {avg_pct_before_arxiv:.1f}% of LLMs have knowledge cutoffs before paper publication")
-    print(f"On average, {avg_pct_before_commit:.1f}% of LLMs have knowledge cutoffs before code implementation")
+    print(f"On average, {avg_pct_before_commit:.1f}% of LLMs have knowledge cutoffs before {commit_type} code commit")
     
     # Count papers with implementation after all LLM cutoffs
     papers_after_all_cutoffs = sum(stats_df['cutoffs_before_commit'] == len(llm_df))
     print(f"\n{papers_after_all_cutoffs} papers ({papers_after_all_cutoffs/len(papers_df)*100:.1f}%) "
-          f"have implementations after all LLM knowledge cutoffs")
+          f"have {commit_type} commit after all LLM knowledge cutoffs")
     
     return stats_df
 
@@ -326,6 +336,7 @@ def create_sample_data():
             'title': 'Advantage Alignment Algorithms',
             'arxiv_date': datetime.strptime('2025-02-06', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-04-07', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-07', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -333,6 +344,7 @@ def create_sample_data():
             'title': 'Differential Transformer',
             'arxiv_date': datetime.strptime('2025-04-07', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2024-10-07', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-03-03', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -340,6 +352,7 @@ def create_sample_data():
             'title': 'Diffusion Model Alignment Using Direct Preference Optimization',
             'arxiv_date': datetime.strptime('2023-11-22', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2023-12-24', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-02-03', '%Y-%m-%d'),
             'venue': 'arXiv2023'
         },
         {
@@ -347,6 +360,7 @@ def create_sample_data():
             'title': 'Transformers without Normalization',
             'arxiv_date': datetime.strptime('2025-03-13', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-03-09', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-03-30', '%Y-%m-%d'),
             'venue': 'CVPR2025'
         },
         {
@@ -354,6 +368,7 @@ def create_sample_data():
             'title': 'Your ViT is Secretly an Image Segmentation Model',
             'arxiv_date': datetime.strptime('2025-03-24', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-03-16', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-18', '%Y-%m-%d'),
             'venue': 'CVPR2025'
         },
         {
@@ -361,6 +376,7 @@ def create_sample_data():
             'title': 'Fractal Generative Models',
             'arxiv_date': datetime.strptime('2025-02-25', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-02-23', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-02-25', '%Y-%m-%d'),
             'venue': 'arXiv2025'
         },
         {
@@ -368,6 +384,7 @@ def create_sample_data():
             'title': 'Gaussian Mixture Flow Matching Models',
             'arxiv_date': datetime.strptime('2025-04-07', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-04-07', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-24', '%Y-%m-%d'),
             'venue': 'arXiv2025'
         },
         {
@@ -375,6 +392,7 @@ def create_sample_data():
             'title': 'GPS: A Probabilistic Distributional Similarity',
             'arxiv_date': datetime.strptime('2025-01-22', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-02-28', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-02-28', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -382,6 +400,7 @@ def create_sample_data():
             'title': 'On Conformal Isometry of Grid Cells',
             'arxiv_date': datetime.strptime('2025-02-27', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-02-18', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-02-28', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -389,6 +408,7 @@ def create_sample_data():
             'title': 'Attention as a Hypernetwork',
             'arxiv_date': datetime.strptime('2024-02-17', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2024-06-09', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2024-06-22', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -396,6 +416,7 @@ def create_sample_data():
             'title': 'Second-Order Min-Max Optimization with Lazy Hessians',
             'arxiv_date': datetime.strptime('2024-10-12', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2024-12-01', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-01-09', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -403,13 +424,15 @@ def create_sample_data():
             'title': 'Mapping the increasing use of LLMs in scientific papers',
             'arxiv_date': datetime.strptime('2024-04-01', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2024-05-12', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-03-20', '%Y-%m-%d'),
             'venue': 'COLM2024'
         },
         {
             'id': 'minp',
             'title': 'Min-p Sampling for Creative and Coherent LLM Outputs',
             'arxiv_date': datetime.strptime('2025-03-20', '%Y-%m-%d'),
-            'first_commit_date': datetime.strptime('2024-06-09', '%Y-%m-%d'),
+            'first_commit_date': datetime.strptime('2025-03-15', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-03-15', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -417,6 +440,7 @@ def create_sample_data():
             'title': 'Optimal Stepsize for Diffusion Sampling',
             'arxiv_date': datetime.strptime('2025-03-27', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-03-27', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-12', '%Y-%m-%d'),
             'venue': 'arXiv2025'
         },
         {
@@ -424,6 +448,7 @@ def create_sample_data():
             'title': 'REPA-E: Unlocking VAE for End-to-End Tuning',
             'arxiv_date': datetime.strptime('2025-04-14', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-04-16', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-16', '%Y-%m-%d'),
             'venue': 'arXiv2025'
         },
         {
@@ -431,6 +456,7 @@ def create_sample_data():
             'title': 'The Road Less Scheduled',
             'arxiv_date': datetime.strptime('2024-10-29', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2024-03-31', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-11', '%Y-%m-%d'),
             'venue': 'NeurIPS2024'
         },
         {
@@ -438,6 +464,7 @@ def create_sample_data():
             'title': 'Principal Components Enable A New Language of Images',
             'arxiv_date': datetime.strptime('2025-03-11', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-03-09', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-17', '%Y-%m-%d'),
             'venue': 'arXiv2025'
         },
         {
@@ -445,6 +472,7 @@ def create_sample_data():
             'title': 'Data Unlearning in Diffusion Models',
             'arxiv_date': datetime.strptime('2025-03-02', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-03-02', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-03-05', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -452,6 +480,7 @@ def create_sample_data():
             'title': 'TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation',
             'arxiv_date': datetime.strptime('2025-02-16', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-02-16', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-12', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         },
         {
@@ -459,6 +488,7 @@ def create_sample_data():
             'title': 'Robust Weight Initialization for Tanh Neural Networks',
             'arxiv_date': datetime.strptime('2025-03-02', '%Y-%m-%d'),
             'first_commit_date': datetime.strptime('2025-02-11', '%Y-%m-%d'),
+            'last_commit_date': datetime.strptime('2025-04-21', '%Y-%m-%d'),
             'venue': 'ICLR2025'
         }
     ]
@@ -471,6 +501,7 @@ def main():
     script_dir = Path(__file__).parent
     output_dir = script_dir / "outputs"
     output_path = output_dir / "knowledge_cutoff_vs_papers.pdf"
+    output_path_last_commit = output_dir / "knowledge_cutoff_vs_papers_last_commit.pdf"
     
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -489,16 +520,28 @@ def main():
         for _, row in group.head(3).iterrows():
             print(f"  - {row['llm']}: {row['cutoff_date'].strftime('%Y-%m-%d')}")
     
-    # Calculate statistics
-    stats_df = calculate_statistics(papers_df, llm_df)
+    # Calculate statistics with first commit date
+    print("\n=== Statistics using first commit date ===")
+    stats_df = calculate_statistics(papers_df, llm_df, use_last_commit=False)
     
-    # Create visualization (with percentages hidden by default)
-    create_visualization(papers_df, llm_df, output_path, show_percentages=False)
+    # Create visualization with first commit date
+    create_visualization(papers_df, llm_df, output_path, show_percentages=False, use_last_commit=False)
+    
+    # Calculate statistics with last commit date
+    print("\n=== Statistics using last commit date ===")
+    stats_df_last = calculate_statistics(papers_df, llm_df, use_last_commit=True)
+    
+    # Create visualization with last commit date
+    create_visualization(papers_df, llm_df, output_path_last_commit, show_percentages=False, use_last_commit=True)
     
     # Save the statistics
-    stats_path = output_dir / "knowledge_cutoff_stats.csv"
+    stats_path = output_dir / "knowledge_cutoff_stats_first_commit.csv"
     stats_df.to_csv(stats_path, index=False)
     print(f"Statistics saved to {stats_path}")
+    
+    stats_path_last = output_dir / "knowledge_cutoff_stats_last_commit.csv"
+    stats_df_last.to_csv(stats_path_last, index=False)
+    print(f"Statistics saved to {stats_path_last}")
 
 if __name__ == "__main__":
     main()

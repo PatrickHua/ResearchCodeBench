@@ -70,7 +70,7 @@ class Problem(BaseModel):
             # create a new problem file with the snippet masked
             masked_problem_file_str = problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
             masked_code_str = context_files_str + masked_problem_file_str
-            
+            # breakpoint()
             snippet.predictions = await generate_predictions(
                 masked_code_str,
                 paper_tex,

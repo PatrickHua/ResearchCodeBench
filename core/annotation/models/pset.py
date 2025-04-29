@@ -93,6 +93,7 @@ class PSet(BaseModel):
         os.makedirs(pset_cache_dir, exist_ok=True)
 
         if parallel:
+            raise NotImplementedError("Parallel testing is not implemented")
             print(f"Running tests in parallel mode with timeout {timeout_seconds}s per test...")
             self._test_all_parallel(pset_src_folder, cache_dir, overwrite, max_workers, timeout_seconds)
         else:

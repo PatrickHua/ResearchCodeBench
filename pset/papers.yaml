@@ -2,6 +2,7 @@
   title: Advantage Alignment Algorithms
   arxiv_abs: https://arxiv.org/abs/2406.14662v3
   arxiv_date: 2025-02-06
+  arxiv_v1_date: 2024-06-20
   github_url: https://github.com/jduquevan/advantage-alignment
   first_commit_date: 2025-04-07
   last_commit_date: 2025-04-07
@@ -15,6 +16,7 @@
   title: Differential Transformer
   arxiv_abs: https://arxiv.org/abs/2410.05258v2
   arxiv_date: 2025-04-07
+  arxiv_v1_date: 2024-10-07
   github_url: https://aka.ms/Diff-Transformer
   first_commit_date: 2024-10-07
   last_commit_date: 2025-03-03
@@ -28,6 +30,7 @@
   title: Diffusion Model Alignment Using Direct Preference Optimization
   arxiv_abs: https://arxiv.org/abs/2311.12908v1
   arxiv_date: 2023-11-22
+  arxiv_v1_date: 2023-11-22
   github_url: https://github.com/SalesforceAIResearch/DiffusionDPO
   first_commit_date: 2023-12-24
   last_commit_date: 2025-02-03
@@ -41,6 +44,7 @@
   title: Transformers without Normalization
   arxiv_abs: https://www.arxiv.org/abs/2503.10622v1
   arxiv_date: 2025-03-13
+  arxiv_v1_date: 2025-03-13
   github_url: https://github.com/jiachenzhu/DyT
   first_commit_date: 2025-03-09
   last_commit_date: 2025-03-30
@@ -54,6 +58,7 @@
   title: Your ViT is Secretly an Image Segmentation Model
   arxiv_abs: https://arxiv.org/abs/2503.19108v1
   arxiv_date: 2025-03-24
+  arxiv_v1_date: 2025-03-24
   github_url: https://github.com/tue-mps/eomt/
   first_commit_date: 2025-03-16
   last_commit_date: 2025-04-18
@@ -67,6 +72,7 @@
   title: Fractal Generative Models
   arxiv_abs: https://arxiv.org/abs/2502.17437v2
   arxiv_date: 2025-02-25
+  arxiv_v1_date: 2025-02-24
   github_url: https://github.com/LTH14/fractalgen
   first_commit_date: 2025-02-23
   last_commit_date: 2025-02-25
@@ -82,6 +88,7 @@
   title: Gaussian Mixture Flow Matching Models
   arxiv_abs: https://arxiv.org/abs/2504.05304v1
   arxiv_date: 2025-04-07
+  arxiv_v1_date: 2025-04-07
   github_url: https://github.com/Lakonik/GMFlow
   first_commit_date: 2025-04-07
   last_commit_date: 2025-04-24
@@ -98,6 +105,7 @@
   title: "GPS: A Probabilistic Distributional Similarity with Gumbel Priors for Set-to-Set Matching"
   arxiv_abs: https://openreview.net/forum?id=U0SijGsCHJ
   arxiv_date: 2025-01-22
+  arxiv_v1_date: 2025-01-22
   github_url: https://github.com/Zhang-VISLab/ICLR2025-GPS
   first_commit_date: 2025-02-28
   last_commit_date: 2025-02-28
@@ -111,6 +119,7 @@
   title: "On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding"
   arxiv_abs: https://arxiv.org/abs/2405.16865v4
   arxiv_date: 2025-02-27
+  arxiv_v1_date: 2024-05-27
   github_url: https://github.com/DehongXu/grid-cell-conformal-isometry
   first_commit_date: 2025-02-18
   last_commit_date: 2025-02-28
@@ -124,6 +133,7 @@
   title: Attention as a Hypernetwork
   arxiv_abs: https://arxiv.org/abs/2406.05816v4
   arxiv_date: 2024-02-17
+  arxiv_v1_date: 2024-06-09
   github_url: https://github.com/smonsays/hypernetwork-attention
   first_commit_date: 2024-06-09
   last_commit_date: 2024-06-22
@@ -135,8 +145,9 @@
 
 - id: LEN
   title: Second-Order Min-Max Optimization with Lazy Hessians
-  arxiv_abs: https://arxiv.org/abs/2410.09568v1
-  arxiv_date: 2024-10-12
+  arxiv_abs: https://arxiv.org/abs/2410.09568v2
+  arxiv_date: 2025-04-15
+  arxiv_v1_date: 2024-10-12
   github_url: https://github.com/TrueNobility303/LEN
   first_commit_date: 2024-12-01
   last_commit_date: 2025-01-09
@@ -150,6 +161,7 @@
   title: Mapping the increasing use of LLMs in scientific papers
   arxiv_abs: https://arxiv.org/abs/2404.01268v1
   arxiv_date: 2024-04-01
+  arxiv_v1_date: 2024-04-01
   github_url: https://github.com/Weixin-Liang/Mapping-the-Increasing-Use-of-LLMs-in-Scientific-Papers
   first_commit_date: 2024-05-12
   last_commit_date: 2025-03-20
@@ -163,6 +175,7 @@
   title: Min-p Sampling for Creative and Coherent LLM Outputs
   arxiv_abs: https://arxiv.org/abs/2407.01082v4
   arxiv_date: 2025-03-20
+  arxiv_v1_date: 2024-07-01
   github_url: https://github.com/menhguin/minp_paper
   first_commit_date: 2025-03-15
   venue: ICLR2025
@@ -175,6 +188,7 @@
   title: Optimal Stepsize for Diffusion Sampling
   arxiv_abs: https://arxiv.org/abs/2503.21774v1
   arxiv_date: 2025-03-27
+  arxiv_v1_date: 2025-03-27
   github_url: https://github.com/bebebe666/OptimalSteps
   first_commit_date: 2025-03-27
   last_commit_date: 2025-04-12
@@ -188,6 +202,7 @@
   title: "REPA-E: Unlocking VAE for End-to-End Tuning with Latent Diffusion Transformers"
   arxiv_abs: https://arxiv.org/abs/2504.10483v1
   arxiv_date: 2025-04-14
+  arxiv_v1_date: 2025-04-14
   github_url: https://github.com/End2End-Diffusion/REPA-E
   first_commit_date: 2025-04-16
   last_commit_date: 2025-04-16
@@ -204,6 +219,7 @@
   title: The Road Less Scheduled
   arxiv_abs: https://arxiv.org/abs/2405.15682v4
   arxiv_date: 2024-10-29
+  arxiv_v1_date: 2024-05-24
   github_url: https://github.com/facebookresearch/schedule_free
   first_commit_date: 2024-03-31
   last_commit_date: 2025-04-11
@@ -216,6 +232,7 @@
   title: Principal Components Enable A New Language of Images
   arxiv_abs: https://arxiv.org/abs/2503.08685v1
   arxiv_date: 2025-03-11
+  arxiv_v1_date: 2025-03-11
   github_url: https://github.com/visual-gen/semanticist
   first_commit_date: 2025-03-09
   last_commit_date: 2025-04-17
@@ -229,6 +246,7 @@
   title: Data Unlearning in Diffusion Models
   arxiv_abs: https://arxiv.org/abs/2503.01034
   arxiv_date: 2025-03-02
+  arxiv_v1_date: 2025-03-02
   github_url: https://github.com/claserken/SISS
   first_commit_date: 2025-03-02
   last_commit_date: 2025-03-05
@@ -242,6 +260,7 @@
   title: "TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation"
   arxiv_abs: https://arxiv.org/abs/2410.20626v3
   arxiv_date: 2025-02-16
+  arxiv_v1_date: 2024-10-27
   github_url: https://github.com/MinkaiXu/TabDiff
   first_commit_date: 2025-02-16
   last_commit_date: 2025-04-12
@@ -255,6 +274,7 @@
   title: Robust Weight Initialization for Tanh Neural Networks with Fixed Point Analysis
   arxiv_abs: https://arxiv.org/abs/2410.02242v2
   arxiv_date: 2025-03-02
+  arxiv_v1_date: 2024-10-03
   github_url: https://github.com/1HyunwooLee/Tanh-Init
   first_commit_date: 2025-02-11
   last_commit_date: 2025-04-21
