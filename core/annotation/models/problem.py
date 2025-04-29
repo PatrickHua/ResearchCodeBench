@@ -7,7 +7,7 @@ from core.annotation.utils.generate_predictions import generate_predictions
 from core.async_chat_clients import AsyncChatClients
 from core.data_classes.llm_type import LLMType
 from core.annotation.utils.run_shell_command import run_shell_command
-
+from typing import Optional
 
 class Problem(BaseModel):
     folder_name: str
@@ -55,7 +55,7 @@ class Problem(BaseModel):
 
 
 
-    async def generate_solutions(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False) -> str:
+    async def generate_solutions(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False, overwrite: bool = False, overwrite_by_llm: Optional[str] = None) -> str:
         import asyncio
         
         if len(self.context_files) == 0:
@@ -71,6 +71,19 @@ class Problem(BaseModel):
             masked_problem_file_str = problem_file.mask_given_snippet(snippet, placeholder_lines=None, remove_markers=True)
             masked_code_str = context_files_str + masked_problem_file_str
             # breakpoint()
+            # if overwrite:
+                
+            # breakpoint()
+            if overwrite and overwrite_by_llm is not None:
+                if overwrite_by_llm not in snippet.predictions:
+                    raise ValueError(f"LLM {overwrite_by_llm} not found in snippet {snippet.name}")
+                else:
+                    del snippet.predictions[overwrite_by_llm]
+                    print(f"Overwriting snippet {snippet.name} with LLM {overwrite_by_llm}")
+            elif overwrite and overwrite_by_llm is None:
+                # didn't specify an LLM to overwrite by, so we just overwrite all completions
+                snippet.predictions = {}
+            
             snippet.predictions = await generate_predictions(
                 masked_code_str,
                 paper_tex,
@@ -79,7 +92,7 @@ class Problem(BaseModel):
                 predictions=snippet.predictions, 
                 clients=clients,
                 temperature=temperature,
-                wo_paper=wo_paper
+                wo_paper=wo_paper,
             )
             return snippet
         

@@ -175,7 +175,7 @@ class AsyncChatClients:
         # Handle different response formats
         if llm_type in MODELS_USING_RESPONSE_API:
             # breakpoint()
-            response_strs = [response.output[1].content[0].text for response in responses]
+            response_strs = [response.output_text for response in responses]
         else:
             response_strs = [response.choices[0].message.content for response in responses]
 
@@ -195,11 +195,11 @@ async def main():
     clients = AsyncChatClients()
     try:
         output = await clients.run(
-            # llm_type=LLMType.O1_HIGH,  # Adjust to your model type
+            llm_type=LLMType.O1_HIGH,  # Adjust to your model type
             # llm_type=LLMType.GPT_4O_MINI,
             # llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
             # llm_type=LLMType.GROK_3_BETA,
-            llm_type=LLMType.GROK_2_1212,
+            # llm_type=LLMType.GROK_2_1212,
             user_message='Hello, how are you?',
             system_message='You are a helpful assistant.',
             num_completions=1,

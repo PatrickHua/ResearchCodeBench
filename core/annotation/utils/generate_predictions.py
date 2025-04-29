@@ -5,6 +5,7 @@ from typing import List, Dict
 from core.annotation.utils.run_inference import run_inference
 import asyncio
 import logging
+from typing import Optional
 
 async def generate_predictions(masked_code_str: str, paper_tex: str, llm_types: List[LLMType], n_completions: int = 2, predictions: Dict[str, Prediction] = None, clients: AsyncChatClients = None, temperature: float = 0.5, wo_paper: bool = False) -> Dict[str, Prediction]:
     # Initialize or use existing predictions dictionary

@@ -31,18 +31,24 @@ class PSet(BaseModel):
     @classmethod
     def parse_pset(cls, pset_dir: str, pset: Optional['PSet'] = None, selected_problems: Optional[List[str]] = None) -> 'PSet':
         """
-        If pset is not None, only add problems that are not already in the pset.
+        Parse problems from a directory.
+        If pset is provided, update existing problems by adding any newly found files or snippets from the directory.
+        Problems found in the directory but not in the input pset are added fully.
         """
         # get the folder name
         folder_name = os.path.basename(os.path.normpath(pset_dir))
-        existing_problems = [problem.folder_name for problem in pset.problems] if pset is not None else []
-        problems = []
-        
+        # Use a map for efficient lookup and store copies to avoid modifying the input pset
+        existing_problems_map = {prob.folder_name: copy.deepcopy(prob) for prob in pset.problems} if pset is not None else {}
+        output_problems = [] # Store the problems for the new PSet object
 
-        
         paper_yaml_path = os.path.join(pset_dir, "papers.yaml")
+        if not os.path.exists(paper_yaml_path):
+            raise FileNotFoundError(f"papers.yaml not found in {pset_dir}")
+            
         with open(paper_yaml_path, "r") as f:
             papers = yaml.safe_load(f)
+        
+        found_problem_ids = set()
         
         for paper in papers:
             sub_folder_name = paper["id"]
@@ -51,14 +57,78 @@ class PSet(BaseModel):
         
             problem_dir = os.path.join(pset_dir, sub_folder_name)
             if os.path.isdir(problem_dir):
-                if sub_folder_name in existing_problems:
-                    problems.append(pset.problems[existing_problems.index(sub_folder_name)])
-                else:
-                    problems.append(Problem.parse_problem(pset_dir, sub_folder_name, paper))
+                found_problem_ids.add(sub_folder_name)
+                # Parse the problem details from the directory
+                parsed_problem = Problem.parse_problem(pset_dir, sub_folder_name, paper)
 
-        assert len(problems) > 0, f"No problems found in {pset_dir}"
+                if sub_folder_name in existing_problems_map:
+                    # Problem exists in input pset, perform additive merge
+                    existing_problem_copy = existing_problems_map[sub_folder_name]
+                    
+                    # Additive Merge Logic:
+                    existing_files_map = {file.rel_path: file for file in existing_problem_copy.problem_files}
+                    for parsed_file in parsed_problem.problem_files:
+                        if parsed_file.rel_path in existing_files_map:
+                            # File exists, check for new snippets within this file
+                            existing_file = existing_files_map[parsed_file.rel_path]
+                            # Assuming snippet names are unique identifiers within a file
+                            existing_snippets_map = {snippet.name: snippet for snippet in existing_file.snippets}
+                            for parsed_snippet in parsed_file.snippets:
+                                if parsed_snippet.name not in existing_snippets_map:
+                                    # Add new snippet found on disk to the existing file
+                                    if pset is not None: # Print only if merging
+                                        print(f"  + Adding new snippet '{parsed_snippet.name}' to file '{existing_file.rel_path}' in problem '{sub_folder_name}'")
+                                    existing_file.snippets.append(parsed_snippet)
+                        else:
+                            # File is new for this problem, add it
+                            if pset is not None: # Print only if merging
+                                print(f"  + Adding new file '{parsed_file.rel_path}' to problem '{sub_folder_name}'")
+                            existing_problem_copy.problem_files.append(parsed_file)
+                            
+                    # Add other potential updates to problem metadata if needed (optional)
+                    # e.g., existing_problem_copy.description = parsed_problem.description 
+                    
+                    output_problems.append(existing_problem_copy) # Add updated copy
+                else:
+                    # Problem is entirely new, add the parsed version
+                    output_problems.append(parsed_problem)
+
+        # Ensure we actually found and processed problems based on papers.yaml entries
+        if not output_problems:
+             # Check if it was due to filtering or genuinely no matching directories
+             if selected_problems and not any(pid in found_problem_ids for pid in selected_problems):
+                 print(f"Warning: No problems found matching the selection: {selected_problems}")
+             elif not found_problem_ids:
+                 raise ValueError(f"No valid problem directories found in {pset_dir} corresponding to entries in papers.yaml")
+             else:
+                 # This case might occur if selected_problems is empty or filtering removed all
+                 print(f"Warning: No problems included after processing {pset_dir}. Check selection criteria if used.")
+
+
+        # If an input pset was given, add back any problems from it that were *not* found in papers.yaml
+        # This preserves problems that might exist in the pset object but not (or no longer) on disk
+        if pset is not None:
+            for existing_prob_name, existing_prob_copy in existing_problems_map.items():
+                if existing_prob_name not in found_problem_ids:
+                    # Check if it was explicitly excluded by selection
+                    if selected_problems is None or existing_prob_name in selected_problems:
+                         output_problems.append(existing_prob_copy) # Add the untouched copy back
+
+
+        # Final check to ensure we have problems if the directory wasn't empty
+        if not output_problems and os.listdir(pset_dir):
+             # This condition might be too broad, refine if needed.
+             # Consider if papers.yaml was empty or only contained non-directory entries.
+             print(f"Warning: Resulting problem set is empty despite non-empty directory {pset_dir}. Ensure papers.yaml is correct and directories exist.")
+             # We might still return an empty PSet if that's the valid outcome (e.g., all filtered out)
+             # The original code had assert len(problems) > 0, let's keep a similar check but allow empty if filtered
+             if not selected_problems and found_problem_ids:
+                 # If no selection was made, and we found potential problems, but output is empty -> likely an issue
+                 raise ValueError(f"Problem parsing resulted in an empty set unexpectedly for {pset_dir}")
+
+
         # breakpoint()
-        return cls(folder_name=folder_name, problems=problems)
+        return cls(folder_name=folder_name, problems=output_problems)
 
     async def solve_all(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False):
         # Run all problems concurrently instead of sequentially
@@ -68,22 +138,33 @@ class PSet(BaseModel):
         ]
         await asyncio.gather(*tasks)
     
-    async def solve_sequentially(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False, output_file: str = None):
+    async def solve_sequentially(self, llm_types: List[LLMType], n_completions: int, temperature: float, clients: AsyncChatClients, wo_paper: bool = False, output_file: str = None, overwrite_by_prob: Optional[str] = None, overwrite_by_llm: Optional[str] = None):
+        # check if overwrite_by_prob is a problem in the pset
+        if overwrite_by_prob is not None:
+            assert overwrite_by_prob in [problem.folder_name for problem in self.problems], f"Problem {overwrite_by_prob} not found in pset"
+        if overwrite_by_llm is not None:
+            breakpoint()
+            assert overwrite_by_llm in [llm_type.name for llm_type in llm_types], f"LLM type {overwrite_by_llm} not found in LLMType"
+            
         for problem in tqdm(self.problems, desc="Solving problems"):
-            await problem.generate_solutions(llm_types, n_completions, temperature, clients, wo_paper=wo_paper)
+            if overwrite_by_prob is not None and overwrite_by_prob == problem.folder_name:
+                overwrite_problem = True
+            else:
+                overwrite_problem = False
+            await problem.generate_solutions(llm_types, n_completions, temperature, clients, wo_paper=wo_paper, overwrite=overwrite_problem, overwrite_by_llm=overwrite_by_llm)
             if output_file is not None:
                 with open(output_file, "w") as f:
                     f.write(self.model_dump_json(indent=4))
             
 
-    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
+    def test_all(self, pset_src_folder: str, cache_dir: str, overwrite_by_problem: bool = False, parallel: bool = False, max_workers: Optional[int] = None, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
         """
         Test all problems in the problem set.
         
         Args:
             pset_src_folder: Path to the source folder of the problem set
             cache_dir: Path to the cache directory
-            overwrite: Whether to overwrite existing test results
+            overwrite_by_problem: Whether to overwrite existing test results by problem
             parallel: Whether to run tests in parallel
             max_workers: Maximum number of worker threads for parallel execution
             timeout_seconds: Timeout in seconds for each test
@@ -98,12 +179,19 @@ class PSet(BaseModel):
             self._test_all_parallel(pset_src_folder, cache_dir, overwrite, max_workers, timeout_seconds)
         else:
             print(f"Running tests sequentially with timeout {timeout_seconds}s per test...")
-            self._test_all_sequential(pset_src_folder, cache_dir, overwrite, timeout_seconds, output_file, overwrite_by_llm)
+            self._test_all_sequential(pset_src_folder, cache_dir, overwrite_by_problem, timeout_seconds, output_file, overwrite_by_llm)
 
 
-    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite: bool = False, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
+    def _test_all_sequential(self, pset_src_folder: str, cache_dir: str, overwrite_by_problem: Optional[str] = None, timeout_seconds: int = 10, output_file: str = None, overwrite_by_llm: Optional[str] = None):
         """Sequential implementation of test_all"""
         pset_cache_dir = os.path.join(cache_dir, self.folder_name)
+        
+        
+        if overwrite_by_problem:
+            assert overwrite_by_problem in [problem.folder_name for problem in self.problems], f"Problem {overwrite_by_problem} not found in pset"
+        # if overwrite_by_llm:
+        #     assert overwrite_by_llm in [llm_type.name for llm_type in LLMType], f"LLM type {overwrite_by_llm} not found in LLMType"
+        # breakpoint()
         
         for problem in self.problems:
             problem_cache_dir = os.path.join(pset_cache_dir, problem.folder_name)
@@ -114,13 +202,36 @@ class PSet(BaseModel):
             for problem_file in problem.problem_files:
                 for snippet in problem_file.snippets:
                     for llm_type, predictions in snippet.predictions.items():
-                        # breakpoint()
-                        if overwrite_by_llm is not None and llm_type != overwrite_by_llm:
-                            continue
+
                         for completion in predictions.completions:
-                            if completion.test_result is not None and overwrite != problem.folder_name:
-                                continue
+                            if completion.test_result is not None: # if the completion has already been tested, skip it by default, unless we are overwriting by problem or llm
+                                # breakpoint()
+                                if overwrite_by_problem is None and overwrite_by_llm is not None:
+                                    if llm_type == overwrite_by_llm:
+                                        pass
+                                    else:
+                                        continue
+                                elif overwrite_by_problem is not None and overwrite_by_llm is None:
+                                    if problem.folder_name == overwrite_by_problem:
+                                        pass
+                                    else:
+                                        continue
+                                elif overwrite_by_problem is not None and overwrite_by_llm is not None:
+                                    if problem.folder_name == overwrite_by_problem and llm_type == overwrite_by_llm:
+                                        # breakpoint()
+                                        pass
+                                    else:
+                                        continue
+                                else:
+                                    continue
+                                
+
                             problem_file_code_copy = copy.deepcopy(problem_file.code)
+                            # if snippet.name == "x=?":
+                            #     print(problem_file_code_copy.lines)
+                            #     breakpoint()
+                            print(problem_file_code_copy.lines[snippet.start_line+1:snippet.end_line], completion.formatted_completion.lines)
+                            # breakpoint()
                             problem_file_code_copy.lines[snippet.start_line+1:snippet.end_line] = completion.formatted_completion.lines
                             problem_file_str = str(problem_file_code_copy)
                             problem_file_full_path = os.path.join(cache_dir, self.folder_name, problem.folder_name, problem_file.rel_path)
@@ -136,7 +247,7 @@ class PSet(BaseModel):
                                 f.write(open(os.path.join(problem_src_dir, problem.test_entry_point)).read())
 
                             run_test_command = f"cd {problem_cache_dir} && timeout {timeout_seconds} python {os.path.join(problem.test_entry_point)}"
-                            print(run_test_command)
+                            print(snippet.name, run_test_command)
                             success, exit_code, stdout, stderr = run_shell_command(run_test_command)
                             print(success, exit_code, stdout, stderr)
                             print()

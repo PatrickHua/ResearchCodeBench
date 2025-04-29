@@ -387,9 +387,7 @@ def main(args):
             loss_kwargs["align_only"] = False
 
             sit_outputs = model(
-                # <paper2code name="z">
                 x=z.detach(),
-                # </paper2code name="z">
                 y=labels,
                 zs=zs,
                 loss_kwargs=loss_kwargs,
