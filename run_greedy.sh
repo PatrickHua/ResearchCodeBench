@@ -6,9 +6,8 @@ python main.py --data_folder pset/ \
     --temperature 0 \
     --summarize_results \
     --max_retries 100 \
-    --gen \
-    --test \
-    --contamination_free \
+    # --gen \
+    # --test \
     # --overwrite_test_by_llm GEMINI_2_0_FLASH \
     # --overwrite_test_by_prob REPA-E \
     # --overwrite_gen_by_llm GPT_4O_2024_08_06 \

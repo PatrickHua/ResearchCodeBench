@@ -21,7 +21,7 @@ from tqdm import tqdm
 from core.annotation.utils.knowledge_cut_off_date import get_nearest_knowledge_cutoff
 import datetime
 from datetime import datetime as dt
-
+from core.data_classes.llm_type import LLMType, MODEL_CONFIGS
 
 class PSet(BaseModel):
     folder_name: str = Field(default='pset')
@@ -378,17 +378,17 @@ class PSet(BaseModel):
         """
         # Dictionary to track success counts for each LLM type
         llm_stats = {}
-        
         # Dictionary to store detailed results for JSON output
         detailed_results = {
             "problems": [],
             "overall_stats": {},
             "best_performing_llm": None
         }
-        # breakpoint()
+        
         paper_yaml_path = os.path.join(self.folder_name, "papers.yaml")
         with open(paper_yaml_path, "r") as f:
-            papers = yaml.safe_load(f)
+            papers = yaml.load(f, Loader=yaml.BaseLoader)
+            # breakpoint()
         papers_dict = {paper["id"]: paper for paper in papers}
 
         
@@ -409,12 +409,6 @@ class PSet(BaseModel):
                 if is_contaminated:
                     contaminated_problems.append(problem.folder_name)
             print(f"Found {len(contaminated_problems)} contaminated problems: {contaminated_problems}")
-            # papers_dict = {k: v for k, v in papers_dict.items() if k not in contaminated_problems}
-        # breakpoint()
-        # for paper in papers:
-        #     if paper["id"] not in self.problems:
-        #         print(f"Paper {paper['id']} not found in pset")
-        #         breakpoint()
         
         # Print detailed results and gather statistics
         print("\n=== DETAILED RESULTS ===")
@@ -423,14 +417,12 @@ class PSet(BaseModel):
 
             if problem.folder_name in contaminated_problems:
                 continue
-            llm_stats[problem.folder_name] = {}
             
-            papers_dict[problem.folder_name]['first_commit_date']
+            llm_stats[problem.folder_name] = {"paper_metadata": papers_dict[problem.folder_name], "results": {}}
             
             for problem_file in problem.problem_files:
                 for snippet_idx, snippet in enumerate(problem_file.snippets, 1):
-                    # print(f"\n  Snippet {snippet_idx} ({snippet.name}):")
-                    # llm_stats[problem.folder_name][snippet.name] = {}
+                    
                     # Get the number of code lines in this snippet
                     snippet_code_lines = snippet.code.get_code_lines()
                     snippet_code_line_count = len(snippet_code_lines)
@@ -440,15 +432,17 @@ class PSet(BaseModel):
                         # Initialize stats for this LLM type if not already done
                         if any(completion.test_result is None for completion in predictions.completions):
                             continue
-                        if llm_type_name not in llm_stats[problem.folder_name]:
-                            llm_stats[problem.folder_name][llm_type_name] = {}
-                        if snippet.name not in llm_stats[problem.folder_name][llm_type_name]:
-                            llm_stats[problem.folder_name][llm_type_name][snippet.name] = []
+                        if llm_type_name not in llm_stats[problem.folder_name]["results"]:
+                            llm_stats[problem.folder_name]["results"][llm_type_name] = {"results": {}}
+                            # llm_stats[problem.folder_name]["results"][llm_type_name]["llm_cfg"] =
+                            # breakpoint()
+                        if snippet.name not in llm_stats[problem.folder_name]["results"][llm_type_name]["results"]:
+                            llm_stats[problem.folder_name]["results"][llm_type_name]["results"][snippet.name] = []
                         
                         for completion_idx, completion in enumerate(predictions.completions):
                             if completion_idx + 1 > n_completions:
                                 break
-                            llm_stats[problem.folder_name][llm_type_name][snippet.name].append({
+                            llm_stats[problem.folder_name]["results"][llm_type_name]["results"][snippet.name].append({
                                 "snippet_code_line_count": snippet_code_line_count,
                                 "completion_idx": completion_idx,
                                 "passed": completion.test_result.passed,
@@ -459,9 +453,6 @@ class PSet(BaseModel):
         # Dictionary to store success rates for plotting
         problem_llm_success_rates = []
         
-        # benchmark_results = {}
-        
-        
         for i in range(n_completions):
             problem_llm_success_rates_per_completion = {}
             for problem_folder_name, problem_stats in llm_stats.items():
@@ -469,12 +460,12 @@ class PSet(BaseModel):
                     continue
                 problem_llm_success_rates_per_completion[problem_folder_name] = {}
                 
-                for llm_type_name, llm_type_stats in problem_stats.items():
+                for llm_type_name, llm_type_stats in problem_stats["results"].items():
                     success_lines: List[int] = []
                     total_lines: List[int] = []
                     
-                    for snippet_name, snippet_stats in llm_type_stats.items():
-                        
+                    for snippet_name, snippet_stats in llm_type_stats["results"].items():
+                        # breakpoint()
                         if snippet_stats[i]["passed"]:
                             success_lines.append(snippet_stats[i]["snippet_code_line_count"])
                             print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} passed")
@@ -487,120 +478,150 @@ class PSet(BaseModel):
                     print(f"#### {i} {problem_folder_name} {llm_type_name} {success_lines}/{total_lines} ({success_rate_per_problem:.1f}%)")
                     problem_llm_success_rates_per_completion[problem_folder_name][llm_type_name] = success_rate_per_problem  # Convert to percentage
             problem_llm_success_rates.append(problem_llm_success_rates_per_completion)
-        # for i in range(n_completions):
-        #     print(problem_llm_success_rates[i]["OptimalSteps"]['O3_MINI_HIGH'])
-        # breakpoint()
+            
         # Create visualization
-        self._create_performance_plots(problem_llm_success_rates, plot_path=os.path.join(output_dir, f"results_summary_{'contamination_free' if contamination_free else ''}.png"))
+        problem_llm_success_rates_dict = self._create_performance_plots(problem_llm_success_rates, plot_path=os.path.join(output_dir, f"results_summary_{'contamination_free' if contamination_free else ''}.png"))
 
         # Show overall success rates for each LLM type across all problems
-        self._show_overall_success_rates(llm_stats, plot_path=os.path.join(output_dir, f"overall_success_rates_{'contamination_free' if contamination_free else ''}.png"))
+        overall_stats = self._show_overall_success_rates(llm_stats, plot_path=os.path.join(output_dir, f"overall_success_rates_{'contamination_free' if contamination_free else ''}.png"))
+        # self._count_snippets_per_llm(llm_stats)
         
+        for problem_folder_name, problem_stats in llm_stats.items():
+            llm_stats[problem_folder_name]["problem_scores"] = problem_llm_success_rates_dict[problem_folder_name]
+            # breakpoint()
+        for llm_type_name, llm_type_stats in overall_stats.items():
+            overall_stats[llm_type_name]["llm_cfg"] = MODEL_CONFIGS[LLMType[llm_type_name]].model_dump()
+            
+            # [problem_llm_success_rates[i][problem_folder_name] for i in range(n_completions)]
+        # breakpoint()
+        llm_stats_json = {'results': llm_stats, 'overall_scores': overall_stats}
         # Count snippets per LLM per completion
-        self._count_snippets_per_llm(llm_stats)
+        
 
         # Save results to JSON if requested
         if save_to_json:
             import json
-            with open(os.path.join(output_dir, f"results_summary_{'contamination_free' if contamination_free else ''}.json"), "w") as f:
+            # Save detailed problem stats
+            with open(os.path.join(output_dir, f"results_summary{'_contamination_free' if contamination_free else ''}.json"), "w") as f:
                 json.dump(llm_stats, f, indent=2)
+            # breakpoint()
+            # Save overall stats
+            with open(os.path.join(output_dir, f"overall_stats{'_contamination_free' if contamination_free else ''}.json"), "w") as f:
+                json.dump(llm_stats_json, f, indent=2)
+            
             print(f"\nDetailed results saved to {os.path.join(output_dir, 'results_summary.json')}")
+            print(f"Overall statistics saved to {os.path.join(output_dir, 'overall_stats.json')}")
     
-    def _create_performance_plots(self, problem_llm_success_rates, plot_path: str):
+# import math
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from typing import List, Dict, Any
+
+    def _create_performance_plots(
+        self,
+        problem_llm_success_rates: List[Dict[str, Dict[str, float]]],
+        plot_path: str
+    ) -> Dict[str, Dict[str, Dict[str, float]]]:
         """
-        Create a visualization of LLM performance for each problem with error bars.
-        
+        Plot LLM success rates per problem with error bars.
+
         Args:
-            problem_llm_success_rates: List of dictionaries mapping problem names to LLM success rates
-            output_dir: Path to use for saving the plot 
+            problem_llm_success_rates:
+                A list where each element is a dict mapping
+                problem_name -> {llm_type: success_rate, ...}.
+            plot_path:
+                Filepath to save the resulting PNG.
+
+        Returns:
+            {
+            problem_name: {
+                llm_type_1: {'mean': ..., 'std': ...},
+                llm_type_2: {'mean': ..., 'std': ...},
+                ...
+            },
+            ...
+            }
         """
-        num_completions = len(problem_llm_success_rates)
-        
-        if num_completions == 0:
-            print("No data to visualize.")
-            return
-            
-        # Get all unique problem names and LLM types across all completions
-        all_problems = set()
-        all_llm_types = set()
-        
-        for completion_results in problem_llm_success_rates:
-            all_problems.update(completion_results.keys())
-            for problem, llm_rates in completion_results.items():
-                all_llm_types.update(llm_rates.keys())
-        
-        all_problems = sorted(list(all_problems))
-        all_llm_types = sorted(list(all_llm_types))
-        
-        num_problems = len(all_problems)
-        if num_problems == 0:
-            print("No problems with results to visualize.")
-            return
-            
-        # Calculate grid dimensions for subplots
-        cols = min(4, num_problems)  # Max 4 columns
-        rows = math.ceil(num_problems / cols)
-        
-        # Create figure and subplots
-        plt.figure(figsize=(cols * 5, rows * 4))
-        
-        for i, problem_name in enumerate(all_problems, 1):
-            # Calculate mean and standard deviation for each LLM type
-            means = []
-            stds = []
-            
-            for llm_type in all_llm_types:
-                # Collect rates for this problem and LLM type across all completions
-                rates = []
-                for completion_results in problem_llm_success_rates:
-                    if problem_name in completion_results and llm_type in completion_results[problem_name]:
-                        rates.append(completion_results[problem_name][llm_type])
-                
-                if rates:
-                    means.append(np.mean(rates))
-                    stds.append(np.std(rates))
-                else:
-                    means.append(0)
-                    stds.append(0)
-            
-            # Create subplot
-            ax = plt.subplot(rows, cols, i)
-            
-            # Plot bar chart with error bars
-            x_pos = np.arange(len(all_llm_types))
-            bars = ax.bar(x_pos, means, yerr=[std if std > 0 else np.nan for std in stds], 
-                         align='center', color='skyblue', alpha=0.7, ecolor='black', capsize=5)
-            
-            # Add labels and customize
-            ax.set_title(f"Problem: {problem_name}")
-            ax.set_xlabel("LLM Type")
+        n = len(problem_llm_success_rates)
+        if n == 0:
+            raise ValueError("No data to visualize.")
+
+        # collect all problems and LLM keys
+        all_problems = sorted({p for batch in problem_llm_success_rates for p in batch})
+        all_llms     = sorted({
+            llm
+            for batch in problem_llm_success_rates
+            for rates in batch.values()
+            for llm in rates
+        })
+        if not all_problems:
+            raise ValueError("No problems with results to visualize.")
+
+        # prepare return dict
+        stats: Dict[str, Dict[str, Dict[str, float]]] = {}
+
+        # grid for subplots
+        cols = min(4, len(all_problems))
+        rows = math.ceil(len(all_problems) / cols)
+        fig, axes = plt.subplots(rows, cols, figsize=(cols * 4, rows * 3), squeeze=False)
+
+        for idx, problem in enumerate(all_problems):
+            row, col = divmod(idx, cols)
+            ax = axes[row][col]
+
+            # build per-LLM stats
+            per_llm: Dict[str, Dict[str, float]] = {}
+            for llm in all_llms:
+                vals = [
+                    batch[problem][llm]
+                    for batch in problem_llm_success_rates
+                    if problem in batch and llm in batch[problem]
+                ]
+                mean = float(np.mean(vals)) if vals else 0.0
+                std  = float(np.std(vals))  if vals else 0.0
+                per_llm[llm] = {'mean': mean, 'std': std}
+
+            stats[problem] = per_llm
+
+            # plot
+            x = range(len(all_llms))
+            means = [per_llm[llm]['mean'] for llm in all_llms]
+            stds  = [per_llm[llm]['std']  for llm in all_llms]
+
+            ax.bar(x, means, yerr=stds, align='center', capsize=4)
+            ax.set_title(problem)
+            ax.set_xticks(x)
+            ax.set_xticklabels(all_llms, rotation=45, ha='right')
+            ax.set_ylim(0, 105)
             ax.set_ylabel("Success Rate (%)")
-            ax.set_xticks(x_pos)
-            ax.set_xticklabels(all_llm_types, rotation=45, ha='right')
-            ax.set_ylim(0, 105)  # 0-100% with a little margin
-            
-            # Add value labels on top of bars
-            for bar, mean, std in zip(bars, means, stds):
-                if std > 0:
-                    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + std + 1,
-                            f"{mean:.1f}%±{std:.1f}", ha='center', va='bottom', fontsize=8)
-                else:
-                    ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
-                            f"{mean:.1f}%", ha='center', va='bottom', fontsize=8)
-        
+
+            # annotate
+            for xi, llm in zip(x, all_llms):
+                m, s = per_llm[llm]['mean'], per_llm[llm]['std']
+                label = f"{m:.1f}%±{s:.1f}" if s > 0 else f"{m:.1f}%"
+                ax.text(xi, m + (s if s > 0 else 1), label,
+                        ha='center', va='bottom', fontsize=7)
+
+        # hide unused axes
+        total = rows * cols
+        for extra in range(len(all_problems), total):
+            r, c = divmod(extra, cols)
+            axes[r][c].axis('off')
+
         plt.tight_layout()
-        
-        # Save plot
-        # plot_path = json_path.replace('.json', '.png')
-        plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-        print(f"Performance visualization saved to {plot_path}")
-        plt.close()
+        fig.savefig(plot_path, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        # breakpoint()
+        return stats
 
     def _show_overall_success_rates(self, llm_stats, plot_path: str = "overall_success_rates.png"):
         """
         Display the overall success rates for each LLM type across all problems.
         Success rate is calculated as: (total passed lines) / (total lines) across all problems.
         Includes standard deviation across different completions.
+        
+        Returns:
+            dict: Dictionary containing success rate statistics for each LLM type
         """
         print("\n=== OVERALL SUCCESS RATES ===")
         
@@ -609,11 +630,11 @@ class PSet(BaseModel):
         
         # First, organize by completion
         for problem_folder_name, problem_stats in llm_stats.items():
-            for llm_type_name, llm_type_stats in problem_stats.items():
+            for llm_type_name, llm_type_stats in problem_stats["results"].items():
                 if llm_type_name not in llm_completion_rates:
                     llm_completion_rates[llm_type_name] = {}
                 
-                for snippet_name, snippet_stats in llm_type_stats.items():
+                for snippet_name, snippet_stats in llm_type_stats["results"].items():
                     for completion_stats in snippet_stats:
                         completion_idx = completion_stats["completion_idx"]
                         
@@ -667,6 +688,8 @@ class PSet(BaseModel):
         # Create bar chart visualization with error bars
         if sorted_llms:
             self._plot_overall_success_rates(sorted_llms, plot_path=plot_path)
+        # breakpoint()
+        return llm_success_rates
 
     def _count_snippets_per_llm(self, llm_stats):
         """
