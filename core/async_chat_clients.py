@@ -57,6 +57,9 @@ class AsyncChatClients:
             'DEEPSEEK': AsyncOpenAI(api_key=os.getenv('DEEPSEEK_API_KEY'),
                                     base_url="https://api.deepseek.com/v1",
                                     http_client=http_client),
+            'OPENROUTER': AsyncOpenAI(api_key=os.getenv('OPENROUTER_API_KEY'),
+                                      base_url="https://openrouter.ai/api/v1",
+                                      http_client=http_client),
         }
         self.all_responses = []
         self.total_inference_cost = 0
@@ -92,10 +95,12 @@ class AsyncChatClients:
         return_full_response: bool = False,
         num_completions: int = 1,
         stream: bool = False,
+        debug: bool = False,
+        max_retry_empty_response: int = 3,  # New parameter for retrying empty responses
     ) -> Any:
         company = MODEL_CONFIGS[llm_type].company
         client_kwargs = MODEL_CONFIGS[llm_type].client_kwargs
-        # breakpoint()
+        
         full_kwargs = dict(
             model=MODEL_CONFIGS[llm_type].model,
             messages=(
@@ -110,7 +115,7 @@ class AsyncChatClients:
             stream=stream,
         ) | client_kwargs
 
-        async def make_single_request():
+        async def make_single_request(retry_count=0):
             start_time = asyncio.get_event_loop().time()
             request_id = id(start_time)
             logger.info(f"[{request_id}] Starting request to {company} ({llm_type.value}) at {start_time:.3f}")
@@ -128,10 +133,54 @@ class AsyncChatClients:
                         response = await self.llm_clients[company].responses.create(**response_kwargs)
                     else:
                         response = await self.llm_clients[company].chat.completions.create(**full_kwargs)
+                    
+                    # Check for empty or error responses
+                    if hasattr(response, 'error') and response.error is not None:
+                        error_msg = f"Provider error: {response.error.get('message', 'Unknown error')}"
+                        
+                        # Check if the error is retryable
+                        is_retryable = False
+                        if hasattr(response.error, 'metadata') and response.error.metadata:
+                            if 'raw' in response.error.metadata and 'retryable' in response.error.metadata['raw']:
+                                is_retryable = response.error.metadata['raw']['retryable']
+                        
+                        # If error is retryable and we haven't exceeded retry_count
+                        if is_retryable and retry_count < max_retry_empty_response:
+                            logger.warning(f"[{request_id}] Retryable error: {error_msg}. Attempt {retry_count+1}/{max_retry_empty_response}")
+                            # Add jitter to avoid thundering herd
+                            jitter = random.uniform(0, wait_time)
+                            await asyncio.sleep(wait_time + jitter)
+                            # Exponential backoff
+                            wait_time *= 2
+                            return await make_single_request(retry_count + 1)
+                        else:
+                            logger.error(f"[{request_id}] Non-retryable error or max retries reached: {error_msg}")
+                    
+                    # Check for empty responses (no content)
+                    is_empty = False
+                    if llm_type in MODELS_USING_RESPONSE_API:
+                        is_empty = not hasattr(response, 'output_text') or not response.output_text
+                    else:
+                        is_empty = (not hasattr(response, 'choices') or 
+                                   not response.choices or 
+                                   not hasattr(response.choices[0], 'message') or
+                                   not hasattr(response.choices[0].message, 'content') or
+                                   not response.choices[0].message.content)
+                    
+                    if is_empty and retry_count < max_retry_empty_response:
+                        logger.warning(f"[{request_id}] Empty response received. Retrying ({retry_count+1}/{max_retry_empty_response})")
+                        # Add jitter to avoid thundering herd
+                        jitter = random.uniform(0, wait_time)
+                        await asyncio.sleep(wait_time + jitter)
+                        # Exponential backoff
+                        wait_time *= 2
+                        return await make_single_request(retry_count + 1)
+                    
                     end_time = asyncio.get_event_loop().time()
                     duration = end_time - start_time
                     logger.info(f"[{request_id}] Completed request to {company} ({llm_type.value}) at {end_time:.3f} (took {duration:.3f}s)")
                     return response
+                    
                 except RateLimitError as e:
                     # Check if the API provided a "Retry-After" header
                     retry_after = None
@@ -166,28 +215,77 @@ class AsyncChatClients:
         batch_start_time = asyncio.get_event_loop().time()
         logger.info(f"Starting batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_start_time:.3f}")
         
-        responses = await asyncio.gather(*tasks)
+        responses = await asyncio.gather(*tasks, return_exceptions=True)
         
         batch_end_time = asyncio.get_event_loop().time()
         batch_duration = batch_end_time - batch_start_time
         logger.info(f"Completed batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_end_time:.3f} (took {batch_duration:.3f}s)")
-        
-        # Handle different response formats
-        if llm_type in MODELS_USING_RESPONSE_API:
-            # breakpoint()
-            response_strs = [response.output_text for response in responses]
-        else:
-            response_strs = [response.choices[0].message.content for response in responses]
 
-        cost = sum(self.calc_cost(response=response, llm_type=llm_type) for response in responses)
+        # Handle responses with exceptions
+        valid_responses = []
+        for r in responses:
+            if isinstance(r, Exception):
+                logger.error(f"Encountered error in request: {r}")
+            else:
+                valid_responses.append(r)
 
-        full_response = {
-            'response': responses[-1],
-            'response_str': response_strs,
-            'cost': cost
-        }
-        self.total_inference_cost += cost
-        self.all_responses.append(full_response)
+        if not valid_responses:
+            logger.error("No valid responses received from any request")
+            return [] if not return_full_response else {'response': None, 'response_str': [], 'cost': 0, 'error': 'All requests failed'}
+
+        if debug:
+            print(valid_responses)
+        try:
+            # Handle different response formats
+            if llm_type in MODELS_USING_RESPONSE_API:
+                response_strs = [response.output_text for response in valid_responses if hasattr(response, 'output_text')]
+            else:
+                response_strs = []
+                for response in valid_responses:
+                    if (hasattr(response, 'choices') and response.choices and 
+                        hasattr(response.choices[0], 'message') and 
+                        hasattr(response.choices[0].message, 'content')):
+                        response_strs.append(response.choices[0].message.content)
+                    elif hasattr(response, 'error'):
+                        logger.warning(f"Response contains error: {response.error}")
+                        response_strs.append(f"Error: {response.error.get('message', 'Unknown error')}")
+                    else:
+                        logger.warning(f"Unable to extract content from response: {response}")
+                        response_strs.append("Error: Unable to extract content from response")
+
+            # Calculate cost only for valid responses with expected structure
+            costs = []
+            for response in valid_responses:
+                try:
+                    cost = self.calc_cost(response=response, llm_type=llm_type)
+                    costs.append(cost)
+                except Exception as e:
+                    logger.warning(f"Failed to calculate cost for response: {e}")
+                    costs.append(0)
+            
+            total_cost = sum(costs)
+
+            full_response = {
+                'response': valid_responses[-1] if valid_responses else None,
+                'response_str': response_strs,
+                'cost': total_cost
+            }
+            self.total_inference_cost += total_cost
+            self.all_responses.append(full_response)
+            
+        except Exception as e:
+            logger.error(f"Error processing responses: {e}")
+            full_response = {
+                'response': valid_responses[-1] if valid_responses else None, 
+                'response_str': [],
+                'cost': 0,
+                'error': str(e)
+            }
+            response_strs = []
+            
+            logger.error(f"Valid responses: {valid_responses}")
+            logger.error(f"Error: {e}. Returning empty response.")
+            breakpoint()
         return full_response if return_full_response else response_strs
 
 # Example usage:
@@ -195,7 +293,7 @@ async def main():
     clients = AsyncChatClients()
     try:
         output = await clients.run(
-            llm_type=LLMType.O1_HIGH,  # Adjust to your model type
+            llm_type=LLMType.OPENROUTER_GEMINI_2_5_FLASH_PREVIEW_THINKING,  # Adjust to your model type
             # llm_type=LLMType.GPT_4O_MINI,
             # llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
             # llm_type=LLMType.GROK_3_BETA,
@@ -204,6 +302,7 @@ async def main():
             system_message='You are a helpful assistant.',
             num_completions=1,
             temperature=0,
+            debug=True,
         )
         print("Response:", output)
     except Exception as e:

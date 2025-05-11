@@ -34,7 +34,7 @@
   github_url: https://github.com/SalesforceAIResearch/DiffusionDPO
   first_commit_date: 2023-12-24
   last_commit_date: 2025-02-03
-  venue: arXiv2023
+  venue: CVPR2024
 
   annotated_file_paths: loss.py
   context_file_paths: train.py

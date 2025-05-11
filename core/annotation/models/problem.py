@@ -94,6 +94,7 @@ class Problem(BaseModel):
                 temperature=temperature,
                 wo_paper=wo_paper,
             )
+            # breakpoint()
             return snippet
         
         # Gather all snippets across all problem files

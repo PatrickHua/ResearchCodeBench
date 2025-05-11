@@ -73,7 +73,7 @@ Notice how:
         num_completions=n_completions,
         temperature=temperature
     )
-
+    # breakpoint()
 
     try:
         formatted_completions_lines = [Code(extract_python_code_blocks(completion, return_as_list=True)[-1]) for completion in completions]

@@ -466,13 +466,16 @@ class PSet(BaseModel):
                     
                     for snippet_name, snippet_stats in llm_type_stats["results"].items():
                         # breakpoint()
-                        if snippet_stats[i]["passed"]:
-                            success_lines.append(snippet_stats[i]["snippet_code_line_count"])
-                            print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} passed")
-                        else:
-                            print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} failed")
-                        total_lines.append(snippet_stats[i]["snippet_code_line_count"])
-                        
+                        try:
+                            if snippet_stats[i]["passed"]:
+                                success_lines.append(snippet_stats[i]["snippet_code_line_count"])
+                                print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} passed")
+                            else:
+                                print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} failed")
+                            total_lines.append(snippet_stats[i]["snippet_code_line_count"])
+                        except Exception as e:
+                            print(f"Error processing snippet {snippet_name}: {e}")
+                            breakpoint()
                     success_rate_per_problem = 100 * sum(success_lines) / sum(total_lines) if sum(total_lines) > 0 else 0
 
                     print(f"#### {i} {problem_folder_name} {llm_type_name} {success_lines}/{total_lines} ({success_rate_per_problem:.1f}%)")
