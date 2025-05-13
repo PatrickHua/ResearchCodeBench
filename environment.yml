@@ -39,3 +39,5 @@ dependencies:
     - einops
     - tensordict
     - torchrl
+    - google-genai
+    - openai

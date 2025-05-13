@@ -16,6 +16,8 @@ from typing import Any, Optional
 from openai import AsyncOpenAI, RateLimitError
 import httpx
 
+# from google import genai
+
 # Assuming MODEL_CONFIGS and LLMType are already defined...
 
 logging.basicConfig(level=logging.INFO)
@@ -220,72 +222,35 @@ class AsyncChatClients:
         batch_end_time = asyncio.get_event_loop().time()
         batch_duration = batch_end_time - batch_start_time
         logger.info(f"Completed batch of {num_completions} requests to {company} ({llm_type.value}) at {batch_end_time:.3f} (took {batch_duration:.3f}s)")
-
-        # Handle responses with exceptions
-        valid_responses = []
-        for r in responses:
-            if isinstance(r, Exception):
-                logger.error(f"Encountered error in request: {r}")
-            else:
-                valid_responses.append(r)
-
-        if not valid_responses:
-            logger.error("No valid responses received from any request")
-            return [] if not return_full_response else {'response': None, 'response_str': [], 'cost': 0, 'error': 'All requests failed'}
-
         if debug:
-            print(valid_responses)
+            print(responses)
         try:
             # Handle different response formats
             if llm_type in MODELS_USING_RESPONSE_API:
-                response_strs = [response.output_text for response in valid_responses if hasattr(response, 'output_text')]
+                # breakpoint()
+                response_strs = [response.output_text for response in responses]
             else:
-                response_strs = []
-                for response in valid_responses:
-                    if (hasattr(response, 'choices') and response.choices and 
-                        hasattr(response.choices[0], 'message') and 
-                        hasattr(response.choices[0].message, 'content')):
-                        response_strs.append(response.choices[0].message.content)
-                    elif hasattr(response, 'error'):
-                        logger.warning(f"Response contains error: {response.error}")
-                        response_strs.append(f"Error: {response.error.get('message', 'Unknown error')}")
-                    else:
-                        logger.warning(f"Unable to extract content from response: {response}")
-                        response_strs.append("Error: Unable to extract content from response")
+                # breakpoint()
+                response_strs = [response.choices[0].message.content for response in responses]
 
-            # Calculate cost only for valid responses with expected structure
-            costs = []
-            for response in valid_responses:
-                try:
-                    cost = self.calc_cost(response=response, llm_type=llm_type)
-                    costs.append(cost)
-                except Exception as e:
-                    logger.warning(f"Failed to calculate cost for response: {e}")
-                    costs.append(0)
-            
-            total_cost = sum(costs)
+            cost = sum(self.calc_cost(response=response, llm_type=llm_type) for response in responses)
 
             full_response = {
-                'response': valid_responses[-1] if valid_responses else None,
+                'response': responses[-1],
                 'response_str': response_strs,
-                'cost': total_cost
+                'cost': cost
             }
-            self.total_inference_cost += total_cost
+            self.total_inference_cost += cost
             self.all_responses.append(full_response)
             
         except Exception as e:
-            logger.error(f"Error processing responses: {e}")
-            full_response = {
-                'response': valid_responses[-1] if valid_responses else None, 
-                'response_str': [],
-                'cost': 0,
-                'error': str(e)
-            }
-            response_strs = []
+            full_response = {}
+            response_strs = ''
             
-            logger.error(f"Valid responses: {valid_responses}")
-            logger.error(f"Error: {e}. Returning empty response.")
-            breakpoint()
+            print(responses)
+            print(f"Error: {e}. Returning empty response.")
+            # breakpoint()
+
         return full_response if return_full_response else response_strs
 
 # Example usage:
@@ -293,12 +258,12 @@ async def main():
     clients = AsyncChatClients()
     try:
         output = await clients.run(
-            llm_type=LLMType.OPENROUTER_GEMINI_2_5_FLASH_PREVIEW_THINKING,  # Adjust to your model type
+            llm_type=LLMType.GEMINI_2_5_FLASH_PREVIEW_04_17,  # Adjust to your model type
             # llm_type=LLMType.GPT_4O_MINI,
             # llm_type=LLMType.CLAUDE_3_5_SONNET_2024_10_22,
             # llm_type=LLMType.GROK_3_BETA,
             # llm_type=LLMType.GROK_2_1212,
-            user_message='Hello, how are you?',
+            user_message="Hi, how are you? (respond hello only.)",
             system_message='You are a helpful assistant.',
             num_completions=1,
             temperature=0,

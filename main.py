@@ -38,6 +38,7 @@ def parse_args():
     parser.add_argument("--contamination_free", action="store_true")
     parser.add_argument("--resume_from_ckpt_dir", type=str, default=None)
     parser.add_argument("--timeout_seconds", type=int, default=60)
+    parser.add_argument("--delete_llm", type=str, default=None)
     # parser.add_argument("--test_all", action="store_true")
     # parser.add_argument("--test_one", default=None, type=str, help="Only test this problem")
     
@@ -71,6 +72,10 @@ def parse_args():
             raise ValueError(f"Invalid LLM type: {name}. Valid values are: {[e.name for e in LLMType]}")
         llm_types.append(llm_type)
     
+    if args.delete_llm is not None:
+        # llm_types = [llm_type for llm_type in llm_types if llm_type.name != args.delete_llm]
+        args.delete_llm = LLMType[args.delete_llm]
+    
     clients = AsyncChatClients(max_retries=args.max_retries)
     output_file = os.path.join(args.output_dir, args.output_file)
     pset = None
@@ -82,8 +87,24 @@ def parse_args():
         
         with open(output_file, "r", encoding="utf-8") as f:
             pset = PSet.model_validate_json(f.read())
+            # breakpoint()
             if args.problems is not None:
                 pset.problems = [problem for problem in pset.problems if problem.folder_name in args.problems]
+
+            if args.delete_llm is not None:
+                # Delete the specified LLM type from all problems' snippets
+                deletion_count = 0
+                for problem in pset.problems:
+                    for problem_file in problem.problem_files:
+                        for snippet in problem_file.snippets:
+                            # Check if this LLM type exists in the snippet's predictions
+                            if args.delete_llm.name in snippet.predictions:
+                                del snippet.predictions[args.delete_llm.name]
+                                deletion_count += 1
+                if deletion_count > 0:
+                    print(f"Deleted {deletion_count} predictions for LLM type {args.delete_llm.name}")
+                else:
+                    print(f"No predictions found for LLM type {args.delete_llm.name}")
 
     pset = PSet.parse_pset(args.data_folder, pset, args.problems)
 

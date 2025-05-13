@@ -177,7 +177,8 @@
   arxiv_date: 2025-03-20
   arxiv_v1_date: 2024-07-01
   github_url: https://github.com/menhguin/minp_paper
-  first_commit_date: 2025-03-15
+  first_commit_date: 2024-11-13
+  last_commit_date: 2025-03-15
   venue: ICLR2025
 
   annotated_file_paths: implementation.py

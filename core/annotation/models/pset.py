@@ -402,6 +402,12 @@ class PSet(BaseModel):
                 cutoff_year, cutoff_month = map(int, nearest_knowledge_cutoff.split('-'))
                 cutoff_date = datetime.date(cutoff_year, cutoff_month, 1)
                 
+                # Convert first_commit_date string to date object if it's a string
+                if isinstance(first_commit_date, str):
+                    # Assuming format is something like 'YYYY-MM-DD'
+                    year, month, day = map(int, first_commit_date.split('-'))
+                    first_commit_date = datetime.date(year, month, day)
+                
                 # Compare the dates
                 is_contaminated = first_commit_date <= cutoff_date
                 print(f"First commit date: {first_commit_date}, Knowledge cutoff: {cutoff_date}")
@@ -467,12 +473,18 @@ class PSet(BaseModel):
                     for snippet_name, snippet_stats in llm_type_stats["results"].items():
                         # breakpoint()
                         try:
-                            if snippet_stats[i]["passed"]:
+
+                            if len(snippet_stats) == 0:
+                                print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats} failed")
+                            elif not snippet_stats[i]["passed"]:
+                                print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} failed")
+                                total_lines.append(snippet_stats[i]["snippet_code_line_count"])
+                            else:
                                 success_lines.append(snippet_stats[i]["snippet_code_line_count"])
                                 print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} passed")
-                            else:
-                                print(f"#### {i} {problem_folder_name} {llm_type_name} {snippet_name} {snippet_stats[i]['snippet_code_line_count']} failed")
-                            total_lines.append(snippet_stats[i]["snippet_code_line_count"])
+                            
+                                total_lines.append(snippet_stats[i]["snippet_code_line_count"])
+                            
                         except Exception as e:
                             print(f"Error processing snippet {snippet_name}: {e}")
                             breakpoint()
@@ -644,35 +656,51 @@ class PSet(BaseModel):
                         if completion_idx not in llm_completion_rates[llm_type_name]:
                             llm_completion_rates[llm_type_name][completion_idx] = {
                                 "success_lines": 0, 
-                                "total_lines": 0
+                                "total_lines": 0,
+                                "success_tasks": 0,
+                                "total_tasks": 0
                             }
                         
                         line_count = completion_stats["snippet_code_line_count"]
                         llm_completion_rates[llm_type_name][completion_idx]["total_lines"] += line_count
+                        llm_completion_rates[llm_type_name][completion_idx]["total_tasks"] += 1
                         if completion_stats["passed"]:
                             llm_completion_rates[llm_type_name][completion_idx]["success_lines"] += line_count
-        
+                            llm_completion_rates[llm_type_name][completion_idx]["success_tasks"] += 1
+                        
         # Calculate success rates for each completion
         llm_success_rates = {}
         for llm_type_name, completion_stats in llm_completion_rates.items():
             rates = []
+            task_rates = []
             for comp_idx, stats in completion_stats.items():
                 success_lines = stats["success_lines"]
                 total_lines = stats["total_lines"]
+                success_tasks = stats["success_tasks"]
+                total_tasks = stats["total_tasks"]
                 if total_lines > 0:
                     rates.append(success_lines / total_lines * 100)
-            
+                if total_tasks > 0:
+                    task_rates.append(success_tasks / total_tasks * 100)
+            llm_success_rates[llm_type_name] = {}
             if rates:
-                llm_success_rates[llm_type_name] = {
+                llm_success_rates[llm_type_name]["line_rates"] = {
                     "mean": np.mean(rates),
                     "std": np.std(rates),
                     "rates": rates
                 }
+            if task_rates:
+                llm_success_rates[llm_type_name]["task_rates"] = {
+                    "mean": np.mean(task_rates),
+                    "std": np.std(task_rates),
+                    "rates": task_rates
+                }
+                
         
         # Sort LLMs by mean success rate for better readability
         sorted_llms = sorted(
             llm_success_rates.items(),
-            key=lambda x: x[1]["mean"],
+            key=lambda x: x[1]["line_rates"]["mean"],
             reverse=True
         )
         
@@ -681,16 +709,39 @@ class PSet(BaseModel):
         print("-" * 70)
         
         for llm_type_name, stats in sorted_llms:
-            mean_rate = stats["mean"]
-            std_dev = stats["std"]
-            min_rate = min(stats["rates"])
-            max_rate = max(stats["rates"])
+            mean_rate = stats["line_rates"]["mean"]
+            std_dev = stats["line_rates"]["std"]
+            min_rate = min(stats["line_rates"]["rates"])
+            max_rate = max(stats["line_rates"]["rates"])
+            
+            print(f"{llm_type_name:<20} {mean_rate:.2f}%±{std_dev:.2f} {'':<5} {min_rate:.2f}% {'':<3} {max_rate:.2f}%")
+
+
+        # Sort LLMs by mean success rate for better readability
+        sorted_llms = sorted(
+            llm_success_rates.items(),
+            key=lambda x: x[1]["task_rates"]["mean"],
+            reverse=True
+        )
+        
+        # Print summary table
+        print(f"{'LLM Type':<20} {'Mean Rate':<15} {'Std Dev':<15} {'Min':<10} {'Max':<10}")
+        print("-" * 70)
+        
+        for llm_type_name, stats in sorted_llms:
+            mean_rate = stats["task_rates"]["mean"]
+            std_dev = stats["task_rates"]["std"]
+            min_rate = min(stats["task_rates"]["rates"])
+            max_rate = max(stats["task_rates"]["rates"])
             
             print(f"{llm_type_name:<20} {mean_rate:.2f}%±{std_dev:.2f} {'':<5} {min_rate:.2f}% {'':<3} {max_rate:.2f}%")
         
+        
+        
         # Create bar chart visualization with error bars
         if sorted_llms:
-            self._plot_overall_success_rates(sorted_llms, plot_path=plot_path)
+            self._plot_overall_success_rates(sorted_llms, plot_path=plot_path, rate_type="line_rates")
+            self._plot_overall_success_rates(sorted_llms, plot_path=plot_path.replace(".png", "_tasks.png"), rate_type="task_rates")
         # breakpoint()
         return llm_success_rates
 
@@ -737,7 +788,7 @@ class PSet(BaseModel):
         all_llm_total = sum(sum(completions.values()) for completions in snippet_counts.values())
         print(f"\nTotal snippets across all LLMs: {all_llm_total}")
 
-    def _plot_overall_success_rates(self, sorted_llms, plot_path: str = "overall_success_rates.png"):
+    def _plot_overall_success_rates(self, sorted_llms, plot_path: str = "overall_success_rates.png", rate_type: str = "line_rates"):
         """
         Create a bar chart visualization of overall success rates with error bars.
         
@@ -746,8 +797,8 @@ class PSet(BaseModel):
         """
         # Extract data for plotting
         llm_names = [llm[0] for llm in sorted_llms]
-        means = [llm[1]["mean"] for llm in sorted_llms]
-        stds = [llm[1]["std"] for llm in sorted_llms]
+        means = [llm[1][rate_type]["mean"] for llm in sorted_llms]
+        stds = [llm[1][rate_type]["std"] for llm in sorted_llms]
         
         # Create figure
         plt.figure(figsize=(10, 6))
