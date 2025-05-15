@@ -33,7 +33,7 @@ DEVELOPER_COLORS = {
     'MISTRAL': '#00A4FF',      # Mistral blue
     'DEEPSEEK': '#FF5722',     # DeepSeek orange
     'COHERE': '#8A2BE2',       # Cohere purple
-    'XAI': '#36454F',          # xAI blue
+    'XAI': '#B22222',          # xAI blue
     'META': '#0668E1',         # Meta blue
     'OPENROUTER': '#FF6B6B',   # OpenRouter red
     'QWEN': '#00CDAC',         # Qwen teal
@@ -407,7 +407,7 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
             # Add developer name to the RIGHT side of the plot instead of left
             if developer == "XAI":
                 # Draw XAI on the left side with custom coordinates
-                left_position = -0.037  # Adjust this value to move XAI text left/right
+                left_position = 1.001  # Adjust this value to move XAI text left/right
                 ax.text(left_position, latest_date - pd.DateOffset(days=3), developer, color=color, 
                        ha='left', va='top', fontweight='bold', fontsize=9,
                        transform=ax.get_yaxis_transform())
@@ -417,9 +417,13 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
                        ha='right', va='top', fontweight='bold', fontsize=9,
                        transform=ax.get_yaxis_transform())
     
+    # Create a dictionary to track paper positions
+    paper_positions = {}
+    
     # Add papers as vertical timelines
     for i, (_, paper) in enumerate(papers_df.iterrows()):
         x_pos = i + 1  # Position each paper on the x-axis
+        paper_positions[paper['id']] = x_pos
         
         # Count how many LLMs have knowledge cutoffs before paper dates
         cutoffs_before_first_commit = sum(llm_df['cutoff_date'] <= paper['first_commit_date']) if not pd.isna(paper['first_commit_date']) else 0
@@ -439,8 +443,44 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
         # Mark first commit date with square
         if not pd.isna(paper['first_commit_date']):
             ax.scatter(x_pos, paper['first_commit_date'], color='#DB4437', s=60, marker='*', zorder=5, alpha=0.8)
+    
+    # Add vertical dotted line between Chen et al. and Lee et al.
+    try:
+        # Find the positions of Chen et al. and Lee et al.
+        chen_pos = None
+        lee_pos = None
+        for i, (_, paper) in enumerate(papers_df.iterrows()):
+            if paper['id'] == "LEN":  # Chen et al.
+                chen_pos = i + 1
+            elif paper['id'] == "Tanh-Init":  # Lee et al.
+                lee_pos = i + 1
         
-
+        # If both papers are found, add a vertical line between them
+        if chen_pos is not None and lee_pos is not None:
+            # Calculate the midpoint between the two papers
+            separator_pos = (chen_pos + lee_pos) / 2
+            ax.axvline(x=separator_pos, color='black', linestyle='--', linewidth=1.0, alpha=0.7, zorder=-1)
+            
+            # Add "Contamination Free" label vertically right beside the dotted line
+            # Position it just to the right of the separator line with a small offset
+            x_offset = 0.3  # Small offset from the line (adjust as needed)
+            
+            # Place the text at a fixed position in data coordinates with a rectangle background
+            # Make it match the exact style of the year labels (square corners, same color/transparency)
+            ax.annotate("Contamination Safe", 
+                      xy=(separator_pos + x_offset, 0.4),
+                      xycoords=('data', 'axes fraction'),  # x in data coords, y in axis fraction
+                      rotation=-90,
+                      fontsize=9,
+                      ha='center',
+                      va='center',
+                      fontweight='bold',
+                      bbox=dict(facecolor='white', alpha=1, edgecolor='#636566', pad=0.2, boxstyle='square'))
+        else:
+            print("Warning: Could not find Chen et al. (LEN) or Lee et al. (Tanh-Init) in the dataset")
+    except Exception as e:
+        print(f"Error adding vertical separator line: {e}")
+    
     # Create legend elements
     legend_elements = [
         Line2D([0], [0], marker='*', color='w', markerfacecolor='#DB4437', markersize=14, label='First Code Commit'),
@@ -451,7 +491,7 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
     # Simple legend placement with figure coordinates (easy to adjust manually)
     ax.legend(handles=legend_elements, 
               loc='lower left',            # Basic position anchor
-              bbox_to_anchor=(0.755, 0.155),   # Simple x,y coordinates in figure fraction (0-1 range)
+              bbox_to_anchor=(0.75, 0.15),   # Simple x,y coordinates in figure fraction (0-1 range)
               frameon=True, 
               framealpha=0.8, 
               ncol=1,
@@ -490,7 +530,7 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
     }
     paper_labels = [f"{id2pretty_name[paper['id']]}" if paper['id'] in id2pretty_name else paper['id'] for _, paper in papers_df.iterrows()]
 
-    ax.set_xticklabels(paper_labels, rotation=45, ha='right', fontsize=9)
+    ax.set_xticklabels(paper_labels, rotation=45, ha='right', fontsize=9, fontweight='bold')
     
     # Remove x and y-axis ticks, but keep the labels
     ax.tick_params(axis='x', which='both', length=0)
@@ -499,6 +539,10 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
     # Format the y-axis to show dates properly
     ax.yaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
     ax.yaxis.set_major_locator(mdates.MonthLocator(interval=month_intervals))
+    
+    # Make y-axis labels bold
+    for label in ax.get_yticklabels():
+        label.set_fontweight('bold')
     
     # Set axis limits
     ax.set_ylim(min_date, max_date)

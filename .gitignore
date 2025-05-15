@@ -29,3 +29,5 @@ walkthrough/
 outputs*/
 **/*.png
 src/
+
+*.pdf
