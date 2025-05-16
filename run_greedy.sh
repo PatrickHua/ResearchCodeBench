@@ -36,10 +36,9 @@ python main.py --data_folder pset/ \
     --n_completions 1 \
     --temperature 0 \
     --summarize_results \
-    --contamination_free \
-    # --max_retries 100 \
-    # --gen \
-    # --test \
+    --max_retries 100 \
+    --gen \
+    --test \
 
     # --overwrite_test_by_llm OPENROUTER_QWEN_TURBO
     #  \

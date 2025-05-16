@@ -1,4 +1,4 @@
-from core.load_repo import init_repo
+# from core.load_repo import init_repo
 
 # from core.data_class import Repository, Function, Question, Completion, MetricType, LLMType, QuestionType, Paper
 from core.data_classes.models import Repository, Function, Question, Completion, Paper

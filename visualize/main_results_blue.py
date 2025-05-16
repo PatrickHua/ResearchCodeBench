@@ -6,15 +6,19 @@ import sys
 from matplotlib.cm import get_cmap
 import matplotlib as mpl
 from matplotlib.colors import LinearSegmentedColormap
+import argparse
 
 OPEN_MODEL_LINE_WIDTH = 0.7
 
 
 # Add the parent directory to sys.path to allow for relative imports
-sys.path.insert(0, os.path.abspath('..'))
+# sys.path.insert(0, os.path.abspath('..'))
+parser = argparse.ArgumentParser()
+parser.add_argument('--json_path', type=str, default='outputs/20llms_greedy/2025-05-12-17-13-20/overall_stats.json')
+args = parser.parse_args()
 
 # Load the data from the JSON file
-json_path = os.path.join('..', 'outputs', '20llms_greedy', '2025-05-12-17-13-20', 'overall_stats.json')
+json_path = args.json_path
 
 # Set up a better visual style for publication-quality figures
 plt.style.use('seaborn-v0_8-paper')

@@ -1,0 +1,21 @@
+paper_id,title,venue,cutoffs_before_arxiv_v1,cutoffs_before_arxiv,cutoffs_before_commit,pct_llms_before_v1,pct_llms_with_knowledge,pct_llms_before_implementation
+advantage-alignment,Advantage Alignment Algorithms,ICLR2025,38,57,57,66.7,100.0,100.0
+Diff-Transformer,Differential Transformer,ICLR2025,48,57,48,84.2,100.0,84.2
+DiffusionDPO,Diffusion Model Alignment Using Direct Preference Optimization,CVPR2024,24,24,31,42.1,42.1,54.4
+DyT,Transformers without Normalization,CVPR2025,57,57,57,100.0,100.0,100.0
+eomt,Your ViT is Secretly an Image Segmentation Model,CVPR2025,57,57,57,100.0,100.0,100.0
+fractalgen,Fractal Generative Models,arXiv2025,57,57,57,100.0,100.0,100.0
+GMFlow,Gaussian Mixture Flow Matching Models,arXiv2025,57,57,57,100.0,100.0,100.0
+GPS,GPS: A Probabilistic Distributional Similarity with Gumbel Priors for Set-to-Set Matching,ICLR2025,57,57,57,100.0,100.0,100.0
+grid-cell-conformal-isometry,On Conformal Isometry of Grid Cells: Learning Distance-Preserving Position Embedding,ICLR2025,35,57,57,61.4,100.0,100.0
+hyla,Attention as a Hypernetwork,ICLR2025,38,31,38,66.7,54.4,66.7
+LEN,Second-Order Min-Max Optimization with Lazy Hessians,ICLR2025,48,57,55,84.2,100.0,96.5
+llm-sci-use,Mapping the increasing use of LLMs in scientific papers,COLM2024,31,31,35,54.4,54.4,61.4
+minp,Min-p Sampling for Creative and Coherent LLM Outputs,ICLR2025,38,57,57,66.7,100.0,100.0
+OptimalSteps,Optimal Stepsize for Diffusion Sampling,arXiv2025,57,57,57,100.0,100.0,100.0
+REPA-E,REPA-E: Unlocking VAE for End-to-End Tuning with Latent Diffusion Transformers,arXiv2025,57,57,57,100.0,100.0,100.0
+schedule_free,The Road Less Scheduled,NeurIPS2024,35,48,31,61.4,84.2,54.4
+semanticist,Principal Components Enable A New Language of Images,arXiv2025,57,57,57,100.0,100.0,100.0
+SISS,Data Unlearning in Diffusion Models,ICLR2025,57,57,57,100.0,100.0,100.0
+TabDiff,TabDiff: a Mixed-type Diffusion Model for Tabular Data Generation,ICLR2025,48,57,57,84.2,100.0,100.0
+Tanh-Init,Robust Weight Initialization for Tanh Neural Networks with Fixed Point Analysis,ICLR2025,48,57,57,84.2,100.0,100.0

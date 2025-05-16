@@ -26,7 +26,7 @@ def count_functions(file_path):
     return len(functions), len(class_methods)
 
 def main():
-    base_dir = Path("/Users/tianyu/Work/paper2code/pset")
+    base_dir = Path("pset")
     
     # Get all directories in pset that don't start with underscore
     folders = [f for f in base_dir.iterdir() if f.is_dir() and not f.name.startswith('_')]

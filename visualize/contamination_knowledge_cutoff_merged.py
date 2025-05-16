@@ -6,7 +6,6 @@ import argparse
 
     # # Load the PDF files
     # pdf1_path = 'outputs_main_results/model_performance_dotted_comparison_ty.pdf'
-    # pdf2_path = '/Users/tianyu/Work/paper2code/model_paper_knowledge_debug_ty.pdf'
 
 def combine_pdfs_side_by_side(pdf1_path, pdf2_path, output_path):
     """Combine two PDFs side by side directly using PyMuPDF, ensuring they have the same height"""
@@ -89,7 +88,7 @@ def combine_pdfs_side_by_side(pdf1_path, pdf2_path, output_path):
 def parse_args():
     parser = argparse.ArgumentParser(description='Combine two PDFs side by side')
     parser.add_argument('--pdf1_path', type=str, default='outputs_main_results/model_performance_dotted_comparison_ty.pdf', help='Path to the first PDF file')
-    parser.add_argument('--pdf2_path', type=str, default='/Users/tianyu/Work/paper2code/model_paper_knowledge_debug_ty.pdf', help='Path to the second PDF file')
+    parser.add_argument('--pdf2_path', type=str, default='model_paper_knowledge_debug_ty.pdf', help='Path to the second PDF file')
     parser.add_argument('--output_path', type=str, default='outputs_main_results/combined_visualization.pdf', help='Path to save the combined PDF')
     return parser.parse_args()
 

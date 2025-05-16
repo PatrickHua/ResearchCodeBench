@@ -508,12 +508,12 @@ def remove_body_ast_from_context(code, function_name, rm_docstring=False):
 from core.data_classes.models import Repository, Function, Question
 from core.data_classes.question_type import QuestionType
 from core.data_classes.llm_type import LLMType
-from core.load_repo import init_repo
+# from core.load_repo import init_repo
 from typing import List, Callable, Union, Optional, Tuple
 from functools import partial
 import ast
 import re
-from core.load_repo import save_repos
+# from core.load_repo import save_repos
 # from visualization_tools.json_visualizer import json2html
 from core.utils import run_tasks_in_parallel, remove_body
 import asyncio

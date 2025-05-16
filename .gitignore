@@ -27,7 +27,24 @@ walkthrough/
 **/*.backup
 
 outputs*/
+visualize/outputs/*
+**/outputs/*
 **/*.png
 src/
 
 *.pdf
+
+# Exceptions - files we want to track
+# Make the exclusions more specific to avoid tracking everything in outputs/
+!outputs/20llms_greedy/2025-05-12-17-13-20/overall_stats.json
+# We need these to unignore the specific file above
+!outputs/
+!outputs/20llms_greedy/
+!outputs/20llms_greedy/2025-05-12-17-13-20/
+# Re-ignore everything else in these directories
+outputs/*/
+!outputs/20llms_greedy/
+outputs/20llms_greedy/*/
+!outputs/20llms_greedy/2025-05-12-17-13-20/
+outputs/20llms_greedy/2025-05-12-17-13-20/*
+!outputs/20llms_greedy/2025-05-12-17-13-20/overall_stats.json
