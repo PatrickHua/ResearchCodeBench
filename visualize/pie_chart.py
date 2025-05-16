@@ -80,4 +80,4 @@ ax.legend(handles=patches, loc='center left', bbox_to_anchor=(0.98, 0.5), fontsi
 # Layout and save
 plt.tight_layout()
 plt.savefig("outputs/error_distribution_pie.pdf", bbox_inches='tight')  # Uncomment to save
-# plt.show()
+plt.show()

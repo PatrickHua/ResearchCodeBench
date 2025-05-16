@@ -65,18 +65,209 @@ def plot_line_rates():
     # Create a custom blue colormap
     blues = LinearSegmentedColormap.from_list(
         'custom_blues', 
-        [
-            '#E3F2FD',  # Very light blue
-            '#BBDEFB',  # Light blue
-            '#90CAF9',  # Medium-light blue
-            '#64B5F6',  # Medium blue
-            '#42A5F5',  # Medium-strong blue
-            '#2196F3',  # Strong blue
-            '#1E88E5',  # Deeper blue
-            '#1976D2',  # Even deeper blue
-            '#1565C0',  # Deep blue
-            '#0D47A1'   # Very deep blue
-        ], 
+
+[
+    #     '#FFF5A5',  # Pineapple ice
+    # '#FFD36E',  # Golden melon
+    # '#FFA69E',  # Lychee pink
+    # '#FF686B',  # Pomegranate fizz
+    # '#C94C4C',  # Blood orange
+    # '#8E3B46',  # Plum wine
+    # '#5B3758',  # Blackberry
+    # '#3C2A4D',  # Night fig
+    # '#92E6E6',  # Shaved ice
+    # '#DFF3E3'   # Aloe mist
+    #     '#FFE66D',  # Sunburst
+    # '#FF6B6B',  # Flamingo pink
+    # '#F65C78',  # Hibiscus
+    # '#6A0572',  # Orchid bloom
+    # '#374785',  # Indigo dusk
+    # '#24305E',  # Navy fig
+    # '#3AC1A7',  # Turquoise wave
+    # '#30BCED',  # Caribbean sky
+    # '#ACE7EF',  # Glacier mist
+    # '#F8FFE5'   # Palm dew
+    
+    
+    # '#FFF9F0',  # Eggshell
+    # '#FFECD5',  # Vanilla sugar
+    # '#FFE0B2',  # Caramel drizzle
+    # '#FFD180',  # Honeycomb
+    # '#FFC04C',  # Toffee
+    # '#FFB300',  # Golden syrup
+    # '#F99F0B',  # Toasted sugar
+    # '#DD8600',  # Burnt butter
+    # '#B56C00',  # Maple
+    # '#8E5100'   # Dark molasses
+    
+    
+    
+    
+    # '#FDF0F0',  # Whisper pink
+    # '#FADADD',  # Cherry blossom
+    # '#F9C5C9',  # Pastel rose
+    # '#F7A1A1',  # Pink petal
+    # '#F77F8C',  # Soft ruby
+    # '#E46D79',  # Rosé
+    # '#C96477',  # Dusty raspberry
+    # '#A35D6A',  # Vintage mauve
+    # '#844655',  # Cocoa pink
+    # '#5C3A3A'   # Earthy rosewood
+
+
+
+    # '#FFF1E0',  # Vanilla cream
+    # '#FFE0C7',  # Light peach
+    # '#FFC7B2',  # Apricot
+    # '#FFB3A7',  # Blush
+    # '#FF968A',  # Coral
+    # '#F97C72',  # Watermelon
+    # '#EC5D57',  # Rosewood
+    # '#D1495B',  # Pomegranate
+    # '#AC3B61',  # Cranberry
+    # '#7C2F51'   # Mulberry
+    
+    #     '#F9ED69',  # Pineapple yellow
+    # '#F08A5D',  # Papaya
+    # '#B83B5E',  # Watermelon pink
+    # '#6A0572',  # Dragonfruit purple
+    # '#3E1E68',  # Grape
+    # '#2B2D42',  # Shadow navy
+    # '#3FEEE6',  # Mint splash
+    # '#55BCC9',  # Sky aqua
+    # '#97CAEF',  # Tropical blue
+    # '#E4F9F5'   # Coconut mist
+    # '#F9ED69',  # Pineapple yellow
+    # '#F08A5D',  # Papaya
+    # '#EB6A80',  # Lighter watermelon pink
+    # '#A55CA5',  # Lighter dragonfruit purple
+    # '#71589C',  # Lightened grape
+    # '#4A4E7B',  # Soft navy (less shadow)
+    # '#3FEEE6',  # Mint splash
+    # '#66D3E9',  # Softer sky aqua
+    # '#A9D8F7',  # Bright tropical blue
+    # '#E4F9F5'   # Coconut mist
+    
+    # '#F9ED69',  # Pineapple yellow
+    # '#F08A5D',  # Papaya
+    # '#EB6A80',  # Watermelon pink
+    # '#C875C8',  # Light dragonfruit (softer, lavender-tinted)
+    # '#8D75C9',  # Grape soda (cool, but not shadowy)
+    # '#7088B8',  # Breezy navy (lighter and more serene)
+    # '#3FEEE6',  # Mint splash
+    # '#66D3E9',  # Sky aqua
+    # '#A9D8F7',  # Tropical blue
+    # '#B9F6CA'   # Mint leaf (more vibrant than Coconut mist)
+
+
+    
+    '#F9ED69',  # Amazon
+    '#F08A5D',  # Anthropic
+    '#EB6A80',  # Cohere
+    '#C875C8',  # Deepseek
+    '#8D75C9',  # Google
+    '#7088B8',  # Meta
+    '#3FEEE6',  # Mistral
+    '#66D3E9',  # OpenAI
+    '#A9D8F7',  # Qwen
+    '#B9F6CA'   # XAI
+
+
+    # 'OPENAI': '#10A37F',       # OpenAI green
+    # 'ANTHROPIC': '#9933CC',    # Anthropic purple
+    # 'GOOGLE': '#4285F4',       # Google blue
+    # 'MISTRAL': '#00A4FF',      # Mistral blue
+    # 'DEEPSEEK': '#FF5722',     # DeepSeek orange
+    # 'COHERE': '#8A2BE2',       # Cohere purple
+    # 'XAI': '#B22222',          # xAI blue
+    # 'META': '#0668E1',         # Meta blue
+    # 'OPENROUTER': '#FF6B6B',   # OpenRouter red
+    # 'QWEN': '#00CDAC',        
+    
+    
+    # '#F9ED69',  # Amazon
+    # '#9933CC',  # Anthropic
+    # '#8A2BE2',  # Cohere
+    # '#FF5722',  # Deepseek
+    # '#4285F4',  # Google
+    # '#0668E1',  # Meta
+    # '#00A4FF',  # Mistral
+    # '#10A37F',  # OpenAI
+    # '#00CDAC',  # Qwen
+    # '#B22222'   # XAI
+
+
+
+
+    # Alternative options for the last color:
+    # '#80DEEA'   # Aqua blue (more saturated turquoise)
+    # '#C5E1A5'   # Light lime (fresh, vibrant green)
+    # '#81C784'   # Jade green (more muted but still visible)
+    # '#90CAF9'   # Sky blue (matches the blue theme)
+    # '#FFE082'   # Light amber (warm contrast to the blues)
+    # '#B39DDB'   # Light purple (complements the grape colors)
+
+
+    # '#FDF5E6',  # Coconut cream
+    # '#FFD9C0',  # Papaya milk
+    # '#F7A1A1',  # Strawberry glaze
+    # '#E28D9B',  # Rosé
+    # '#CD94E7',  # Violet sugar
+    # '#B4B4F9',  # Lavender mist
+    # '#9DD6F9',  # Blue punch
+    # '#90F1EF',  # Mint jelly
+    # '#C1FFD7',  # Lime foam
+    # '#FFFBDA'   # Banana mochi
+    
+    # '#FCE38A',  # Lemon sorbet
+    # '#F38181',  # Strawberry ice
+    # '#EA9AB2',  # Berry mousse
+    # '#B083EF',  # Lavender dream
+    # '#A0E7E5',  # Sea glass
+    # '#8EC6FF',  # Sky jelly
+    # '#A7FFD8',  # Lime gelato
+    # '#FCD5CE',  # Rosewater
+    # '#FFF6E5',  # Peach sherbet
+    # '#D5AAFF'   # Taro swirl
+
+
+
+
+    # '#FFEDB4',  # Lemon zest
+    # '#FFC3A1',  # Papaya milk
+    # '#F5A3B7',  # Strawberry ice
+    # '#E59BE9',  # Dragonfruit gelato
+    # '#B28DFF',  # Grape breeze
+    # '#A3C9F9',  # Sky blue
+    # '#90E0EF',  # Seafoam
+    # '#CAF7E3',  # Frozen mint
+    # '#FAF3DD',  # Pineapple cream
+    # '#FFF0F3'   # Cotton cloud
+
+
+
+    # '#EAD7C2',  # Sandstone
+    # '#DDBEA9',  # Clay
+    # '#C89F9C',  # Dusty rose
+    # '#A26769',  # Terracotta
+    # '#582C4D',  # Mulberry
+    # '#4F3824',  # Coffee bark
+    # '#7A6C5D',  # Taupe
+    # '#A2A392',  # Sage
+    # '#DDE0BD',  # Olive mist
+    # '#F8F1E5'   # Vanilla cream
+    
+    # '#E0F7FA',  # Frost
+    # '#B2EBF2',  # Polar ice
+    # '#81D4FA',  # Glacial blue
+    # '#4FC3F7',  # Arctic sky
+    # '#29B6F6',  # Crisp blue
+    # '#03A9F4',  # Blue glacier
+    # '#0288D1',  # Deep water
+    # '#0277BD',  # Ice cave
+    # '#01579B',  # Ocean trench
+    # '#003C8F'   # Glacial abyss
+], 
         N=num_developers
     )
     
@@ -104,7 +295,7 @@ def plot_line_rates():
     # Add labels and title
     # ax.set_xlabel('Models', fontweight='bold')
     # ax.set_ylabel('Line Rates (%)', fontweight='bold')
-    ax.set_title('Paper2Code-bench (Complete)', fontweight='bold')
+    ax.set_title('ResearchCodeBench', fontweight='bold')
     
     # Set x-axis ticks with model names
     ax.set_xticks(range(len(sorted_models)))

@@ -117,6 +117,14 @@ ax.set_aspect('equal')
 ax.set_xlabel('Success rate without paper context (%)', fontweight='bold')
 ax.set_ylabel('Success rate with paper context (%)', fontweight='bold')
 
+# Add title with explanation
+ax.set_title('Impact of Paper Context on Per-Task Success Rate', fontweight='bold')
+
+# Add explanatory annotation
+ax.text(0.03, 0.97, 'Success rate = % of LLMs that solved the task', 
+        transform=ax.transAxes, ha='left', va='top', 
+        fontsize=10, bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.8))
+
 # Add grid with improved aesthetics
 ax.grid(True, linestyle=':', alpha=0.3, color='gray')
 
@@ -133,19 +141,19 @@ no_difference = sum(1 for d in diff_rates if d == 0)
 # Add statistics box with improved aesthetics
 stats_text = (
     f"n = {len(snippet_ids)} tasks\n"
-    f"Avg. diff: {avg_diff:.2f}pp\n"
+    # f"Avg. diff: {avg_diff:.2f}pp\n"
     f"Better with paper: {better_with_paper} ({better_with_paper/len(snippet_ids)*100:.1f}%)\n"
     f"Better without: {better_without_paper} ({better_without_paper/len(snippet_ids)*100:.1f}%)"
 )
 ax.text(0.97, 0.03, stats_text, transform=ax.transAxes, 
-        verticalalignment='bottom', horizontalalignment='right', fontsize=11,
+        verticalalignment='bottom', horizontalalignment='right', fontsize=11,# fontweight='bold',
         bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray", alpha=0.9))
 
 # Add a colorbar to show the difference scale
-cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, 
-                    shrink=0.8, pad=0.1, aspect=30)
-cbar.set_label('Difference (pp)', fontsize=12, fontweight='bold')
-cbar.ax.tick_params(labelsize=10)
+# cbar = fig.colorbar(plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax, 
+#                     shrink=0.8, pad=0.1, aspect=30)
+# cbar.set_label('Difference (pp)', fontsize=12, fontweight='bold')
+# cbar.ax.tick_params(labelsize=10)
 
 # Adjust layout
 plt.tight_layout()

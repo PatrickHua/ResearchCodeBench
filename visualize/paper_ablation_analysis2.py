@@ -4,8 +4,10 @@ import json
 import numpy as np
 # Use serif font for publication-ready look
 plt.rcParams['font.family'] = 'serif'
+plt.rcParams['font.serif'] = ['Times New Roman']
 plt.rcParams['font.size'] = 10
-
+# bold font
+plt.rcParams['font.weight'] = 'bold'
 # Load the data files
 wo_paper_json = json.load(open("outputs/20llms_greedy_wo_paper/2025-05-13-11-43-56/overall_stats.json"))
 with_paper_json = json.load(open("outputs/20llms_greedy/2025-05-13-10-05-10/overall_stats.json"))
@@ -70,13 +72,15 @@ bars = ax.barh(y_pos, improvement, color=colors)
 # Add vertical line at x=0
 ax.axvline(x=0, color='gray', linestyle='--', alpha=0.7)
 
-# Set y-ticks to pretty names
+# Set y-ticks to pretty names but hide the tick marks
 ax.set_yticks(y_pos)
 ax.set_yticklabels(pretty_names)
+ax.tick_params(axis='y', which='both', length=0)  # Remove y-tick marks
+ax.tick_params(axis='x', which='both', length=0)  # Remove x-tick marks
 
 # Add title and labels
-ax.set_title('LLM Performance Difference with vs. without Paper Context')
-ax.set_xlabel('Performance Difference with Paper vs. Without Paper (Percentage Points)')
+ax.set_title('Impact of Paper Context', loc='right', fontweight='bold', fontsize=17)
+ax.set_xlabel('Difference in Scaled Pass@1', fontweight='bold')
 
 # Add grid lines
 ax.grid(True, alpha=0.3, axis='x')
@@ -93,8 +97,12 @@ print(f"LLMs with positive improvement: {positive_count}")
 print(f"LLMs with negative improvement: {negative_count}")
 print(f"LLMs with no improvement: {neutral_count}")
 
+# Add explanation below the plot
+plt.figtext(0.55, 0.04, 'Positive values = better with paper  |  Negative values = better without paper', 
+           ha='center', fontsize=9)
+
 # Save figure
-plt.tight_layout()
-plt.savefig("llm_paper_impact.png", dpi=300)
+plt.tight_layout(rect=[0, 0.05, 1, 1])  # Add padding at the bottom for the figtext
+plt.savefig("llm_paper_impact.png", dpi=300, bbox_inches='tight')
 plt.savefig("llm_paper_impact.pdf", bbox_inches='tight')
-plt.show()
+# plt.show()
