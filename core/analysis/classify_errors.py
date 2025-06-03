@@ -231,7 +231,7 @@ async def classify_errors_batch(error_data_list, clients, output_dir, batch_size
     # Create cache directory if it doesn't exist
     cache_dir = os.path.join(output_dir, "error_classification_cache")
     os.makedirs(cache_dir, exist_ok=True)
-    breakpoint()
+    # breakpoint()
     # Cache file path
     cache_file = os.path.join(cache_dir, "classified_errors.pickle")
     

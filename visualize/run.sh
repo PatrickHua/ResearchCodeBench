@@ -30,4 +30,4 @@ cd ..
 # python visualize/paper_ablation_analysis2.py
 # python visualize/contamination_knowledge_cutoff_merged.py --pdf1_path snippet_paper_impact_scatter.pdf --pdf2_path llm_paper_impact.pdf --output_path llm_paper_impact_merged.pdf
 
-python visualize/paper_ablation_analysis2.py && python visualize/paper_ablation_analysis2.py && python visualize/paper_ablation_analysis_scatter.py && python visualize/contamination_knowledge_cutoff_merged.py --pdf1_path snippet_paper_impact_scatter.pdf --pdf2_path llm_paper_impact.pdf --output_path llm_paper_impact_merged.pdf
+python visualize/paper_ablation_analysis2.py && python visualize/paper_ablation_analysis_scatter.py && python visualize/contamination_knowledge_cutoff_merged.py --pdf1_path snippet_paper_impact_scatter.pdf --pdf2_path llm_paper_impact.pdf --output_path llm_paper_impact_merged.pdf

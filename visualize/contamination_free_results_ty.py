@@ -208,6 +208,7 @@ def plot_line_rates():
     # Save the plots in different formats for publication
     plt.savefig(f'{output_dir}/model_performance_dotted_comparison_ty.png', dpi=300, bbox_inches='tight')
     plt.savefig(f'{output_dir}/model_performance_dotted_comparison_ty.pdf', bbox_inches='tight')
+    plt.savefig(f'{output_dir}/model_performance_dotted_comparison_ty.svg', bbox_inches='tight')
     print(f"Plots saved to {output_dir}/model_performance_dotted_comparison_ty.png and {output_dir}/model_performance_dotted_comparison_ty.pdf")
     # plt.show()
 

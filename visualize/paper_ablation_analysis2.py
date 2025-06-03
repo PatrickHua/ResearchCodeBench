@@ -105,4 +105,5 @@ plt.figtext(0.55, 0.04, 'Positive values = better with paper  |  Negative values
 plt.tight_layout(rect=[0, 0.05, 1, 1])  # Add padding at the bottom for the figtext
 plt.savefig("llm_paper_impact.png", dpi=300, bbox_inches='tight')
 plt.savefig("llm_paper_impact.pdf", bbox_inches='tight')
+plt.savefig("llm_paper_impact.svg", bbox_inches='tight')
 # plt.show()

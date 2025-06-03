@@ -161,7 +161,7 @@ plt.tight_layout()
 # Save high-quality versions for publication
 plt.savefig('snippet_paper_impact_scatter.png', dpi=600, bbox_inches='tight')
 plt.savefig('snippet_paper_impact_scatter.pdf', bbox_inches='tight')
-
+plt.savefig('snippet_paper_impact_scatter.svg', bbox_inches='tight')
 print(f"\nPublication-quality scatter plot saved as 'snippet_paper_impact_scatter.png' and .pdf")
 print(f"Total snippets analyzed: {len(snippet_ids)}")
 print(f"Average difference (with - without paper): {avg_diff:.2f} percentage points")

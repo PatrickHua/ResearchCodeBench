@@ -48,7 +48,8 @@ build_command() {
   CMD="python -m core.analysis.classify_errors"
   
   # Add required arguments
-  CMD+=" --resume_from_ckpt_dir outputs/20llms_greedy/2025-04-24-13-55-17/"
+  # CMD+=" --resume_from_ckpt_dir outputs/20llms_greedy/2025-04-24-13-55-17/"
+  CMD+=" --resume_from_ckpt_dir outputs/20llms_greedy/2025-05-12-17-13-20/"
   CMD+=" --data_folder pset/"
   CMD+=" --problems \"advantage-alignment\" \"Diff-Transformer\" \"DiffusionDPO\" \"DyT\" \"eomt\" \"fractalgen\" \"GMFlow\" \"GPS\" \"grid-cell-conformal-isometry\" \"hyla\" \"LEN\" \"llm-sci-use\" \"minp\" \"OptimalSteps\" \"REPA-E\" \"schedule_free\" \"semanticist\" \"SISS\" \"TabDiff\" \"Tanh-Init\""
   CMD+=" --output_dir outputs/error_classification/"

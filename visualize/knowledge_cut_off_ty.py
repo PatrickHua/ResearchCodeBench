@@ -558,6 +558,8 @@ def create_horizontal_visualization(papers_df, llm_df, output_path):
     # Also save as PDF for publication quality
     pdf_path = output_path.replace('.png', '.pdf')
     plt.savefig(pdf_path, dpi=300, bbox_inches='tight')
+    svg_path = output_path.replace('.png', '.svg')
+    plt.savefig(svg_path, bbox_inches='tight')
     print(f"Visualization also saved as {pdf_path}")
     
     plt.close()

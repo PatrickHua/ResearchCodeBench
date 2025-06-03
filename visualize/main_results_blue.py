@@ -34,7 +34,7 @@ def load_data():
         data = json.load(f)
     return data
 
-def plot_line_rates():
+def plot_line_rates(accuracy_type: str = "line_rates"):
     # Load data
     data = load_data()
     
@@ -47,7 +47,7 @@ def plot_line_rates():
     for model_name, model_data in data['overall_scores'].items():
         pretty_name = model_data['llm_cfg']['pretty_name']
         developer = model_data['llm_cfg']['developer']
-        line_rate = model_data['line_rates']['mean']
+        line_rate = model_data[accuracy_type]['mean']
         is_open = model_data['llm_cfg']['is_open']
         
         models.append(pretty_name)
@@ -356,7 +356,11 @@ def plot_line_rates():
     color = '#888888'  # Darker gray instead of lightgrey
     fontsize = 8
     ax.text(len(sorted_models)+1, -0.05, "Models", ha='center', va='center', transform=ax.get_xaxis_transform(), color=color, fontsize=fontsize, fontweight='bold')
-    ax.text(-0.03, 40.2, "Scaled Pass@1", ha='left', va='bottom', transform=ax.get_yaxis_transform(), color=color, fontsize=fontsize, fontweight='bold')
+
+    if accuracy_type == "line_rates":
+        ax.text(-0.03, 40.2, "Scaled Pass@1", ha='left', va='bottom', transform=ax.get_yaxis_transform(), color=color, fontsize=fontsize, fontweight='bold')
+    else:
+        ax.text(-0.03, 70.2, "Pass@1", ha='left', va='bottom', transform=ax.get_yaxis_transform(), color=color, fontsize=fontsize, fontweight='bold')
 
     # Reduce the gap between y-axis and the leftmost bar
     ax.set_xlim(left=-1, right=len(sorted_models)+0.2)
@@ -369,12 +373,14 @@ def plot_line_rates():
     os.makedirs(output_dir, exist_ok=True)
     
     # Save the plots in different formats for publication
-    plt.savefig(f'{output_dir}/model_line_rates.png', dpi=300, bbox_inches='tight')
-    plt.savefig(f'{output_dir}/model_line_rates.pdf', bbox_inches='tight')
-    print(f"Plots saved to {output_dir}/model_line_rates.png and {output_dir}/model_line_rates.pdf")
+    plt.savefig(f'{output_dir}/model_{accuracy_type}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{output_dir}/model_{accuracy_type}.pdf', bbox_inches='tight')
+    plt.savefig(f'{output_dir}/model_{accuracy_type}.svg', bbox_inches='tight')
+    print(f"Plots saved to {output_dir}/model_{accuracy_type}.png and {output_dir}/model_{accuracy_type}.pdf")
     
     # Show the plot
     # plt.show()
 
 if __name__ == "__main__":
-    plot_line_rates()
+    plot_line_rates(accuracy_type="line_rates")
+    # plot_line_rates(accuracy_type="task_rates")
