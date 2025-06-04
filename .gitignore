@@ -30,6 +30,7 @@ outputs*/
 visualize/outputs/*
 **/outputs/*
 **/*.png
+**/*.svg
 src/
 
 *.pdf
@@ -48,3 +49,8 @@ outputs/20llms_greedy/*/
 !outputs/20llms_greedy/2025-05-12-17-13-20/
 outputs/20llms_greedy/2025-05-12-17-13-20/*
 !outputs/20llms_greedy/2025-05-12-17-13-20/overall_stats.json
+
+
+
+
+ignored/
