@@ -1,4 +1,4 @@
-name: paper2code
+name: researchcodebench
 channels:
   - pytorch
   - nvidia

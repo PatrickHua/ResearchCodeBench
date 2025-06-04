@@ -1,6 +1,6 @@
 # ResearchCodeBench
 
-**Anonymous repository** for the paper _ResearchCodeBench: Benchmarking LLMs on Implementing Novel Machine Learning Research Code_ (under submission to NeurIPS 2025).
+
 
 ---
 
@@ -9,7 +9,7 @@
 1. **Create and activate the Conda environment**  
    ```bash
    conda env create -f environment.yml
-   conda activate paper2code
+   conda activate researchcodebench
    ```
 
 2. **Run the sanity check**  
